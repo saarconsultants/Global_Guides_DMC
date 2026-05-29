@@ -54,6 +54,25 @@ app.get('/', (_req, res) => {
   res.send('Tripjack proxy. POST /tripjack/<path>');
 });
 
+// ─── Diagnostic: outbound IP ──────────────────────────────────────────────
+// Hits an external IP-echo service and reports back the public IP that
+// requests originate from. Useful for telling Tripjack which IP to whitelist.
+app.get('/whoami', async (_req, res) => {
+  try {
+    const [v4, v6] = await Promise.allSettled([
+      fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(5_000) }).then((r) => r.json()),
+      fetch('https://api64.ipify.org?format=json', { signal: AbortSignal.timeout(5_000) }).then((r) => r.json()),
+    ]);
+    res.json({
+      ipv4: v4.status === 'fulfilled' ? (v4.value as any).ip : null,
+      ipv4OrIpv6: v6.status === 'fulfilled' ? (v6.value as any).ip : null,
+      hint: 'Email this ipv4 value to Tripjack for whitelisting. If ipv4 is null but ipv4OrIpv6 has an IPv6, Tripjack likely won’t accept it.',
+    });
+  } catch (e: any) {
+    res.status(502).json({ error: String(e?.message ?? e) });
+  }
+});
+
 // ─── Proxy ─────────────────────────────────────────────────────────────────
 app.all('/tripjack/*', async (req: Request, res: Response) => {
   // 1. Auth: require the shared secret
