@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --text-primary: 15 23 42;
+    --text-secondary: 71 85 105;
+    --text-tertiary: 100 116 139;
+  }
+  html { font-family: var(--font-jakarta), ui-sans-serif, system-ui; }
+  body { @apply bg-canvas text-[rgb(var(--text-primary))] antialiased; }
+  *:focus-visible { @apply outline-none ring-2 ring-crimson-500 ring-offset-2 ring-offset-canvas; }
+
+  /* Smooth scroll for in-page anchor jumps (Quick-nav rail) */
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Polished scrollbar (webkit) */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #D0D6E1; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #94A3B8; border: 2px solid transparent; background-clip: padding-box; }
+
+  /* Native dialog backdrop polish */
+  dialog::backdrop { animation: backdropFade 200ms ease-out; }
+  @keyframes backdropFade { from { opacity: 0; } to { opacity: 1; } }
+  dialog[open] { animation: dialogIn 200ms cubic-bezier(0.2, 0, 0, 1); }
+  @keyframes dialogIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  /* Selection */
+  ::selection { background: rgb(3 105 161 / 0.2); color: #081428; }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .glass-dark {
+    background: rgba(8, 20, 40, 0.55);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Subtle ambient gradient backdrop used in dashboards */
+  .ambient {
+    background:
+      radial-gradient(60% 60% at 0% 0%, rgb(201 162 74 / 0.05) 0%, transparent 50%),
+      radial-gradient(60% 60% at 100% 0%, rgb(3 105 161 / 0.05) 0%, transparent 50%);
+  }
+
+  /* Hover lift for cards */
+  .lift { transition: transform 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1); }
+  .lift:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -6px rgb(16 39 71 / 0.12); }
+
+  /* Stagger fade-in for list children */
+  .stagger > * { opacity: 0; transform: translateY(6px); animation: stagger 320ms cubic-bezier(0.2, 0, 0, 1) forwards; }
+  .stagger > *:nth-child(1)  { animation-delay: 40ms; }
+  .stagger > *:nth-child(2)  { animation-delay: 80ms; }
+  .stagger > *:nth-child(3)  { animation-delay: 120ms; }
+  .stagger > *:nth-child(4)  { animation-delay: 160ms; }
+  .stagger > *:nth-child(5)  { animation-delay: 200ms; }
+  .stagger > *:nth-child(6)  { animation-delay: 240ms; }
+  .stagger > *:nth-child(7)  { animation-delay: 280ms; }
+  .stagger > *:nth-child(8)  { animation-delay: 320ms; }
+  .stagger > *:nth-child(n+9){ animation-delay: 360ms; }
+  @keyframes stagger { to { opacity: 1; transform: translateY(0); } }
+}

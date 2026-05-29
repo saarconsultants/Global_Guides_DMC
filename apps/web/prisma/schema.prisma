@@ -1,0 +1,269 @@
+// Global Guides — Multi-tenant SaaS schema
+// Personas: SUPER_ADMIN (platform owner) · AGENCY_OWNER · COUNSELLOR · OPS
+// Tenancy: Agency (with brand + status + slug). All CRM rows are agency-scoped.
+// Revenue: CommissionRule (per-agency or platform-wide) → CommissionEntry per proposal/booking.
+// Templates: SUPER_ADMIN publishes ItineraryTemplate; agencies clone them into Proposals.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─────────────────────────────────────────── Tenancy ───────────────────────────────────────────
+
+model Agency {
+  id            String   @id @default(cuid())
+  code          String   @unique         // GGN######
+  slug          String   @unique         // url-safe handle, used for subdomains later
+  name          String
+  contact       String?
+  email         String?
+  status        String   @default("ACTIVE")  // PENDING | ACTIVE | SUSPENDED
+  // Branding (white-label)
+  logoUrl       String?
+  primaryColor  String?  // hex, e.g. #0369A1
+  accentColor   String?  // hex, e.g. #C9A24A
+  tagline       String?
+  footerText    String?  // shown on customer-facing share page
+  supportEmail  String?  // for customer page contact
+  supportPhone  String?
+  // Commercials
+  markupPct     Float    @default(15)   // default agency markup over net
+  markupConfigJson String?               // JSON: per-product overrides, e.g. { FLIGHT: 5, HOTEL: 12 }
+  walletPaise   BigInt   @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  users             User[]
+  leads             Lead[]
+  proposals         Proposal[]
+  bookings          Booking[]
+  walletTxns        WalletTxn[]
+  invites           Invite[]
+  commissionRules   CommissionRule[]
+  commissionEntries CommissionEntry[]
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String                            // bcrypt
+  role          String   @default("COUNSELLOR")   // SUPER_ADMIN | AGENCY_OWNER | COUNSELLOR | OPS
+  agencyId      String?                            // null for SUPER_ADMIN (platform-level user)
+  agency        Agency?  @relation(fields: [agencyId], references: [id])
+  lastLoginAt   DateTime?
+  welcomeDismissedAt DateTime?                   // /dashboard onboarding card
+  createdAt     DateTime @default(now())
+
+  proposals     Proposal[]                        // counsellor who created it
+}
+
+model Invite {
+  id            String   @id @default(cuid())
+  agencyId      String
+  agency        Agency   @relation(fields: [agencyId], references: [id])
+  email         String
+  role          String   @default("COUNSELLOR")
+  token         String   @unique
+  acceptedAt    DateTime?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+}
+
+// ─────────────────────────────────────────── CRM ───────────────────────────────────────────
+
+model Lead {
+  id            String    @id @default(cuid())
+  agencyId      String
+  agency        Agency    @relation(fields: [agencyId], references: [id])
+  customerName  String
+  customerEmail String?
+  customerPhone String?
+  destinations  String     // CSV of city codes
+  originCity    String?
+  travelDate    DateTime?
+  nights        Int?
+  source        String    @default("manual")
+  status        String    @default("NEW")   // NEW | QUOTED | FOLLOWUP | BOOKED | LOST
+  createdAt     DateTime  @default(now())
+  proposals     Proposal[]
+  notes         LeadNote[]
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String?
+  body      String
+  kind      String   @default("NOTE")     // NOTE | CALL | EMAIL | WHATSAPP | SYSTEM
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  agencyId    String                          // tenant scope
+  userId      String?                          // null = whole agency; else specific user
+  kind        String                           // PROPOSAL_VIEWED | PROPOSAL_ACCEPTED | PROPOSAL_DECLINED | LEAD_NEW | LEAD_FOLLOWUP | BOOKING_CONFIRMED | TEAM_JOINED
+  title       String
+  body        String?
+  href        String?                          // where the bell click should navigate
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([agencyId, readAt, createdAt])
+}
+
+model Proposal {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id])
+  ownerUserId     String?
+  ownerUser       User?    @relation(fields: [ownerUserId], references: [id])
+  leadId          String?
+  lead            Lead?    @relation(fields: [leadId], references: [id])
+  templateId      String?  // if cloned from an ItineraryTemplate
+  template        ItineraryTemplate? @relation(fields: [templateId], references: [id])
+
+  name            String
+  travelDate      DateTime
+  nationality     String
+  travelers       String   // JSON
+  destinations    String   // JSON
+  days            String   // JSON
+  flights         String?  // JSON
+  visa            String   // JSON
+  insurance       String   // JSON
+
+  // Pricing — net of supplier, plus agency markup, plus platform commission
+  netCostPaise        BigInt   @default(0)   // raw supplier cost
+  markupPaise         BigInt   @default(0)   // agency margin
+  pricePaise          BigInt                  // what customer pays
+  pricePerAdultPaise  BigInt
+  currency            String   @default("INR")
+
+  shareToken      String   @unique
+  lastViewedAt    DateTime?
+  acceptedAt      DateTime?
+  status          String   @default("DRAFT")  // DRAFT | SENT | VIEWED | ACCEPTED | DECLINED | BOOKED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookings          Booking[]
+  commissionEntries CommissionEntry[]
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  agencyId    String
+  agency      Agency   @relation(fields: [agencyId], references: [id])
+  proposalId  String
+  proposal    Proposal @relation(fields: [proposalId], references: [id])
+  pnrs        String?
+  paidPaise   BigInt   @default(0)
+  status      String   @default("PENDING")  // PENDING | CONFIRMED | CANCELLED
+  bookedAt    DateTime @default(now())
+}
+
+model WalletTxn {
+  id          String   @id @default(cuid())
+  agencyId    String
+  agency      Agency   @relation(fields: [agencyId], references: [id])
+  type        String                       // CREDIT | DEBIT | REFUND
+  amountPaise BigInt
+  ref         String?
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+// ─────────────────────────────────────────── Platform: Templates ───────────────────────────────────────────
+
+model ItineraryTemplate {
+  id            String   @id @default(cuid())
+  code          String   @unique          // TPL-####
+  // Authored by SUPER_ADMIN (platform). Visible to all active agencies.
+  title         String                     // "Best of France 7N"
+  hero          String?                    // hero image URL
+  destinations  String                     // JSON: DestinationConfig[]
+  totalNights   Int
+  startingPricePaise BigInt
+  category      String   @default("LEISURE") // LEISURE | HONEYMOON | FAMILY | LUXURY | ADVENTURE
+  region        String                     // EUROPE | SE_ASIA | MIDDLE_EAST | etc.
+  blurb         String                     // short pitch shown on the card
+  // Snapshot used to clone into a Proposal — same JSON shape as Proposal fields
+  daysJson      String                     // JSON: Day[]
+  visaJson      String
+  insuranceJson String
+  published     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  proposals     Proposal[]
+}
+
+// ─────────────────────────────────────────── Commissions ───────────────────────────────────────────
+// Rules cascade: agency-specific rule > platform default rule. Highest specificity wins.
+// Scope of `agencyId`: null = platform default (applies to ALL agencies); set = only that agency.
+
+model CommissionRule {
+  id            String   @id @default(cuid())
+  agencyId      String?                    // null = platform default
+  agency        Agency?  @relation(fields: [agencyId], references: [id])
+  productType   String                     // FLIGHT | HOTEL | TRANSFER | ACTIVITY | VISA | INSURANCE | INVOICE_TOTAL
+  // Either a % or a flat paise amount. % preferred for variable-cost line items.
+  percent       Float?                     // e.g. 5.0 = 5 %
+  flatPaise     BigInt?                    // optional flat fee
+  appliesTo     String   @default("NET")   // NET | MARKUP | TOTAL (what the % is applied to)
+  active        Boolean  @default(true)
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CommissionEntry {
+  id            String   @id @default(cuid())
+  agencyId      String
+  agency        Agency   @relation(fields: [agencyId], references: [id])
+  proposalId    String
+  proposal      Proposal @relation(fields: [proposalId], references: [id])
+  productType   String                     // mirrors CommissionRule.productType
+  basisPaise    BigInt                     // the amount the percent/flat applied to
+  amountPaise   BigInt                     // commission earned by the platform
+  note          String?
+  createdAt     DateTime @default(now())
+}
+
+// ─────────────────────────────────────────── Quality / feedback ───────────────────────────────────────────
+
+model BugReport {
+  id          String   @id @default(cuid())
+  // Reporter (nullable so a logged-out customer on /p/[token] could also report)
+  agencyId    String?
+  userId      String?
+  userName    String?
+  userEmail   String?
+  // What
+  severity    String   @default("MEDIUM")   // LOW | MEDIUM | HIGH | BLOCKER
+  category    String   @default("BUG")      // BUG | UX | DATA | PERFORMANCE | FEATURE_REQUEST | OTHER
+  title       String
+  body        String                        // free text
+  // Context auto-captured
+  pageUrl     String?
+  userAgent   String?
+  viewport    String?                       // "1440x900"
+  // Triage
+  status      String   @default("OPEN")     // OPEN | TRIAGED | IN_PROGRESS | FIXED | WONTFIX | DUPLICATE
+  resolvedAt  DateTime?
+  resolvedBy  String?                       // user id
+  resolution  String?
+  createdAt   DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([agencyId, createdAt])
+}

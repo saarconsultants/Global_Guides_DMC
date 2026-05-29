@@ -1,0 +1,105 @@
+import { Card, CardContent } from '@/components/ui/card';
+import { Pill } from '@/components/ui/pill';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Button } from '@/components/ui/button';
+import { listProposals } from '@/lib/db/proposals';
+import { formatINR, formatDateShort } from '@/lib/utils';
+import { FileText, ExternalLink, Copy, Search, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
+import { duplicateProposalAction } from '@/app/actions/duplicate-proposal';
+
+export const dynamic = 'force-dynamic';
+
+const statusVariant: Record<string, 'neutral' | 'info' | 'success' | 'warning' | 'danger'> = {
+  DRAFT: 'neutral', SENT: 'info', VIEWED: 'info', ACCEPTED: 'success', BOOKED: 'success', DECLINED: 'danger',
+};
+
+export default async function ProposalsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+  const sp = await searchParams;
+  const rows = await listProposals({ q: sp.q, status: sp.status });
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+      <PageHeader
+        title="My proposals"
+        description="Quotes you've prepared. Click a row to open it. Customer views update status automatically."
+        actions={<Link href="/itinerary/new"><Button>New proposal</Button></Link>}
+      />
+
+      <Card>
+        <CardContent className="pt-5">
+          <form method="GET" action="/proposals" className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
+              <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
+            </div>
+            <select name="status" defaultValue={sp.status ?? ''} className="h-10 rounded-sm border border-border bg-surface px-3 text-sm">
+              <option value="">All statuses</option>
+              {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
+            </select>
+            <Button variant="secondary" className="gap-1.5"><Filter className="w-4 h-4" />Filter</Button>
+            {(sp.q || sp.status) && <Link href="/proposals" className="text-xs text-danger-500 hover:underline">× clear</Link>}
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-2">
+          {rows.length === 0 ? (
+            <EmptyState
+              icon={<FileText className="w-7 h-7" />}
+              title="No proposals yet"
+              body="Build a trip and click Save As Proposal. Your saved quotes will live here, with status updates the moment your customer opens the share link."
+              primary={{ label: 'Build a proposal', href: '/itinerary/new' }}
+              secondary={{ label: 'See templates', href: '/suggested' }}
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
+                    <th className="py-3 pr-4 font-semibold">Proposal #</th>
+                    <th className="py-3 pr-4 font-semibold">Customer</th>
+                    <th className="py-3 pr-4 font-semibold">Trip</th>
+                    <th className="py-3 pr-4 font-semibold">Travel</th>
+                    <th className="py-3 pr-4 font-semibold">Created</th>
+                    <th className="py-3 pr-4 font-semibold text-right">Price</th>
+                    <th className="py-3 pr-4 font-semibold">Status</th>
+                    <th className="py-3 pr-4 font-semibold">Share</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((p) => (
+                    <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">
+                      <td className="py-3 pr-4 font-mono text-xs">
+                        <Link href={`/itinerary/${p.id}/customize` as any} className="text-crimson-700 hover:underline">{p.code}</Link>
+                      </td>
+                      <td className="py-3 pr-4">{p.lead?.customerName ?? '—'}</td>
+                      <td className="py-3 pr-4">{p.name}</td>
+                      <td className="py-3 pr-4">{formatDateShort(p.travelDate)}</td>
+                      <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(p.createdAt)}</td>
+                      <td className="py-3 pr-4 font-mono text-right">{formatINR(p.pricePaise)}</td>
+                      <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
+                      <td className="py-3 pr-4">
+                        <div className="inline-flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline" title="Open customer link">
+                            Open <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <form action={duplicateProposalAction.bind(null, p.id)} className="inline">
+                            <button className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Duplicate as a new draft"><Copy className="w-3 h-3" />Copy</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -1,0 +1,45 @@
+{
+  "searchedAt": "2026-05-25T12:00:00.000Z",
+  "source": "mock",
+  "options": [
+    {
+      "hotelId": "TJ-HM-001",
+      "name": "Mercure Paris Boulogne",
+      "stars": 4,
+      "address": "37 Place Rene Clair, Boulogne-Billancourt",
+      "city": "Paris",
+      "rating": { "score": 8.4, "label": "Very Good", "reviewCount": 552 },
+      "thumbnail": "",
+      "pricePerNightPaise": 1485000,
+      "totalPaise": 4455000,
+      "refundable": true,
+      "mealPlan": "Room Only"
+    },
+    {
+      "hotelId": "TJ-HM-002",
+      "name": "Hotel Pullman Paris Tour Eiffel",
+      "stars": 5,
+      "address": "18 Avenue de Suffren, 75015 Paris",
+      "city": "Paris",
+      "rating": { "score": 8.9, "label": "Excellent", "reviewCount": 2104 },
+      "thumbnail": "",
+      "pricePerNightPaise": 2890000,
+      "totalPaise": 8670000,
+      "refundable": true,
+      "mealPlan": "Breakfast Included"
+    },
+    {
+      "hotelId": "TJ-HM-003",
+      "name": "Ibis Paris Tour Eiffel Cambronne",
+      "stars": 3,
+      "address": "2 Rue Cambronne, 75015 Paris",
+      "city": "Paris",
+      "rating": { "score": 7.6, "label": "Good", "reviewCount": 1320 },
+      "thumbnail": "",
+      "pricePerNightPaise": 850000,
+      "totalPaise": 2550000,
+      "refundable": false,
+      "mealPlan": "Room Only"
+    }
+  ]
+}

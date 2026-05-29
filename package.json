@@ -1,0 +1,19 @@
+{
+  "name": "global-guides",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Global Guides DMC — B2B travel agent platform (NexusDMC-style)",
+  "workspaces": [
+    "apps/*",
+    "packages/adapters/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace apps/web run dev",
+    "build": "npm --workspace apps/web run build",
+    "start": "npm --workspace apps/web run start",
+    "lint": "npm --workspace apps/web run lint"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

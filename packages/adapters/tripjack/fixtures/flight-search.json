@@ -1,0 +1,101 @@
+{
+  "searchedAt": "2026-05-25T12:00:00.000Z",
+  "source": "mock",
+  "offers": [
+    {
+      "priceId": "TJ-MOCK-PR-001",
+      "segments": [
+        {
+          "id": "MOCK-1",
+          "airlineCode": "AI",
+          "airlineName": "Air India",
+          "isLcc": false,
+          "flightNumber": "131",
+          "equipment": "788",
+          "departureAirport": { "code": "DEL", "name": "Indira Gandhi Intl", "city": "Delhi", "terminal": "3" },
+          "arrivalAirport":   { "code": "CDG", "name": "Charles de Gaulle", "city": "Paris", "terminal": "2C" },
+          "departureAt": "2026-12-15T13:30",
+          "arrivalAt":   "2026-12-15T19:45",
+          "durationMin": 555
+        }
+      ],
+      "refundable": true,
+      "cabin": "ECONOMY",
+      "fareType": "REGULAR",
+      "fare": { "baseFarePaise": 4250000, "taxesPaise": 1180000, "totalPaise": 5430000, "currency": "INR" },
+      "baggage": "1 PC × 23 KG"
+    },
+    {
+      "priceId": "TJ-MOCK-PR-002",
+      "segments": [
+        {
+          "id": "MOCK-2A",
+          "airlineCode": "EK",
+          "airlineName": "Emirates",
+          "isLcc": false,
+          "flightNumber": "511",
+          "equipment": "77W",
+          "departureAirport": { "code": "DEL", "name": "Indira Gandhi Intl", "city": "Delhi", "terminal": "3" },
+          "arrivalAirport":   { "code": "DXB", "name": "Dubai International", "city": "Dubai", "terminal": "3" },
+          "departureAt": "2026-12-15T04:15",
+          "arrivalAt":   "2026-12-15T06:35",
+          "durationMin": 200
+        },
+        {
+          "id": "MOCK-2B",
+          "airlineCode": "EK",
+          "airlineName": "Emirates",
+          "isLcc": false,
+          "flightNumber": "73",
+          "equipment": "388",
+          "departureAirport": { "code": "DXB", "name": "Dubai International", "city": "Dubai", "terminal": "3" },
+          "arrivalAirport":   { "code": "CDG", "name": "Charles de Gaulle", "city": "Paris", "terminal": "2C" },
+          "departureAt": "2026-12-15T08:25",
+          "arrivalAt":   "2026-12-15T13:55",
+          "durationMin": 450
+        }
+      ],
+      "refundable": false,
+      "cabin": "ECONOMY",
+      "fareType": "REGULAR",
+      "fare": { "baseFarePaise": 3680000, "taxesPaise": 1020000, "totalPaise": 4700000, "currency": "INR" },
+      "baggage": "1 PC × 30 KG"
+    },
+    {
+      "priceId": "TJ-MOCK-PR-003",
+      "segments": [
+        {
+          "id": "MOCK-3A",
+          "airlineCode": "LH",
+          "airlineName": "Lufthansa",
+          "isLcc": false,
+          "flightNumber": "761",
+          "equipment": "A359",
+          "departureAirport": { "code": "DEL", "name": "Indira Gandhi Intl", "city": "Delhi", "terminal": "3" },
+          "arrivalAirport":   { "code": "FRA", "name": "Frankfurt", "city": "Frankfurt", "terminal": "1" },
+          "departureAt": "2026-12-15T13:50",
+          "arrivalAt":   "2026-12-15T19:25",
+          "durationMin": 515
+        },
+        {
+          "id": "MOCK-3B",
+          "airlineCode": "LH",
+          "airlineName": "Lufthansa",
+          "isLcc": false,
+          "flightNumber": "1050",
+          "equipment": "32N",
+          "departureAirport": { "code": "FRA", "name": "Frankfurt", "city": "Frankfurt", "terminal": "1" },
+          "arrivalAirport":   { "code": "CDG", "name": "Charles de Gaulle", "city": "Paris", "terminal": "1" },
+          "departureAt": "2026-12-15T21:00",
+          "arrivalAt":   "2026-12-15T22:30",
+          "durationMin": 90
+        }
+      ],
+      "refundable": true,
+      "cabin": "ECONOMY",
+      "fareType": "REGULAR",
+      "fare": { "baseFarePaise": 5100000, "taxesPaise": 1340000, "totalPaise": 6440000, "currency": "INR" },
+      "baggage": "1 PC × 23 KG"
+    }
+  ]
+}

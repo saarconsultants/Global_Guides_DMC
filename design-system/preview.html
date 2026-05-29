@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Global Guides DMC — Design System Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-50:#EEF2F7;--navy-100:#D7DEEA;--navy-200:#AAB6CD;--navy-500:#1E3A66;--navy-700:#102747;--navy-900:#081428;
+    --gold-300:#E9CC8A;--gold-500:#C9A24A;--gold-700:#8E6E1F;
+    --action-100:#E0F2FE;--action-500:#0369A1;--action-600:#075985;--action-700:#0C4A6E;
+    --canvas:#F7F9FC;--surface:#FFFFFF;--surface-2:#F1F4F9;
+    --border-subtle:#E5E9F0;--border-default:#D0D6E1;
+    --text-primary:#0F172A;--text-secondary:#475569;--text-tertiary:#64748B;
+    --success-100:#DCFCE7;--success-500:#16A34A;
+    --warning-100:#FEF3C7;--warning-500:#D97706;
+    --danger-100:#FEE2E2;--danger-500:#DC2626;
+    --shadow-sm:0 2px 6px -1px rgb(16 39 71 / .06),0 1px 3px -1px rgb(16 39 71 / .04);
+    --shadow-md:0 6px 14px -3px rgb(16 39 71 / .08),0 3px 6px -2px rgb(16 39 71 / .05);
+    --shadow-lg:0 12px 28px -6px rgb(16 39 71 / .12),0 6px 12px -4px rgb(16 39 71 / .06);
+    --shadow-xl:0 24px 48px -12px rgb(16 39 71 / .18);
+    --ease-standard:cubic-bezier(.2,0,0,1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--canvas);color:var(--text-primary);font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--action-500);text-decoration:none}
+  a:hover{text-decoration:underline;text-underline-offset:3px}
+  code,kbd,samp{font-family:"JetBrains Mono",ui-monospace}
+  .container{max-width:1200px;margin:0 auto;padding:48px 24px}
+  h1,h2,h3,h4{margin:0 0 12px;font-weight:700;letter-spacing:-.02em;color:var(--navy-900)}
+  h1{font-size:2.25rem;line-height:1.15}
+  h2{font-size:1.5rem;line-height:1.3;margin-top:48px;border-bottom:1px solid var(--border-subtle);padding-bottom:8px}
+  h3{font-size:1.125rem;letter-spacing:-.005em}
+  .eyebrow{font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary);font-weight:700;margin-bottom:4px}
+  .muted{color:var(--text-secondary)}
+  .mono{font-family:"JetBrains Mono"}
+
+  /* swatches */
+  .swatch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+  .swatch{border-radius:14px;padding:14px;color:white;box-shadow:var(--shadow-sm);min-height:96px;display:flex;flex-direction:column;justify-content:space-between}
+  .swatch small{opacity:.85;font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase}
+  .swatch b{font-family:"JetBrains Mono";font-size:.875rem;font-weight:500}
+  .swatch.light{color:var(--navy-900);border:1px solid var(--border-subtle)}
+
+  /* type ramp */
+  .type-row{display:grid;grid-template-columns:160px 1fr;gap:24px;align-items:baseline;padding:14px 0;border-bottom:1px dashed var(--border-subtle)}
+  .type-row span:first-child{color:var(--text-secondary);font-size:.875rem;font-family:"JetBrains Mono"}
+
+  /* generic */
+  .grid{display:grid;gap:20px}
+  .cols-2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+  .card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;box-shadow:var(--shadow-sm);padding:24px}
+  .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:500}
+  .pill.neutral{background:var(--navy-50);color:var(--navy-700)}
+  .pill.success{background:var(--success-100);color:var(--success-500)}
+  .pill.warning{background:var(--warning-100);color:var(--warning-500)}
+  .pill.danger{background:var(--danger-100);color:var(--danger-500)}
+  .pill.info{background:var(--action-100);color:var(--action-500)}
+  .pill.gold{background:var(--gold-300);color:var(--gold-700)}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:10px;font-size:.875rem;font-weight:600;cursor:pointer;border:1px solid transparent;transition:background-color .2s var(--ease-standard),box-shadow .2s var(--ease-standard);font-family:inherit}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 4px rgb(3 105 161 / .25)}
+  .btn-primary{background:var(--action-500);color:#fff}
+  .btn-primary:hover{background:var(--action-600)}
+  .btn-secondary{background:var(--surface-2);color:var(--navy-900);border-color:var(--border-default)}
+  .btn-secondary:hover{background:var(--navy-50)}
+  .btn-outline{background:transparent;color:var(--navy-900);border-color:var(--navy-900)}
+  .btn-outline:hover{background:var(--navy-50)}
+  .btn-ghost{background:transparent;color:var(--navy-700)}
+  .btn-ghost:hover{background:var(--navy-50)}
+  .btn-brick{background:#B94025;color:#fff}
+  .btn-brick:hover{background:#9D3520}
+  .btn-accent{background:var(--gold-500);color:var(--navy-900)}
+  .btn-accent:hover{background:var(--gold-700);color:#fff}
+  .btn-danger{background:var(--danger-500);color:#fff}
+  .btn-sm{height:32px;padding:0 12px;font-size:.8125rem}
+  .btn-lg{height:48px;padding:0 22px;font-size:1rem}
+
+  /* input */
+  .field{display:flex;flex-direction:column;gap:6px}
+  .label{font-size:.875rem;font-weight:500;color:var(--text-secondary)}
+  .input{height:40px;padding:0 12px;border:1px solid var(--border-default);background:var(--surface);border-radius:8px;font-family:inherit;font-size:.875rem;color:var(--text-primary);transition:border-color .15s,box-shadow .15s}
+  .input::placeholder{color:var(--text-tertiary)}
+  .input:focus{outline:none;border-color:var(--action-500);box-shadow:0 0 0 4px rgb(3 105 161 / .15)}
+
+  /* KPI tile */
+  .kpi{background:var(--surface);border:1px solid var(--border-subtle);border-radius:18px;padding:22px;box-shadow:var(--shadow-sm);transition:box-shadow .2s var(--ease-standard);cursor:default}
+  .kpi:hover{box-shadow:var(--shadow-md)}
+  .kpi .num{font-size:2.25rem;font-weight:700;color:var(--navy-900);font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.1}
+  .kpi.gold .num{color:var(--gold-700)}
+  .kpi .lbl{font-size:.875rem;color:var(--text-secondary);margin-top:6px}
+
+  /* hotel card */
+  .hotel-card{display:grid;grid-template-columns:140px 1fr auto;gap:20px;padding:20px;background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;box-shadow:var(--shadow-sm)}
+  .hotel-card .photo{width:140px;height:140px;border-radius:10px;background:linear-gradient(135deg,#3a4a6b,#1e3a66);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:.75rem}
+  .stars{color:var(--gold-500);letter-spacing:2px}
+  .score{display:inline-flex;align-items:center;background:var(--action-500);color:#fff;padding:4px 8px;border-radius:8px;font-weight:600;font-size:.8125rem;font-variant-numeric:tabular-nums}
+  .chk-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:12px;padding:12px 0;border-top:1px dashed var(--border-subtle)}
+  .inclusions{margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:.875rem;color:var(--text-primary)}
+  .inclusions span:before{content:"✓ ";color:var(--success-500);font-weight:700;margin-right:6px}
+
+  /* day card */
+  .day-card{background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm)}
+  .day-card .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .day-card .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:var(--surface-2);border-radius:10px;padding:12px 14px;margin:14px 0}
+  .slot{display:flex;flex-direction:column;gap:6px}
+  .slot small{font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary);font-weight:700}
+  .banner{background:var(--danger-100);color:var(--danger-500);padding:10px 14px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.875rem}
+  .banner b{font-weight:600}
+
+  /* glass */
+  .glass{background:rgba(255,255,255,.62);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.6);border-radius:18px;padding:24px;box-shadow:var(--shadow-md)}
+  .hero{position:relative;border-radius:24px;padding:48px;overflow:hidden;background:linear-gradient(135deg,#1E3A66 0%,#0C4A6E 60%,#081428 100%);color:#fff}
+  .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 10%,rgba(201,162,74,.35),transparent 40%),radial-gradient(circle at 80% 80%,rgba(56,189,248,.25),transparent 35%);pointer-events:none}
+  .hero h1{color:#fff;font-size:2.75rem;line-height:1.05}
+  .hero .accent{color:var(--gold-300);font-family:"Fraunces",serif;font-style:italic;font-weight:400}
+
+  /* top nav demo */
+  .topnav{background:var(--navy-900);color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;gap:24px;border-radius:14px;box-shadow:var(--shadow-md)}
+  .topnav .logo{font-weight:800;letter-spacing:-.02em}
+  .topnav .links{display:flex;gap:20px;font-size:.875rem;color:var(--navy-100)}
+  .topnav .links a{color:inherit}
+  .topnav .links a.active{color:#fff;border-bottom:2px solid var(--gold-500);padding-bottom:18px}
+  .topnav .right{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:.8125rem;color:var(--navy-100)}
+  .esc{background:var(--gold-500);color:var(--navy-900);padding:4px 10px;border-radius:9999px;font-weight:700;font-size:.75rem}
+
+  /* shape */
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  /* table */
+  table.dt{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;overflow:hidden}
+  .dt thead th{font-size:.8125rem;font-weight:600;color:var(--text-secondary);text-align:left;padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--border-subtle)}
+  .dt tbody td{padding:12px 14px;font-size:.875rem;border-bottom:1px solid var(--border-subtle);color:var(--text-primary)}
+  .dt tbody tr:last-child td{border-bottom:none}
+  .dt tbody tr:hover{background:var(--surface-2)}
+  .filter-row td{padding:6px 8px}
+  .filter-row input{width:100%;height:30px;border-radius:6px;border:1px solid var(--border-default);padding:0 8px;font-size:.8125rem}
+
+  .grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <p class="eyebrow">Global Guides DMC</p>
+  <h1>Design system preview</h1>
+  <p class="muted">Tokens · components · in-context examples. Stack target: Tailwind + shadcn/ui + Next.js. See <code>tokens.md</code> &amp; <code>components.md</code>.</p>
+
+  <!-- hero -->
+  <h2>Hero / brand voice</h2>
+  <div class="hero">
+    <p style="opacity:.7;letter-spacing:.12em;text-transform:uppercase;font-size:.75rem;margin:0">For travel agents</p>
+    <h1 style="margin-top:8px">Build a proposal your clients<br/><span class="accent">actually want to read.</span></h1>
+    <p style="opacity:.85;max-width:520px;margin-top:8px">AI-assisted itinerary builder, live hotel + transfer + tour pricing, and a shareable proposal link — all in one workspace.</p>
+    <div class="row" style="margin-top:20px">
+      <button class="btn btn-primary" style="background:#fff;color:var(--navy-900)">Start a free trip</button>
+      <button class="btn btn-outline" style="border-color:rgba(255,255,255,.4);color:#fff">Watch demo</button>
+    </div>
+  </div>
+
+  <!-- top nav -->
+  <h2>Top nav (app)</h2>
+  <nav class="topnav">
+    <span class="logo">GG.</span>
+    <div class="links">
+      <a class="active" href="#">Home</a><a href="#">Flights</a><a href="#">Holidays</a><a href="#">Hotels</a><a href="#">Marketing</a><a href="#">My Leads</a><a href="#">Settings</a><a href="#">Account Statement</a>
+    </div>
+    <div class="right">
+      <span>Contact</span><span>Write to us</span><span class="esc">Escalate</span><span>Recharge ₹ 0</span><span>Bipin ▾</span>
+    </div>
+  </nav>
+
+  <!-- colour swatches -->
+  <h2>Colour palette</h2>
+  <p class="muted">Navy primary · warm gold accent · sky-blue CTA · cool slate neutrals.</p>
+  <h3 style="margin-top:24px">Brand</h3>
+  <div class="swatch-grid">
+    <div class="swatch" style="background:#081428"><small>navy.900</small><b>#081428</b></div>
+    <div class="swatch" style="background:#102747"><small>navy.700</small><b>#102747</b></div>
+    <div class="swatch" style="background:#1E3A66"><small>navy.500</small><b>#1E3A66</b></div>
+    <div class="swatch light" style="background:#AAB6CD"><small>navy.200</small><b>#AAB6CD</b></div>
+    <div class="swatch light" style="background:#D7DEEA"><small>navy.100</small><b>#D7DEEA</b></div>
+    <div class="swatch light" style="background:#EEF2F7"><small>navy.50</small><b>#EEF2F7</b></div>
+    <div class="swatch light" style="background:#E9CC8A"><small>gold.300</small><b>#E9CC8A</b></div>
+    <div class="swatch" style="background:#C9A24A"><small>gold.500</small><b>#C9A24A</b></div>
+    <div class="swatch" style="background:#8E6E1F"><small>gold.700</small><b>#8E6E1F</b></div>
+  </div>
+
+  <h3 style="margin-top:20px">Action / CTA</h3>
+  <div class="swatch-grid">
+    <div class="swatch light" style="background:#E0F2FE"><small>action.100</small><b>#E0F2FE</b></div>
+    <div class="swatch" style="background:#0369A1"><small>action.500</small><b>#0369A1</b></div>
+    <div class="swatch" style="background:#075985"><small>action.600</small><b>#075985</b></div>
+    <div class="swatch" style="background:#0C4A6E"><small>action.700</small><b>#0C4A6E</b></div>
+  </div>
+
+  <h3 style="margin-top:20px">Semantic</h3>
+  <div class="swatch-grid">
+    <div class="swatch" style="background:#16A34A"><small>success.500</small><b>#16A34A</b></div>
+    <div class="swatch" style="background:#D97706"><small>warning.500</small><b>#D97706</b></div>
+    <div class="swatch" style="background:#DC2626"><small>danger.500</small><b>#DC2626</b></div>
+    <div class="swatch" style="background:#2563EB"><small>info.500</small><b>#2563EB</b></div>
+  </div>
+
+  <h3 style="margin-top:20px">Neutrals</h3>
+  <div class="swatch-grid">
+    <div class="swatch light" style="background:#F7F9FC"><small>canvas</small><b>#F7F9FC</b></div>
+    <div class="swatch light" style="background:#FFFFFF"><small>surface</small><b>#FFFFFF</b></div>
+    <div class="swatch light" style="background:#F1F4F9"><small>surface-2</small><b>#F1F4F9</b></div>
+    <div class="swatch light" style="background:#E5E9F0"><small>border-subtle</small><b>#E5E9F0</b></div>
+    <div class="swatch light" style="background:#D0D6E1"><small>border-default</small><b>#D0D6E1</b></div>
+    <div class="swatch" style="background:#475569"><small>text-secondary</small><b>#475569</b></div>
+    <div class="swatch" style="background:#0F172A"><small>text-primary</small><b>#0F172A</b></div>
+  </div>
+
+  <!-- type -->
+  <h2>Typography ramp · Plus Jakarta Sans</h2>
+  <div>
+    <div class="type-row"><span>display-2xl · 60/1.05</span><span style="font-size:60px;line-height:1.05;letter-spacing:-.025em;font-weight:700">Plan smarter.</span></div>
+    <div class="type-row"><span>display-lg · 36/1.15</span><span style="font-size:36px;line-height:1.15;letter-spacing:-.02em;font-weight:700">My Proposals</span></div>
+    <div class="type-row"><span>display-sm · 24/1.3</span><span style="font-size:24px;line-height:1.3;letter-spacing:-.01em;font-weight:600">Mercure Paris Boulogne</span></div>
+    <div class="type-row"><span>heading · 20/1.35</span><span style="font-size:20px;line-height:1.35;font-weight:600">Stay in Paris · 3 nights</span></div>
+    <div class="type-row"><span>body · 16/1.55</span><span style="font-size:16px">A 4-star Mercure in the 16th, with an excellent breakfast and 12-min metro to the Louvre.</span></div>
+    <div class="type-row"><span>body-sm · 14/1.5</span><span style="font-size:14px">Fully refundable before 11 Mar · Room only · Family Standard</span></div>
+    <div class="type-row"><span>caption · 12/1.4 · +2%</span><span style="font-size:12px;letter-spacing:.02em;font-weight:500;color:var(--text-secondary)">PRIVATE TRANSFERS · 2 BAGS</span></div>
+    <div class="type-row"><span>mono · 14</span><span class="mono" style="font-size:14px">₹ 44,435.00 · AORN6362175</span></div>
+    <div class="type-row"><span>display · Fraunces</span><span style="font-family:Fraunces,serif;font-style:italic;font-size:32px">Built for your next adventure.</span></div>
+  </div>
+
+  <!-- KPI tiles -->
+  <h2>KPI tiles (Bento)</h2>
+  <div class="grid cols-3">
+    <div class="kpi"><p class="eyebrow">Total Leads</p><div class="num">128</div><div class="lbl">Last 30 days · +18 vs prior</div></div>
+    <div class="kpi gold"><p class="eyebrow">Converted</p><div class="num">42</div><div class="lbl">32.8% conversion</div></div>
+    <div class="kpi"><p class="eyebrow">Time to proposal</p><div class="num mono">24m</div><div class="lbl">Median; target ≤ 30m</div></div>
+    <div class="kpi"><p class="eyebrow">Wallet balance</p><div class="num mono">₹ 1,84,500</div><div class="lbl">Auto-top-up at ₹ 50,000</div></div>
+  </div>
+
+  <!-- buttons -->
+  <h2>Buttons</h2>
+  <div class="row">
+    <button class="btn btn-primary">Save As Proposal</button>
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-outline">Change Hotel</button>
+    <button class="btn btn-ghost">Skip</button>
+    <button class="btn btn-brick">Create New Query</button>
+    <button class="btn btn-accent">Upgrade</button>
+    <button class="btn btn-danger">Delete</button>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn btn-primary btn-sm">Small</button>
+    <button class="btn btn-primary">Default</button>
+    <button class="btn btn-primary btn-lg">Large</button>
+  </div>
+
+  <!-- inputs -->
+  <h2>Inputs &amp; pills</h2>
+  <div class="grid cols-2">
+    <div class="field"><label class="label">Destination</label><input class="input" placeholder="City or hotel name" /></div>
+    <div class="field"><label class="label">Travel date</label><input class="input" placeholder="dd mmm yyyy" /></div>
+    <div class="field"><label class="label">Travellers</label><input class="input" value="1 room, 2 adults" /></div>
+    <div class="field"><label class="label">Star rating</label><input class="input" placeholder="Any" /></div>
+  </div>
+  <div class="row" style="margin-top:14px">
+    <span class="pill neutral">Quoted</span>
+    <span class="pill info">Reply received</span>
+    <span class="pill success">Booked</span>
+    <span class="pill warning">Followup overdue</span>
+    <span class="pill danger">Lost</span>
+    <span class="pill gold">VIP agent</span>
+  </div>
+
+  <!-- hotel card -->
+  <h2>Hotel card</h2>
+  <div class="hotel-card">
+    <div class="photo">Hotel photo</div>
+    <div>
+      <div class="stars">★★★★</div>
+      <h3 style="margin:4px 0">Mercure Paris Boulogne <a href="#" style="font-size:.75rem;font-weight:500">view</a></h3>
+      <p class="muted" style="margin:0;font-size:.875rem">37 Place Rene Clair · 12 min metro to Louvre</p>
+      <div class="row" style="margin-top:8px"><span class="score">8.4</span><span style="font-size:.875rem;color:var(--text-secondary)">Very Good · 552 ratings</span></div>
+      <div class="chk-row">
+        <div><p class="eyebrow">Check-in</p><b>14:00 · Fri 12 Mar</b></div>
+        <div><p class="eyebrow">Check-out</p><b>12:00 · Sat 13 Mar</b></div>
+      </div>
+      <div class="inclusions">
+        <span>Selected room: 1 × Family Standard with double + bunk bed</span>
+        <span>Room Only</span>
+      </div>
+      <p style="margin-top:8px;color:var(--danger-500);font-size:.875rem">Fully refundable before 11 Mar</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-self:center">
+      <button class="btn btn-brick btn-sm">Change Room</button>
+      <button class="btn btn-brick btn-sm">Change Hotel</button>
+    </div>
+  </div>
+
+  <!-- day card -->
+  <h2>Day card · activity slots</h2>
+  <div class="day-card">
+    <div class="head">
+      <div><span class="pill neutral">Day 1</span> <b style="margin-left:8px;font-size:1.125rem">Fri, 12 Mar 2027 · Arrival in Paris</b></div>
+      <span class="pill danger">2 points to note</span>
+    </div>
+    <div class="banner"><b>Arrival information is missing</b><button class="btn btn-danger btn-sm">Update arrival details</button></div>
+    <p class="muted" style="margin:10px 0;font-size:.875rem">Take the stress out of getting from Orly Airport to your hotel — a private one-way transfer is included.</p>
+    <div class="slots">
+      <div class="slot"><small>Morning</small><button class="btn btn-ghost btn-sm" style="color:var(--success-500)">+ Add activity</button></div>
+      <div class="slot"><small>Afternoon</small><button class="btn btn-ghost btn-sm" style="color:var(--success-500)">+ Add activity</button></div>
+      <div class="slot"><small>Evening</small><button class="btn btn-ghost btn-sm" style="color:var(--success-500)">+ Add activity</button></div>
+    </div>
+    <div class="row" style="font-size:.875rem;color:var(--text-primary)">
+      <span style="color:var(--success-500);font-weight:700">✓</span>
+      <span>One-way private transfer · Orly Airport → Hotel</span>
+      <span class="pill neutral">Private</span>
+      <span class="pill neutral">2 bags</span>
+      <a href="#" style="margin-left:auto;font-size:.8125rem">2 options</a>
+    </div>
+  </div>
+
+  <!-- data table -->
+  <h2>Data table · per-column filters</h2>
+  <table class="dt">
+    <thead>
+      <tr><th>Proposal #</th><th>Customer</th><th>Created at</th><th>Travel date</th><th>From</th><th>Price quoted</th><th>Status</th></tr>
+      <tr class="filter-row"><td><input placeholder="#"/></td><td><input placeholder="Name"/></td><td><input placeholder="Date"/></td><td><input placeholder="Date"/></td><td><input placeholder="City"/></td><td><input placeholder="Amount"/></td><td><input placeholder="Status"/></td></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">GG-04237</td><td>R. Mehta</td><td>21 May 2026</td><td>12 Mar 2027</td><td>Pune</td><td class="mono">₹ 44,435</td><td><span class="pill info">Quoted</span></td></tr>
+      <tr><td class="mono">GG-04238</td><td>S. Iyer</td><td>22 May 2026</td><td>04 Jul 2027</td><td>Mumbai</td><td class="mono">₹ 1,28,900</td><td><span class="pill warning">Followup</span></td></tr>
+      <tr><td class="mono">GG-04239</td><td>A. Kapoor</td><td>23 May 2026</td><td>17 Sep 2027</td><td>Delhi</td><td class="mono">₹ 2,84,000</td><td><span class="pill success">Booked</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- glass module -->
+  <h2>Glass module · AI suggester</h2>
+  <div style="position:relative;border-radius:24px;padding:48px;background:linear-gradient(135deg,#0EA5E9 0%,#1E3A66 60%,#081428 100%)">
+    <div class="glass" style="max-width:520px;margin:0 auto">
+      <p class="eyebrow">Destination name</p>
+      <h3 style="margin:0 0 8px">Where would you like to wander?</h3>
+      <p class="muted" style="margin:0 0 16px">e.g. (Paris, Amsterdam, London)</p>
+      <div class="row">
+        <input class="input" style="flex:1" placeholder="Enter destinations"/>
+        <input class="input" style="width:130px" value="3 nights"/>
+      </div>
+      <div style="text-align:right;margin-top:16px"><button class="btn btn-primary">Load suggestions</button></div>
+    </div>
+  </div>
+
+  <footer style="margin-top:80px;color:var(--text-secondary);font-size:.875rem">© Global Guides DMC · Design system v0.1 · Plus Jakarta Sans + JetBrains Mono + Fraunces</footer>
+</div>
+</body>
+</html>
