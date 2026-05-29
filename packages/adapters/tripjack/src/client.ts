@@ -24,29 +24,50 @@ function apiKey(): string | undefined {
   return process.env.TRIPJACK_API_KEY;
 }
 
+// When set, we're going through our Tripjack-fronting proxy on Railway.
+// In proxy mode the proxy injects `apikey` upstream and we send `x-proxy-token`
+// instead. Vercel never sees the real TRIPJACK_API_KEY.
+function proxyToken(): string | undefined {
+  return process.env.TRIPJACK_PROXY_TOKEN;
+}
+
+function isProxyMode(): boolean {
+  return !!proxyToken();
+}
+
 export function isLive(): boolean {
-  return !!apiKey();
+  return !!apiKey() || isProxyMode();
 }
 
 /**
  * POST to Tripjack. Returns parsed JSON or throws.
- * Header convention is `apikey: <KEY>` — VERIFY with Tripjack RM. If they use a
- * different header (e.g. `apiKey`, `X-API-KEY`, `Authorization`), change here.
+ *
+ * Two modes:
+ * 1. Direct mode (local dev): TRIPJACK_API_KEY set → fetch sends `apikey` header
+ *    directly to apitest.tripjack.com.
+ * 2. Proxy mode (Vercel): TRIPJACK_PROXY_TOKEN set, TRIPJACK_BASE_URL points at
+ *    Railway proxy. We send `x-proxy-token`; the proxy injects the real `apikey`.
  */
 export async function tjPost<T = unknown>(path: string, body: unknown, init?: { timeoutMs?: number }): Promise<T> {
+  const proxy = isProxyMode();
   const key = apiKey();
-  if (!key) {
-    throw new Error('TRIPJACK_API_KEY not set — adapter is in mock-only mode. Set the env var to go live.');
+  if (!proxy && !key) {
+    throw new Error('Neither TRIPJACK_API_KEY (direct mode) nor TRIPJACK_PROXY_TOKEN (proxy mode) is set — adapter is in mock-only mode.');
   }
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (proxy) {
+    headers['x-proxy-token'] = proxyToken()!;
+  } else {
+    headers['apikey'] = key!;
+  }
+
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), init?.timeoutMs ?? 30_000);
   try {
     const res = await fetch(`${baseUrl()}${path}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: key,
-      },
+      headers,
       body: JSON.stringify(body),
       signal: ctl.signal,
       cache: 'no-store',

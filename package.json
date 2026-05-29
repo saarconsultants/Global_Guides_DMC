@@ -5,7 +5,8 @@
   "description": "Global Guides DMC — B2B travel agent platform (NexusDMC-style)",
   "workspaces": [
     "apps/*",
-    "packages/adapters/*"
+    "packages/adapters/*",
+    "services/*"
   ],
   "scripts": {
     "dev": "npm --workspace apps/web run dev",
