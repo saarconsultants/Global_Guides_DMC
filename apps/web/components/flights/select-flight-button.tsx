@@ -5,16 +5,17 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { Check } from 'lucide-react';
 import type { FlightOffer } from '@gg/tripjack';
-import type { FlightSelection, CabinClass } from '@/lib/itinerary/types';
+import type { FlightLeg, CabinClass } from '@/lib/itinerary/types';
 
 export const FLIGHT_HANDOFF_KEY = 'gg-pending-flight';
+export type FlightLegKind = 'outbound' | 'return';
 
-export function SelectFlightButton({ offer, returnTo, cabin }: { offer: FlightOffer; returnTo?: string; cabin: CabinClass }) {
+export function SelectFlightButton({ offer, returnTo, cabin, leg = 'outbound' }: { offer: FlightOffer; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   function pick() {
-    const selection: FlightSelection = {
+    const selection: FlightLeg = {
       segments: offer.segments.map((s) => ({
         airlineCode: s.airlineCode,
         airlineName: s.airlineName,
@@ -35,8 +36,8 @@ export function SelectFlightButton({ offer, returnTo, cabin }: { offer: FlightOf
 
     setBusy(true);
     try {
-      sessionStorage.setItem(FLIGHT_HANDOFF_KEY, JSON.stringify({ itineraryId: returnTo, selection }));
-      toast.success('Flight selected', 'Attaching to your itinerary…');
+      sessionStorage.setItem(FLIGHT_HANDOFF_KEY, JSON.stringify({ itineraryId: returnTo, leg, selection }));
+      toast.success(`${leg === 'return' ? 'Return' : 'Outbound'} flight selected`, 'Attaching to your itinerary…');
       router.push(`/itinerary/${returnTo}/customize`);
     } catch {
       setBusy(false);

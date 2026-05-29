@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 interface PageProps {
-  searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return' }>;
 }
 
 export default async function FlightsPage({ searchParams }: PageProps) {
@@ -29,7 +29,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       {sp.returnTo && (
         <div className="rounded-md border border-crimson-700/30 bg-crimson-50 text-crimson-900 px-4 py-2.5 flex items-center justify-between gap-3">
           <p className="text-sm">
-            <span className="font-semibold">Adding a flight to your itinerary.</span>
+            <span className="font-semibold">Adding {sp.leg === 'return' ? 'return' : 'outbound'} flight to your itinerary.</span>
             <span className="text-crimson-700/80 ml-2">Pick any option below — we'll attach it and bounce you back.</span>
           </p>
           <Link href={`/itinerary/${sp.returnTo}/customize` as any} className="inline-flex items-center gap-1 text-xs font-semibold hover:underline">
@@ -50,7 +50,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      <FlightSearchForm defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY' }} returnTo={sp.returnTo} />
+      <FlightSearchForm defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY' }} returnTo={sp.returnTo} leg={sp.leg} />
 
       {results && 'error' in results && (
         <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm space-y-1">
@@ -64,7 +64,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       )}
 
       {results && !('error' in results) && (
-        <FlightResults result={results} returnTo={sp.returnTo} cabin={(sp.cabin as any) ?? 'ECONOMY'} />
+        <FlightResults result={results} returnTo={sp.returnTo} cabin={(sp.cabin as any) ?? 'ECONOMY'} leg={sp.leg} />
       )}
     </div>
   );

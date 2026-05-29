@@ -107,7 +107,7 @@ export interface InsuranceItem {
   pricePaise: number;
 }
 
-export interface FlightSelection {
+export interface FlightLeg {
   segments: Array<{
     airlineCode: string;
     airlineName: string;
@@ -119,6 +119,13 @@ export interface FlightSelection {
   }>;
   totalPaise: number;
   cabin: CabinClass;
+}
+
+export interface FlightSelection extends FlightLeg {
+  // Outbound is the base FlightLeg fields above.
+  // Return is optional — populated when the agent searches & selects a
+  // separate return leg for a round-trip itinerary.
+  return?: FlightLeg;
 }
 
 export interface Itinerary {

@@ -10,17 +10,36 @@ export function TripSummaryRail({ itinerary }: { itinerary: Itinerary }) {
         {itinerary.flights && (
           <div>
             <p className="font-semibold text-navy-900">Flights</p>
-            <ul className="mt-1.5 list-disc list-outside ml-5 text-sm text-[rgb(var(--text-primary))] marker:text-[rgb(var(--text-tertiary))] space-y-1.5">
+
+            <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mt-2">Outbound</p>
+            <ul className="mt-1 list-disc list-outside ml-5 text-sm text-[rgb(var(--text-primary))] marker:text-[rgb(var(--text-tertiary))] space-y-1.5">
               {itinerary.flights.segments.map((s, i) => (
-                <li key={i}>
+                <li key={'o' + i}>
                   <span className="font-medium">{s.airlineName}</span> <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{s.airlineCode} {s.flightNumber}</span>
                   <ul className="list-disc ml-5 marker:text-[rgb(var(--text-tertiary))] text-[rgb(var(--text-secondary))]">
                     <li>{s.fromIATA} {s.departureAt.slice(11, 16)} → {s.toIATA} {s.arrivalAt.slice(11, 16)}</li>
                   </ul>
                 </li>
               ))}
-              <li className="text-[rgb(var(--text-secondary))]">Cabin: {itinerary.flights.cabin}</li>
             </ul>
+
+            {itinerary.flights.return && (
+              <>
+                <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mt-3">Return</p>
+                <ul className="mt-1 list-disc list-outside ml-5 text-sm text-[rgb(var(--text-primary))] marker:text-[rgb(var(--text-tertiary))] space-y-1.5">
+                  {itinerary.flights.return.segments.map((s, i) => (
+                    <li key={'r' + i}>
+                      <span className="font-medium">{s.airlineName}</span> <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{s.airlineCode} {s.flightNumber}</span>
+                      <ul className="list-disc ml-5 marker:text-[rgb(var(--text-tertiary))] text-[rgb(var(--text-secondary))]">
+                        <li>{s.fromIATA} {s.departureAt.slice(11, 16)} → {s.toIATA} {s.arrivalAt.slice(11, 16)}</li>
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">Cabin: {itinerary.flights.cabin}</p>
           </div>
         )}
         {itinerary.destinations.map((d) => {

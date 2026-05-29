@@ -31,6 +31,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   const toggleVisa = useItineraryStore((s) => s.toggleVisa);
   const toggleInsurance = useItineraryStore((s) => s.toggleInsurance);
   const setFlight = useItineraryStore((s) => s.setFlight);
+  const setReturnFlight = useItineraryStore((s) => s.setReturnFlight);
   const setArrivalDetails = useItineraryStore((s) => s.setArrivalDetails);
   const setDepartureDetails = useItineraryStore((s) => s.setDepartureDetails);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -49,21 +50,28 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
   useEffect(() => { if (hydrateFailed) router.replace('/itinerary/new'); }, [hydrateFailed, router]);
 
-  // Pick up a flight selection handed off from /flights via sessionStorage
+  // Pick up a flight selection handed off from /flights via sessionStorage.
+  // The handoff payload carries `leg: 'outbound' | 'return'` so we route to
+  // the right store action.
   useEffect(() => {
     if (!itinerary) return;
     try {
       const raw = sessionStorage.getItem('gg-pending-flight');
       if (!raw) return;
-      const { itineraryId, selection } = JSON.parse(raw);
+      const { itineraryId, leg, selection } = JSON.parse(raw);
       if (itineraryId !== id) return;
-      setFlight(id, selection);
+      if (leg === 'return') {
+        setReturnFlight(id, selection);
+        toast.success('Return flight attached', `${selection.segments[0].airlineName} · ${formatINR(selection.totalPaise)} added.`);
+      } else {
+        setFlight(id, selection);
+        toast.success('Outbound flight attached', `${selection.segments[0].airlineName} · ${formatINR(selection.totalPaise)} added.`);
+      }
       sessionStorage.removeItem('gg-pending-flight');
-      toast.success('Flight attached', `${selection.segments[0].airlineName} · ${formatINR(selection.totalPaise)} added to itinerary.`);
     } catch (e) {
       console.error('flight handoff parse failed', e);
     }
-  }, [itinerary, id, setFlight]);
+  }, [itinerary, id, setFlight, setReturnFlight]);
 
   if (!itinerary) return (
     <div className="min-h-[60vh] flex items-center justify-center text-[rgb(var(--text-secondary))]">
@@ -100,25 +108,63 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
               <CardContent className="pt-5">
                 {(() => {
                   const fromIATA = resolveOriginIATA(itinerary.intake.leavingFromCode, itinerary.intake.leavingFromName);
-                  const toIATA   = airport(itinerary.destinations[0]?.cityCode ?? '');
-                  const searchHref = `/flights?from=${fromIATA}&to=${toIATA}&date=${itinerary.intake.departureDate}&adults=${adults}&returnTo=${id}`;
-                  if (itinerary.flights) {
+                  const lastDest = itinerary.destinations[itinerary.destinations.length - 1];
+                  const firstDest = itinerary.destinations[0];
+                  const toIATA   = airport(firstDest?.cityCode ?? '');
+                  const lastIATA = airport(lastDest?.cityCode ?? '');
+                  // Approximate return date = departure + total nights (good enough as a prefill)
+                  const totalNightsLocal = itinerary.destinations.reduce((s, d) => s + d.nights, 0);
+                  const returnDate = (() => {
+                    const d = new Date(itinerary.intake.departureDate);
+                    d.setDate(d.getDate() + totalNightsLocal);
+                    return d.toISOString().slice(0, 10);
+                  })();
+                  const outboundSearchHref = `/flights?from=${fromIATA}&to=${toIATA}&date=${itinerary.intake.departureDate}&adults=${adults}&returnTo=${id}&leg=outbound`;
+                  const returnSearchHref   = `/flights?from=${lastIATA}&to=${fromIATA}&date=${returnDate}&adults=${adults}&returnTo=${id}&leg=return`;
+
+                  if (!itinerary.flights) {
                     return (
-                      <SelectedFlightCard
-                        flight={itinerary.flights}
-                        searchHref={searchHref}
-                        onRemove={() => { setFlight(id, undefined); toast.info('Flight removed', 'No flights are now included in this proposal.'); }}
-                      />
+                      <>
+                        <p className="font-semibold text-navy-900 text-sm mb-1">Add flights to my trip — {itinerary.intake.leavingFromName} to {firstDest?.cityName}</p>
+                        <p className="text-crimson-700 text-sm mb-3">No flight included yet{!fromIATA && <span className="ml-1 text-[rgb(var(--text-secondary))]">(we'll let you type the origin airport on the next page)</span>}</p>
+                        <Link href={outboundSearchHref as any}>
+                          <Button className="gap-1.5"><Plane className="w-4 h-4" />Add outbound flight</Button>
+                        </Link>
+                      </>
                     );
                   }
+
                   return (
-                    <>
-                      <p className="font-semibold text-navy-900 text-sm mb-1">Add flights to my trip — {itinerary.intake.leavingFromName} to {itinerary.destinations[0]?.cityName}</p>
-                      <p className="text-crimson-700 text-sm mb-3">No flight included yet{!fromIATA && <span className="ml-1 text-[rgb(var(--text-secondary))]">(we'll let you type the origin airport on the next page)</span>}</p>
-                      <Link href={searchHref as any}>
-                        <Button className="gap-1.5"><Plane className="w-4 h-4" />Add flights to my trip</Button>
-                      </Link>
-                    </>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-2">Outbound · {fromIATA || itinerary.intake.leavingFromName} → {firstDest?.cityName}</p>
+                        <SelectedFlightCard
+                          flight={itinerary.flights}
+                          searchHref={outboundSearchHref}
+                          onRemove={() => { setFlight(id, undefined); toast.info('Outbound flight removed'); }}
+                        />
+                      </div>
+
+                      {itinerary.flights.return ? (
+                        <div className="pt-4 border-t border-border-subtle">
+                          <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-2">Return · {lastDest?.cityName} → {itinerary.intake.leavingFromName}</p>
+                          <SelectedFlightCard
+                            flight={{ ...itinerary.flights.return }}
+                            searchHref={returnSearchHref}
+                            onRemove={() => { setReturnFlight(id, undefined); toast.info('Return flight removed'); }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="pt-4 border-t border-border-subtle">
+                          <p className="text-sm text-[rgb(var(--text-secondary))] mb-2">
+                            <span className="font-semibold text-navy-900">Return flight not added yet</span> — {lastDest?.cityName} → {itinerary.intake.leavingFromName} on {new Date(returnDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.
+                          </p>
+                          <Link href={returnSearchHref as any}>
+                            <Button variant="secondary" className="gap-1.5"><Plane className="w-4 h-4 -scale-x-100" />Add return flight</Button>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                   );
                 })()}
               </CardContent>

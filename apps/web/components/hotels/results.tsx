@@ -1,9 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { formatINR } from '@/lib/utils';
 import type { Hotel } from '@/lib/itinerary/types';
-import { Star, Check } from 'lucide-react';
+import { Star } from 'lucide-react';
+import { SelectHotelButton } from './select-hotel-button';
 
 interface Props {
   hotels: Hotel[];
@@ -46,7 +46,7 @@ export function HotelResults({ hotels, nights }: Props) {
                 <p className="text-xs text-[rgb(var(--text-secondary))]">per night</p>
                 <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(h.pricePerNightPaise)}</p>
                 <p className="text-xs text-[rgb(var(--text-secondary))]">Total: {formatINR(h.pricePerNightPaise * nights)}</p>
-                <Button className="mt-3 w-full">Select</Button>
+                <SelectHotelButton hotelName={h.name} />
               </div>
             </div>
           </CardContent>

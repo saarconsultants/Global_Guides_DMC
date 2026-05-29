@@ -2,7 +2,7 @@
 // In-memory itinerary store (Zustand). Will be replaced with Postgres persistence in task C.
 
 import { create } from 'zustand';
-import type { Itinerary, Hotel, Activity, FlightSelection } from './types';
+import type { Itinerary, Hotel, Activity, FlightSelection, FlightLeg } from './types';
 
 interface ItineraryStoreState {
   byId: Record<string, Itinerary>;
@@ -10,6 +10,7 @@ interface ItineraryStoreState {
   get: (id: string) => Itinerary | undefined;
   changeHotel: (id: string, cityCode: string, hotel: Hotel) => void;
   setFlight: (id: string, flight: FlightSelection | undefined) => void;
+  setReturnFlight: (id: string, leg: FlightLeg | undefined) => void;
   setActivity: (id: string, dayNo: number, slot: 'morning'|'afternoon'|'evening', activity: Activity | undefined) => void;
   removeInclusion: (id: string, dayNo: number, transferId: string) => void;
   toggleVisa: (id: string, countryCode: string, included: boolean) => void;
@@ -26,7 +27,22 @@ export const useItineraryStore = create<ItineraryStoreState>((set, get) => ({
   setFlight: (id, flight) =>
     set((s) => {
       const cur = s.byId[id]; if (!cur) return s;
-      const next: Itinerary = { ...cur, flights: flight };
+      // Preserve any existing return leg when replacing the outbound,
+      // since outbound and return are selected independently.
+      const next: Itinerary = { ...cur, flights: flight ? { ...flight, return: flight.return ?? cur.flights?.return } : undefined };
+      next.pricePaise = recalcPrice(next);
+      next.pricePerAdultPaise = recalcPerAdult(next);
+      return { byId: { ...s.byId, [id]: next } };
+    }),
+
+  setReturnFlight: (id, leg) =>
+    set((s) => {
+      const cur = s.byId[id]; if (!cur) return s;
+      if (!cur.flights) {
+        // No outbound yet — can't attach a return alone. Caller should ensure outbound first.
+        return s;
+      }
+      const next: Itinerary = { ...cur, flights: { ...cur.flights, return: leg } };
       next.pricePaise = recalcPrice(next);
       next.pricePerAdultPaise = recalcPerAdult(next);
       return { byId: { ...s.byId, [id]: next } };
@@ -112,7 +128,10 @@ function recalcPrice(it: Itinerary): number {
   }
   if (it.insurance.included) total += it.insurance.pricePaise;
   for (const v of it.visa) if (v.included && v.pricePaise) total += v.pricePaise;
-  if (it.flights) total += it.flights.totalPaise;
+  if (it.flights) {
+    total += it.flights.totalPaise;
+    if (it.flights.return) total += it.flights.return.totalPaise;
+  }
   return total;
 }
 

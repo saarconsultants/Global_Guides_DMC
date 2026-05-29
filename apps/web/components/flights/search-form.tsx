@@ -9,9 +9,10 @@ import { Plane, ArrowRightLeft, Search } from 'lucide-react';
 interface Props {
   defaults: { from: string; to: string; date: string; adults: string; cabin: string };
   returnTo?: string;
+  leg?: 'outbound' | 'return';
 }
 
-export function FlightSearchForm({ defaults, returnTo }: Props) {
+export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
   const router = useRouter();
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
@@ -25,6 +26,7 @@ export function FlightSearchForm({ defaults, returnTo }: Props) {
     const params = new URLSearchParams({ from, to, date, adults, cabin });
     if (directOnly) params.set('directOnly', '1');
     if (returnTo) params.set('returnTo', returnTo);
+    if (leg) params.set('leg', leg);
     router.push(`/flights?${params}`);
   }
 

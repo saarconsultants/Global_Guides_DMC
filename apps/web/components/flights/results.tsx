@@ -3,10 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { formatINR } from '@/lib/utils';
 import { Plane, Clock, ArrowRight } from 'lucide-react';
-import { SelectFlightButton } from './select-flight-button';
+import { SelectFlightButton, type FlightLegKind } from './select-flight-button';
 import type { CabinClass } from '@/lib/itinerary/types';
 
-export function FlightResults({ result, returnTo, cabin }: { result: FlightSearchResult; returnTo?: string; cabin: CabinClass }) {
+export function FlightResults({ result, returnTo, cabin, leg }: { result: FlightSearchResult; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind }) {
   if (!result.offers.length) {
     return (
       <Card>
@@ -20,16 +20,16 @@ export function FlightResults({ result, returnTo, cabin }: { result: FlightSearc
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm text-[rgb(var(--text-secondary))]">{result.offers.length} options</p>
-        {returnTo && <Pill variant="info">Attaching to your itinerary</Pill>}
+        {returnTo && <Pill variant="info">Attaching {leg === 'return' ? 'return leg' : 'outbound leg'} to your itinerary</Pill>}
       </div>
       {result.offers.map((offer) => (
-        <OfferCard key={offer.priceId} offer={offer} returnTo={returnTo} cabin={cabin} />
+        <OfferCard key={offer.priceId} offer={offer} returnTo={returnTo} cabin={cabin} leg={leg} />
       ))}
     </div>
   );
 }
 
-function OfferCard({ offer, returnTo, cabin }: { offer: FlightOffer; returnTo?: string; cabin: CabinClass }) {
+function OfferCard({ offer, returnTo, cabin, leg }: { offer: FlightOffer; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind }) {
   const first = offer.segments[0]!;
   const last = offer.segments[offer.segments.length - 1]!;
   const totalDuration = offer.segments.reduce((sum, s) => sum + s.durationMin, 0);
@@ -70,7 +70,7 @@ function OfferCard({ offer, returnTo, cabin }: { offer: FlightOffer; returnTo?: 
             <p className="text-xs text-[rgb(var(--text-secondary))]">From</p>
             <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(offer.fare.totalPaise)}</p>
             <p className="text-xs text-[rgb(var(--text-secondary))] mb-3">All-inclusive</p>
-            <SelectFlightButton offer={offer} returnTo={returnTo} cabin={cabin} />
+            <SelectFlightButton offer={offer} returnTo={returnTo} cabin={cabin} leg={leg} />
           </div>
         </div>
       </CardContent>

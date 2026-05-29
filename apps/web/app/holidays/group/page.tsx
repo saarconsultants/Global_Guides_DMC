@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Pill } from '@/components/ui/pill';
 import { Button } from '@/components/ui/button';
+import { BlockSeatsButton } from './block-seats-button';
 import { Users, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 
@@ -63,7 +64,7 @@ export default function GroupToursPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                     <span className="font-mono text-sm font-bold text-crimson-900">{fmt(d.price)} <span className="text-xs text-[rgb(var(--text-secondary))] font-normal">/ pax</span></span>
-                    <Button size="sm" variant="secondary">Block seats</Button>
+                    <BlockSeatsButton code={d.code} />
                   </div>
                 </CardContent>
               </Card>

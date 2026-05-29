@@ -9,7 +9,7 @@ interface Props { itinerary: Itinerary; onSave: () => void; }
 
 export function PriceRail({ itinerary, onSave }: Props) {
   // Breakdown components
-  const flightPaise = itinerary.flights?.totalPaise ?? 0;
+  const flightPaise = (itinerary.flights?.totalPaise ?? 0) + (itinerary.flights?.return?.totalPaise ?? 0);
   let hotelPaise = 0; for (const d of itinerary.destinations) if (d.stay) hotelPaise += d.stay.hotel.pricePerNightPaise * d.nights;
   let transferPaise = 0; let activityPaise = 0;
   for (const day of itinerary.days) {

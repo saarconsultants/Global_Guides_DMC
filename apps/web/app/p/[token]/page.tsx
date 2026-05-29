@@ -135,39 +135,12 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         {it.flights && (
           <section>
             <h2 className="text-2xl font-bold text-navy-900 mb-4 flex items-center gap-2"><Plane className="w-5 h-5 text-crimson-700" />How you'll fly</h2>
-            <div className="rounded-lg bg-surface border border-border-subtle p-4">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <p className="font-bold text-navy-900">{it.flights.segments[0]!.airlineName}</p>
-                  <p className="text-xs text-[rgb(var(--text-secondary))] font-mono">{it.flights.segments.map((s) => `${s.airlineCode} ${s.flightNumber}`).join(' · ')} · {it.flights.cabin}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-[rgb(var(--text-secondary))]">Flights total</p>
-                  <p className="font-mono font-bold text-navy-900">{formatINR(it.flights.totalPaise)}</p>
-                </div>
+            <FlightLegCard label="Outbound" leg={it.flights} cabin={it.flights.cabin} />
+            {it.flights.return && (
+              <div className="mt-3">
+                <FlightLegCard label="Return" leg={it.flights.return} cabin={it.flights.cabin} />
               </div>
-              <ol className="space-y-2.5">
-                {it.flights.segments.map((s, i) => {
-                  const dep = s.departureAt; const arr = s.arrivalAt;
-                  const depD = new Date(dep).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-                  return (
-                    <li key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm bg-surface-2 rounded-md px-3 py-2">
-                      <div>
-                        <p className="font-bold text-navy-900 font-mono">{dep.slice(11, 16)}</p>
-                        <p className="text-xs font-semibold">{s.fromIATA}</p>
-                        <p className="text-[10px] text-[rgb(var(--text-secondary))]">{depD}</p>
-                      </div>
-                      <div className="text-center text-xs text-[rgb(var(--text-tertiary))]">→</div>
-                      <div className="text-right">
-                        <p className="font-bold text-navy-900 font-mono">{arr.slice(11, 16)}</p>
-                        <p className="text-xs font-semibold">{s.toIATA}</p>
-                        <p className="text-[10px] text-[rgb(var(--text-secondary))]">arrival</p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
+            )}
           </section>
         )}
 
@@ -266,4 +239,42 @@ function transferLine(t: any) {
   if (t.kind === 'arrival')   return `${t.fromName} → Hotel (Private Premium transfer)`;
   if (t.kind === 'departure') return `Hotel → ${t.toName} (Private transfer)`;
   return `${t.fromName} → ${t.toName} (Private transfer)`;
+}
+
+function FlightLegCard({ label, leg, cabin }: { label: string; leg: { segments: Array<{ airlineCode: string; airlineName: string; flightNumber: string; fromIATA: string; toIATA: string; departureAt: string; arrivalAt: string }>; totalPaise: number }; cabin: string }) {
+  return (
+    <div className="rounded-lg bg-surface border border-border-subtle p-4">
+      <p className="text-[10px] uppercase tracking-widest text-crimson-700 font-bold mb-2">{label}</p>
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div>
+          <p className="font-bold text-navy-900">{leg.segments[0]!.airlineName}</p>
+          <p className="text-xs text-[rgb(var(--text-secondary))] font-mono">{leg.segments.map((s) => `${s.airlineCode} ${s.flightNumber}`).join(' · ')} · {cabin}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-[rgb(var(--text-secondary))]">Total</p>
+          <p className="font-mono font-bold text-navy-900">{formatINR(leg.totalPaise)}</p>
+        </div>
+      </div>
+      <ol className="space-y-2.5">
+        {leg.segments.map((s, i) => {
+          const depD = new Date(s.departureAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+          return (
+            <li key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm bg-surface-2 rounded-md px-3 py-2">
+              <div>
+                <p className="font-bold text-navy-900 font-mono">{s.departureAt.slice(11, 16)}</p>
+                <p className="text-xs font-semibold">{s.fromIATA}</p>
+                <p className="text-[10px] text-[rgb(var(--text-secondary))]">{depD}</p>
+              </div>
+              <div className="text-center text-xs text-[rgb(var(--text-tertiary))]">→</div>
+              <div className="text-right">
+                <p className="font-bold text-navy-900 font-mono">{s.arrivalAt.slice(11, 16)}</p>
+                <p className="text-xs font-semibold">{s.toIATA}</p>
+                <p className="text-[10px] text-[rgb(var(--text-secondary))]">arrival</p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
 }
