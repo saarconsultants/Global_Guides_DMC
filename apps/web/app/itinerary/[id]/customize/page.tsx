@@ -31,6 +31,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   const toggleVisa = useItineraryStore((s) => s.toggleVisa);
   const toggleInsurance = useItineraryStore((s) => s.toggleInsurance);
   const setFlight = useItineraryStore((s) => s.setFlight);
+  const setArrivalDetails = useItineraryStore((s) => s.setArrivalDetails);
+  const setDepartureDetails = useItineraryStore((s) => s.setDepartureDetails);
   const [saveOpen, setSaveOpen] = useState(false);
   const [hydrating, setHydrating] = useState(false);
   const [hydrateFailed, setHydrateFailed] = useState(false);
@@ -160,6 +162,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                       removeInclusion(itinerary.id, d.dayNo, tid);
                       toast.info('Transfer removed');
                     }}
+                    onSetArrivalDetails={(details) => setArrivalDetails(itinerary.id, d.dayNo, details)}
+                    onSetDepartureDetails={(details) => setDepartureDetails(itinerary.id, d.dayNo, details)}
                   />
                 );
               })}

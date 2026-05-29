@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Plane, Users, Hotel, Megaphone, ClipboardList, Settings, Receipt, Headphones, Pencil, Wallet, ChevronDown, LogOut, Sparkles, ShieldCheck, Menu, X, Briefcase } from 'lucide-react';
+import { Home, Plane, Users, Hotel, Megaphone, ClipboardList, Settings, Receipt, Sparkles, Menu, X, Briefcase, Wallet, ShieldCheck, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from './notification-bell';
+import { NavUtilityStrip } from './nav-utility-strip';
 
 const NAV_AGENCY = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -42,20 +43,7 @@ export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
       <div className="bg-crimson-900 text-white">
         {/* Utility strip */}
         <div className="hidden lg:flex h-9 border-b border-white/10 px-6 items-center justify-end gap-5 text-xs">
-          <span className="inline-flex items-center gap-1.5 cursor-pointer text-white/70 hover:text-white transition-colors"><Headphones className="w-3.5 h-3.5" /> Contact <ChevronDown className="w-3 h-3" /></span>
-          <span className="inline-flex items-center gap-1.5 cursor-pointer text-white/70 hover:text-white transition-colors"><Pencil className="w-3.5 h-3.5" /> Write to us</span>
-          <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-crimson-900 font-semibold cursor-pointer hover:bg-amber-300 transition-colors">Escalate</span>
-          <Link href="/statement" className="inline-flex items-center gap-1.5 cursor-pointer text-white/70 hover:text-white transition-colors"><Wallet className="w-3.5 h-3.5" /> Recharge {walletLabel} <ChevronDown className="w-3 h-3" /></Link>
-          {actor.role === 'SUPER_ADMIN' && (
-            <Link href="/admin" className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white text-crimson-900 font-semibold cursor-pointer hover:bg-amber-300 transition-colors">
-              <ShieldCheck className="w-3.5 h-3.5" /> Admin
-            </Link>
-          )}
-          <span className="inline-flex items-center gap-2 cursor-pointer text-white/80 hover:text-white transition-colors">
-            {actor.logoUrl ? <img src={actor.logoUrl} alt="" className="w-5 h-5 rounded-full object-cover bg-white" /> : <span className="w-5 h-5 rounded-full bg-white/15 inline-flex items-center justify-center text-[10px] font-bold">{(actor.name || '?')[0]}</span>}
-            {actor.name} <ChevronDown className="w-3 h-3" />
-          </span>
-          <a href="/logout" className="inline-flex items-center gap-1 text-white/70 hover:text-white transition-colors" title="Sign out"><LogOut className="w-3.5 h-3.5" /></a>
+          <NavUtilityStrip actor={actor} walletLabel={walletLabel} />
         </div>
 
         {/* Main nav row */}

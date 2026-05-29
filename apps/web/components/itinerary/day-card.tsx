@@ -4,15 +4,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { formatINR } from '@/lib/utils';
+import { toast } from '@/components/ui/toast';
 import type { Day, Activity } from '@/lib/itinerary/types';
-import { Bed, Check, X, Plus, ChevronDown } from 'lucide-react';
+import { Bed, Check, X, Plus, ChevronDown, Plane } from 'lucide-react';
 import { AddActivityModal } from './add-activity-modal';
+import { FlightDetailsModal } from './flight-details-modal';
 
 interface Props {
   day: Day;
   hotelNameForOvernight?: string;
   onSetActivity: (slot: 'morning'|'afternoon'|'evening', a: Activity | undefined) => void;
   onRemoveTransfer: (transferId: string) => void;
+  onSetArrivalDetails?:   (details: { flightNumber: string; arrivalTime: string }) => void;
+  onSetDepartureDetails?: (details: { flightNumber: string; departureTime: string }) => void;
 }
 
 const heading = (d: Day) => {
@@ -22,9 +26,10 @@ const heading = (d: Day) => {
   return `Stay in ${d.cityName}`;
 };
 
-export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTransfer }: Props) {
+export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTransfer, onSetArrivalDetails, onSetDepartureDetails }: Props) {
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [flightOpen, setFlightOpen] = useState(false);
 
   const missing = day.type === 'arrival' && !day.arrivalDetails ? 'Arrival information is missing'
                 : day.type === 'departure' && !day.departureDetails ? 'Departure information is missing'
@@ -44,7 +49,30 @@ export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTra
           {missing && (
             <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm flex items-center justify-between mb-3">
               <span className="font-medium">{missing}</span>
-              <Button size="sm" variant="brick">Update {day.type === 'arrival' ? 'Arrival' : 'Departure'} Details</Button>
+              <Button size="sm" variant="brick" onClick={() => setFlightOpen(true)} className="gap-1.5">
+                <Plane className="w-3.5 h-3.5" />
+                Update {day.type === 'arrival' ? 'Arrival' : 'Departure'} Details
+              </Button>
+            </div>
+          )}
+
+          {/* Filled-in flight details (after the user saves them) */}
+          {!missing && day.type === 'arrival' && day.arrivalDetails && (
+            <div className="rounded-md bg-success-100 text-success-500 px-3 py-2 text-sm flex items-center justify-between mb-3">
+              <span className="font-medium inline-flex items-center gap-2">
+                <Plane className="w-3.5 h-3.5" />
+                Arriving on <span className="font-mono">{day.arrivalDetails.flightNumber}</span> at {day.arrivalDetails.arrivalTime}
+              </span>
+              <button onClick={() => setFlightOpen(true)} className="text-xs underline hover:no-underline">Edit</button>
+            </div>
+          )}
+          {!missing && day.type === 'departure' && day.departureDetails && (
+            <div className="rounded-md bg-success-100 text-success-500 px-3 py-2 text-sm flex items-center justify-between mb-3">
+              <span className="font-medium inline-flex items-center gap-2">
+                <Plane className="w-3.5 h-3.5" />
+                Departing on <span className="font-mono">{day.departureDetails.flightNumber}</span> at {day.departureDetails.departureTime}
+              </span>
+              <button onClick={() => setFlightOpen(true)} className="text-xs underline hover:no-underline">Edit</button>
             </div>
           )}
 
@@ -115,9 +143,15 @@ export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTra
           )}
 
           <footer className="mt-4 flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="secondary">Change Day</Button>
-            {day.type === 'stay' && <Button size="sm" variant="brick">Add Activity in {day.cityName}</Button>}
-            {day.type === 'departure' && <Button size="sm" variant="brick">Change Departure from {day.cityName}</Button>}
+            <Button size="sm" variant="secondary" onClick={() => toast.info('Coming in next release', 'You\'ll be able to swap a city or change nights on this day.')}>Change Day</Button>
+            {day.type === 'stay' && (
+              <Button size="sm" variant="brick" onClick={() => setSlotOpen('morning')}>Add Activity in {day.cityName}</Button>
+            )}
+            {day.type === 'departure' && (
+              <Button size="sm" variant="brick" onClick={() => setFlightOpen(true)} className="gap-1.5">
+                <Plane className="w-3.5 h-3.5" />Update Departure from {day.cityName}
+              </Button>
+            )}
           </footer>
         </CardContent>
       </Card>
@@ -132,6 +166,31 @@ export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTra
           currentId={day[slotOpen]?.id}
           onPick={(a) => onSetActivity(slotOpen!, a)}
           onClear={() => onSetActivity(slotOpen!, undefined)}
+        />
+      )}
+
+      {flightOpen && (day.type === 'arrival' || day.type === 'departure') && (
+        <FlightDetailsModal
+          open={flightOpen}
+          onClose={() => setFlightOpen(false)}
+          kind={day.type}
+          cityName={day.cityName}
+          initial={
+            day.type === 'arrival' && day.arrivalDetails
+              ? { flightNumber: day.arrivalDetails.flightNumber, time: day.arrivalDetails.arrivalTime }
+              : day.type === 'departure' && day.departureDetails
+              ? { flightNumber: day.departureDetails.flightNumber, time: day.departureDetails.departureTime }
+              : undefined
+          }
+          onSave={({ flightNumber, time }) => {
+            if (day.type === 'arrival') {
+              onSetArrivalDetails?.({ flightNumber, arrivalTime: time });
+              toast.success('Arrival details saved', `Pickup will be scheduled for ${flightNumber} @ ${time}.`);
+            } else {
+              onSetDepartureDetails?.({ flightNumber, departureTime: time });
+              toast.success('Departure details saved', `Drop-off will be scheduled for ${flightNumber} @ ${time}.`);
+            }
+          }}
         />
       )}
     </>
