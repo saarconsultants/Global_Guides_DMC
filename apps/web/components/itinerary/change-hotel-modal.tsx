@@ -6,7 +6,6 @@ import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { formatINR } from '@/lib/utils';
 import { hotelsForCity } from '@/lib/itinerary/mock-inventory';
-import { searchHotelsAction } from '@/app/actions/search-hotels';
 import type { Hotel, StarRating, Room } from '@/lib/itinerary/types';
 import { Star } from 'lucide-react';
 
@@ -42,14 +41,19 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
     const myReq = ++requestId.current;
     setSource('loading');
     setWarning(undefined);
-    searchHotelsAction({
-      cityCode,
-      checkIn: checkIn.slice(0, 10),
-      checkOut: checkOut.slice(0, 10),
-      rooms: rooms.map((r) => ({ adults: r.adults, children: r.children })),
+    fetch('/api/search-hotels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cityCode,
+        checkIn: checkIn.slice(0, 10),
+        checkOut: checkOut.slice(0, 10),
+        rooms: rooms.map((r) => ({ adults: r.adults, children: r.children })),
+      }),
     })
+      .then((res) => res.json())
       .then((r) => {
-        if (myReq !== requestId.current) return; // stale
+        if (myReq !== requestId.current) return;
         if (!r.ok) {
           setSource('mock');
           setWarning(r.error);

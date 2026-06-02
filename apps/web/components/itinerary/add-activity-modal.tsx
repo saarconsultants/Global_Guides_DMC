@@ -6,7 +6,6 @@ import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { formatINR } from '@/lib/utils';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
-import { searchActivitiesAction } from '@/app/actions/search-activities';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock } from 'lucide-react';
 
@@ -43,15 +42,14 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
     const myReq = ++requestId.current;
     setSource('loading');
     setWarning(undefined);
-    searchActivitiesAction({
-      cityCode,
-      fromDate: date,
-      toDate: date,
-      paxAdults,
-      paxChildren,
+    fetch('/api/search-activities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cityCode, fromDate: date, toDate: date, paxAdults, paxChildren }),
     })
+      .then((res) => res.json())
       .then((r) => {
-        if (myReq !== requestId.current) return; // stale response, ignore
+        if (myReq !== requestId.current) return; // stale
         if (!r.ok) {
           setSource('mock');
           setWarning(r.error);

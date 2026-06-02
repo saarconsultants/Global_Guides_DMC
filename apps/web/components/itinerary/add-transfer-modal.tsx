@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { formatINR } from '@/lib/utils';
-import { searchTransfersAction } from '@/app/actions/search-transfers';
 import type { Transfer } from '@/lib/itinerary/types';
 import { Car } from 'lucide-react';
 
@@ -46,11 +45,16 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
     const toCode   = kind === 'arrival' ? hotelAtlasCode : airportCode;
     const toName   = kind === 'arrival' ? hotelName : airportName ?? airportCode;
 
-    searchTransfersAction({
-      fromType, fromCode, toType, toCode,
-      pickupDate, adults, children,
-      fromName, toName, kind,
+    fetch('/api/search-transfers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fromType, fromCode, toType, toCode,
+        pickupDate, adults, children,
+        fromName, toName, kind,
+      }),
     })
+      .then((res) => res.json())
       .then((r) => {
         if (myReq !== requestId.current) return;
         if (!r.ok) {
