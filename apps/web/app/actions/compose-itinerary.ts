@@ -2,17 +2,18 @@
 // Compose an itinerary server-side, pulling live Hotelbeds inventory for each
 // destination before delegating to the (pure, sync) composeItinerary function.
 //
-// Strategy per city:
-//   1. Hit Hotelbeds availability with the user's check-in / check-out / pax.
-//   2. Filter to the requested star rating (or 3★+ if user didn't specify).
-//   3. Sort by price asc, pick the median entry as a sensible default.
-//      (Cheapest is often a hostel-tier room; median = solid mid-market pick.)
-//   4. If Hotelbeds returns nothing for this city, leave the slot blank —
-//      composeItinerary will fall back to its mock inventory automatically.
+// Strategy:
+//   Hotels  — per destination, Hotelbeds availability → pick median by price
+//             matching requested star rating. Falls back to mock.
+//   Transfers — after compose, for arrival/departure days try to replace the
+//             mock transfer with a live Hotelbeds airport↔hotel transfer.
+//             Intercity transfers stay mock (Hotelbeds doesn't natively
+//             support city-to-city transfers without an airport leg).
 
-import { searchHotels, isLive } from '@gg/hotelbeds';
+import { searchHotels, searchTransfers, isLive } from '@gg/hotelbeds';
 import { composeItinerary } from '@/lib/itinerary/compose';
-import type { Hotel, IntakeForm, Itinerary, StarRating } from '@/lib/itinerary/types';
+import { cityInfo } from '@/lib/itinerary/mock-inventory';
+import type { Hotel, IntakeForm, Itinerary, StarRating, TransferVehicle } from '@/lib/itinerary/types';
 
 const HOTEL_CHECKIN_HOUR = 14;
 const HOTEL_CHECKOUT_HOUR = 12;
@@ -20,7 +21,7 @@ const HOTEL_CHECKOUT_HOUR = 12;
 export async function composeItineraryAction(intake: IntakeForm): Promise<Itinerary> {
   const overrides: Record<string, Hotel> = {};
 
-  if (isLive()) {
+  if (isLive('hotels')) {
     // Walk destinations, fetching Hotelbeds in parallel — but with realistic
     // check-in/out per destination based on the running day offset.
     const startDate = new Date(intake.departureDate);
@@ -72,7 +73,99 @@ export async function composeItineraryAction(intake: IntakeForm): Promise<Itiner
     }
   }
 
-  return composeItinerary(intake, overrides);
+  const itinerary = composeItinerary(intake, overrides);
+
+  // ── Transfer enrichment ──────────────────────────────────────────────────
+  // For arrival + departure days only (intercity stays mock — Hotelbeds doesn't
+  // do city↔city transfers directly). Each call is wrapped so a failure leaves
+  // the mock transfer in place instead of breaking the whole compose.
+  if (isLive('transfers')) {
+    const startDate = new Date(intake.departureDate);
+    let dayOffset = 0;
+
+    await Promise.allSettled(
+      itinerary.days.map(async (day) => {
+        try {
+          const dest = itinerary.destinations.find((x) => x.cityCode === day.cityCode);
+          const hotel = dest?.stay?.hotel;
+          if (!hotel || !hotel.id.startsWith('HB-')) return;       // only enrich live-hotel stays
+          const hotelAtlas = hotel.id.replace('HB-', '');
+
+          const city = cityInfo(day.cityCode);
+          if (!city.airportCode) return;
+
+          const pickupDate = day.date;                              // YYYY-MM-DD
+          const adults = intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
+
+          let from: { type: 'IATA' | 'ATLAS'; code: string; name: string };
+          let to:   { type: 'IATA' | 'ATLAS'; code: string; name: string };
+          let kind: 'arrival' | 'departure';
+
+          if (day.type === 'arrival') {
+            from = { type: 'IATA',  code: city.airportCode, name: city.airportName };
+            to   = { type: 'ATLAS', code: hotelAtlas,        name: hotel.name };
+            kind = 'arrival';
+          } else if (day.type === 'departure') {
+            from = { type: 'ATLAS', code: hotelAtlas,        name: hotel.name };
+            to   = { type: 'IATA',  code: city.airportCode, name: city.airportName };
+            kind = 'departure';
+          } else {
+            return; // skip transit / stay days
+          }
+
+          const res = await searchTransfers({
+            fromType: from.type, fromCode: from.code,
+            toType:   to.type,   toCode:   to.code,
+            pickupDate, adults,
+          });
+          if (res.source !== 'live' || res.transfers.length === 0) return;
+
+          // Prefer cheapest private; fall back to cheapest overall
+          const privateOnly = res.transfers.filter((t) => t.vehicleKind !== 'SHARED');
+          const sorted = (privateOnly.length > 0 ? privateOnly : res.transfers).sort((a, b) => a.pricePaise - b.pricePaise);
+          const best = sorted[0];
+          if (!best) return;
+
+          // Replace the mock transfer inclusion(s) with the live one
+          const newInclusions = day.inclusions.map((inc) => {
+            if (inc.kind !== 'transfer') return inc;
+            if (inc.transfer.kind !== kind) return inc;
+            return {
+              kind: 'transfer' as const,
+              transfer: {
+                id: best.id,
+                kind,
+                fromName: from.name,
+                toName:   to.name,
+                vehicle: mapVehicle(best.vehicleKind),
+                bagsAllowed: best.maxPax >= 4 ? 4 : best.maxPax,
+                pricePaise: best.pricePaise,
+              },
+            };
+          });
+          day.inclusions = newInclusions;
+        } catch (e) {
+          console.warn('[compose] transfer enrichment failed for day', day.dayNo, (e as Error)?.message ?? e);
+        }
+      }),
+    );
+
+    // Recompute totals since transfer prices changed
+    let total = 0;
+    for (const d of itinerary.destinations) if (d.stay) total += d.stay.hotel.pricePerNightPaise * d.nights;
+    for (const day of itinerary.days) for (const inc of day.inclusions) if (inc.kind === 'transfer') total += inc.transfer.pricePaise;
+    const adults = intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
+    itinerary.pricePaise = total;
+    itinerary.pricePerAdultPaise = Math.round(total / adults);
+  }
+
+  return itinerary;
+}
+
+function mapVehicle(kind: string): TransferVehicle {
+  if (kind === 'PRIVATE_PREMIUM' || kind === 'LUXURY') return 'PRIVATE_PREMIUM';
+  if (kind === 'PRIVATE' || kind === 'MINIBUS') return 'PRIVATE';
+  return 'SHARED';
 }
 
 function hotelbedsToHotel(h: {

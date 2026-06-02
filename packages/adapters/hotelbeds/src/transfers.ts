@@ -70,6 +70,7 @@ export async function searchTransfers(input: TransferSearchInput): Promise<Trans
   })();
 
   cache.set(key, { at: Date.now(), promise });
+  promise.catch(() => cache.delete(key));
   return promise;
 }
 

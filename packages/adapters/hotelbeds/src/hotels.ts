@@ -86,20 +86,34 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
 
     // Fan out the Content API call for photos. Cached aggressively (24h per
     // hotel code), so repeat searches of the same city are free.
-    // We only fetch images for the first ~60 hotels visible above the fold —
-    // anything past that is rarely scrolled to during testing.
-    const topCodes = hotels.slice(0, 60).map((h) => parseInt(h.id.replace('HB-', ''), 10)).filter(Number.isFinite);
-    const images = await fetchHotelImages(topCodes);
-    for (const h of hotels) {
-      const code = parseInt(h.id.replace('HB-', ''), 10);
-      const content = images.get(code);
-      if (content?.thumb) h.thumb = content.thumb;
+    // ── Defensive: photo enrichment must NEVER break the search response.
+    //    Wrap in its own try/catch with a 5s deadline so a slow or failing
+    //    Content API doesn't crash the /hotels page or take down the modal.
+    try {
+      const topCodes = hotels.slice(0, 60).map((h) => parseInt(h.id.replace('HB-', ''), 10)).filter(Number.isFinite);
+      if (topCodes.length > 0) {
+        const images = await Promise.race([
+          fetchHotelImages(topCodes),
+          new Promise<Map<number, never>>((_, reject) => setTimeout(() => reject(new Error('content-timeout')), 5000)),
+        ]);
+        for (const h of hotels) {
+          const code = parseInt(h.id.replace('HB-', ''), 10);
+          const content = images.get(code) as { thumb?: string } | undefined;
+          if (content?.thumb) h.thumb = content.thumb;
+        }
+      }
+    } catch (e) {
+      // Photo enrichment failed — log and continue with text-only results.
+      console.warn('[hotelbeds] photo enrichment skipped:', (e as Error)?.message ?? e);
     }
 
     return { hotels, source: 'live' };
   })();
 
   cache.set(key, { at: Date.now(), promise });
+  // Don't poison the cache with rejected promises — if this call fails,
+  // the next caller should retry instead of getting the cached failure.
+  promise.catch(() => cache.delete(key));
   return promise;
 }
 

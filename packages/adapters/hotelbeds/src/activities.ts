@@ -88,6 +88,7 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
   })();
 
   cache.set(key, { at: Date.now(), promise });
+  promise.catch(() => cache.delete(key));
   return promise;
 }
 

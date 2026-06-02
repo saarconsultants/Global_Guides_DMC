@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -31,13 +31,15 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
 
+  const requestId = useRef(0);
+
   // Fetch from Hotelbeds when modal opens with date context
   useEffect(() => {
     if (!open || !checkIn || !checkOut || !rooms?.length) {
-      setSource('mock');
-      setLiveHotels([]);
+      // Don't reset on close — keep state so re-open doesn't flash empty.
       return;
     }
+    const myReq = ++requestId.current;
     setSource('loading');
     setWarning(undefined);
     searchHotelsAction({
@@ -47,6 +49,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
       rooms: rooms.map((r) => ({ adults: r.adults, children: r.children })),
     })
       .then((r) => {
+        if (myReq !== requestId.current) return; // stale
         if (!r.ok) {
           setSource('mock');
           setWarning(r.error);
@@ -58,6 +61,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
         setLiveHotels(r.hotels);
       })
       .catch((e) => {
+        if (myReq !== requestId.current) return;
         setSource('mock');
         setWarning(String(e?.message ?? e));
         setLiveHotels([]);

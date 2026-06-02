@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -31,13 +31,16 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   const [liveActivities, setLiveActivities] = useState<Activity[]>([]);
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
+  // requestId guards against a stale response from an earlier fetch overwriting
+  // state when the effect re-runs (e.g. parent re-render shifts paxAdults ref).
+  const requestId = useRef(0);
 
   useEffect(() => {
     if (!open || !date) {
-      setSource('mock');
-      setLiveActivities([]);
+      // Don't reset state on close — keep what we had so a re-open doesn't flash empty.
       return;
     }
+    const myReq = ++requestId.current;
     setSource('loading');
     setWarning(undefined);
     searchActivitiesAction({
@@ -48,6 +51,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       paxChildren,
     })
       .then((r) => {
+        if (myReq !== requestId.current) return; // stale response, ignore
         if (!r.ok) {
           setSource('mock');
           setWarning(r.error);
@@ -59,6 +63,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
         setLiveActivities(r.activities);
       })
       .catch((e) => {
+        if (myReq !== requestId.current) return;
         setSource('mock');
         setWarning(String(e?.message ?? e));
         setLiveActivities([]);
