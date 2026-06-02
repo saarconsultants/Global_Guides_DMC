@@ -2,6 +2,10 @@ import { HotelSearchForm } from '@/components/hotels/search-form';
 import { HotelResults } from '@/components/hotels/results';
 import { hotelsForCity, CITY_BANK } from '@/lib/itinerary/mock-inventory';
 import { Pill } from '@/components/ui/pill';
+import { searchHotels, isLive } from '@gg/hotelbeds';
+import type { Hotel } from '@/lib/itinerary/types';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string }>;
@@ -17,19 +21,70 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
   const cityName = CITY_BANK[city]?.name ?? city;
   const nights = Math.max(1, Math.round((new Date(checkout).getTime() - new Date(checkin).getTime()) / 86_400_000));
-  const hotels = hasQuery ? hotelsForCity(city) : [];
+
+  let hotels: Hotel[] = [];
+  let source: 'live' | 'mock' | 'unsupported-city' = 'mock';
+  let warning: string | undefined;
+
+  if (hasQuery) {
+    if (isLive()) {
+      try {
+        const res = await searchHotels({
+          cityCode: city,
+          checkIn: checkin,
+          checkOut: checkout,
+          rooms: [{ adults: parseInt(adults, 10) || 2, children: 0 }],
+        });
+        source = res.source;
+        warning = res.warning;
+        const liveHotels: Hotel[] = res.hotels.map((h) => ({
+          id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
+          thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
+          pricePerNightPaise: h.pricePerNightPaise, room: h.room,
+        }));
+        const liveNames = new Set(liveHotels.map((h) => h.name.toLowerCase()));
+        hotels = source === 'live'
+          ? [...liveHotels, ...hotelsForCity(city).filter((h) => !liveNames.has(h.name.toLowerCase()))]
+          : hotelsForCity(city);
+      } catch (e: any) {
+        source = 'mock';
+        warning = `Hotelbeds error: ${e?.message ?? e}`;
+        hotels = hotelsForCity(city);
+      }
+    } else {
+      hotels = hotelsForCity(city);
+    }
+  }
+
+  const liveCount = hotels.filter((h) => h.id.startsWith('HB-')).length;
+  const badge =
+    source === 'live'
+      ? { variant: 'success' as const, label: `${liveCount} LIVE · Hotelbeds` }
+      : source === 'unsupported-city'
+      ? { variant: 'warning' as const, label: `${city} not on Hotelbeds · mock data` }
+      : isLive()
+      ? { variant: 'warning' as const, label: 'MOCK · Hotelbeds returned no results' }
+      : { variant: 'warning' as const, label: 'MOCK · set HOTELBEDS_API_KEY for live' };
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-navy-900 tracking-tight">Hotels</h1>
-          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Mock inventory until Tripjack Hotel API arrives. Same UX as the live flow.</p>
+          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">
+            {isLive() ? 'Live inventory via Hotelbeds (HBX Group) — 250k+ properties globally.' : 'Mock inventory. Add HOTELBEDS_API_KEY + HOTELBEDS_API_SECRET to go live.'}
+          </p>
         </div>
-        <Pill variant="warning">MOCK · awaiting Tripjack Hotel API docs</Pill>
+        {hasQuery && <Pill variant={badge.variant}>{badge.label}</Pill>}
       </div>
 
       <HotelSearchForm defaults={{ city, checkin, checkout, adults }} />
+
+      {warning && source !== 'live' && (
+        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
+          {warning}
+        </div>
+      )}
 
       {hasQuery && (
         <>
