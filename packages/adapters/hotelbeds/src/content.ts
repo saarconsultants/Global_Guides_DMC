@@ -118,3 +118,83 @@ function normalizeContent(h: HbContentHotel): HotelContent {
     allImages: images.length > 0 ? images : undefined,
   };
 }
+
+// ── Full single-hotel detail (for the hotel detail page) ────────────────────
+export interface HotelDetail {
+  code: number;
+  name: string;
+  description?: string;
+  stars?: number;
+  address?: string;
+  city?: string;
+  countryCode?: string;
+  email?: string;
+  phone?: string;
+  web?: string;
+  latitude?: number;
+  longitude?: number;
+  images: string[];
+  facilities: string[];   // human-readable facility group: facility names
+}
+
+interface HbDetailResponse {
+  hotel?: {
+    code?: number;
+    name?: { content?: string };
+    description?: { content?: string };
+    categoryCode?: string;      // "4EST"
+    address?: { content?: string };
+    city?: { content?: string };
+    countryCode?: string;
+    email?: string;
+    phones?: Array<{ phoneNumber?: string; phoneType?: string }>;
+    web?: string;
+    coordinates?: { latitude?: number; longitude?: number };
+    images?: Array<{ path?: string; order?: number; visualOrder?: number; imageTypeCode?: string }>;
+    facilities?: Array<{ description?: { content?: string }; facilityGroupCode?: number }>;
+  };
+}
+
+export async function getHotelDetail(code: number): Promise<HotelDetail | null> {
+  if (!isLive('hotels')) return null;
+  try {
+    const path = `/hotel-content-api/1.0/hotels/${code}/details?language=ENG&useSecondaryLanguage=false`;
+    const res = await hbCall<HbDetailResponse>(path, undefined, { method: 'GET', timeoutMs: 8_000, product: 'hotels' });
+    const h = res.hotel;
+    if (!h) return null;
+
+    const images = (h.images ?? [])
+      .filter((i) => !!i.path)
+      .sort((a, b) => (a.visualOrder ?? a.order ?? 999) - (b.visualOrder ?? b.order ?? 999))
+      .map((i) => `${PHOTO_CDN}/${i.path}`);
+
+    const facilities = (h.facilities ?? [])
+      .map((f) => f.description?.content)
+      .filter((x): x is string => !!x)
+      // Dedupe + cap at 40 so the UI isn't overwhelming
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .slice(0, 40);
+
+    const starsMatch = h.categoryCode?.match(/(\d)/);
+
+    return {
+      code: h.code ?? code,
+      name: h.name?.content ?? `Hotel ${code}`,
+      description: h.description?.content,
+      stars: starsMatch ? parseInt(starsMatch[1]!, 10) : undefined,
+      address: h.address?.content,
+      city: h.city?.content,
+      countryCode: h.countryCode,
+      email: h.email,
+      phone: h.phones?.[0]?.phoneNumber,
+      web: h.web,
+      latitude: h.coordinates?.latitude,
+      longitude: h.coordinates?.longitude,
+      images,
+      facilities,
+    };
+  } catch (e) {
+    console.error('[hotelbeds] getHotelDetail failed:', (e as Error)?.message ?? e);
+    return null;
+  }
+}

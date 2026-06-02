@@ -3,6 +3,7 @@ import { Pill } from '@/components/ui/pill';
 import { formatINR } from '@/lib/utils';
 import type { Hotel } from '@/lib/itinerary/types';
 import { Star } from 'lucide-react';
+import Link from 'next/link';
 import { SelectHotelButton } from './select-hotel-button';
 import { HotelPhoto } from './hotel-photo';
 
@@ -36,7 +37,11 @@ export function HotelResults({ hotels, nights }: Props) {
               <div>
                 <div className="flex items-center gap-1 text-gold-500">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-gold-500" />)}</div>
                 <h3 className="font-semibold text-navy-900 text-lg mt-0.5 inline-flex items-center gap-2">
-                  {h.name}
+                  {h.id.startsWith('HB-') ? (
+                    <Link href={`/hotels/${h.id}` as any} className="hover:text-crimson-700 hover:underline underline-offset-2">{h.name}</Link>
+                  ) : (
+                    h.name
+                  )}
                   {h.id.startsWith('HB-') && <Pill variant="success">LIVE</Pill>}
                 </h3>
                 <p className="text-xs text-[rgb(var(--text-secondary))]">{h.address}</p>

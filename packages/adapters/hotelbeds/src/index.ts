@@ -1,7 +1,8 @@
 export { searchHotels } from './hotels';
 export { searchActivities } from './activities';
 export { searchTransfers } from './transfers';
-export { fetchHotelImages } from './content';
+export { fetchHotelImages, getHotelDetail } from './content';
+export type { HotelDetail } from './content';
 export { isLive } from './client';
 export { toHotelbedsDestination, IATA_TO_HOTELBEDS_DESTINATION } from './destinations';
 

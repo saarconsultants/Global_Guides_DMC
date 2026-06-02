@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
@@ -12,59 +13,66 @@ interface DialogProps {
   glass?: boolean;
 }
 
+// Portal-based modal. We deliberately do NOT use the native <dialog> element:
+// its top-layer + close-event behavior interacts badly with React re-renders
+// (modals were closing themselves a beat after async content loaded). A plain
+// portal overlay is fully under React's control and has no hidden side-effects.
 export function Dialog({ open, onClose, title, children, size = 'md', glass }: DialogProps) {
-  const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const [mounted, setMounted] = useState(false);
 
+  // Portals require a DOM target — only available after mount (SSR-safe).
+  useEffect(() => { setMounted(true); }, []);
+
+  // ESC to close + body scroll lock while open.
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (open && !el.open) el.showModal();
-    if (!open && el.open) el.close();
-  }, [open]);
+    if (!open) return;
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
 
-  // Close on backdrop click — but NOT when the click is on a scrollbar.
-  // Native <dialog> fires events where e.target === the dialog element for
-  // both backdrop clicks AND scrollbar clicks. We disambiguate by checking
-  // the click coordinates are actually outside the dialog's content box.
-  function onClickBackdrop(e: React.MouseEvent<HTMLDialogElement>) {
-    if (e.target !== ref.current) return;
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const inside =
-      e.clientX >= rect.left &&
-      e.clientX <= rect.right &&
-      e.clientY >= rect.top &&
-      e.clientY <= rect.bottom;
-    if (!inside) onClose();
-  }
+  if (!mounted || !open) return null;
 
   const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-5xl' } as const;
 
-  return (
-    <dialog
-      ref={ref}
-      onClose={onClose}
-      onClick={onClickBackdrop}
-      aria-labelledby={title ? titleId : undefined}
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-navy-900/60 backdrop-blur-sm p-4 sm:p-6"
+      // Backdrop click closes — only when the click target is the backdrop itself,
+      // never a child. (No native-dialog scrollbar ambiguity here.)
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="dialog"
       aria-modal="true"
-      className={cn(
-        'p-0 rounded-xl shadow-xl border-0 w-full max-h-[90vh] overflow-y-auto',
-        'backdrop:bg-navy-900/60 backdrop:backdrop-blur-sm',
-        sizes[size],
-        glass ? 'glass' : 'bg-surface',
-      )}
+      aria-labelledby={title ? titleId : undefined}
     >
-      <div className="relative">
-        <header className="sticky top-0 z-10 flex items-center justify-between px-6 pt-5 pb-3 bg-inherit border-b border-border-subtle/0">
+      <div
+        className={cn(
+          'relative w-full my-auto rounded-xl shadow-xl max-h-[90vh] overflow-y-auto',
+          sizes[size],
+          glass ? 'glass' : 'bg-surface',
+        )}
+        // Stop propagation so clicks inside the panel never reach the backdrop handler.
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <header className="sticky top-0 z-10 flex items-center justify-between px-6 pt-5 pb-3 bg-inherit">
           {title ? <h2 id={titleId} className="text-lg font-semibold text-navy-900 tracking-tight">{title}</h2> : <span />}
-          <button onClick={onClose} className="ml-auto -mr-2 h-9 w-9 inline-flex items-center justify-center rounded-full hover:bg-navy-50 transition-colors cursor-pointer" aria-label="Close dialog">
+          <button
+            onClick={onClose}
+            className="ml-auto -mr-2 h-9 w-9 inline-flex items-center justify-center rounded-full hover:bg-navy-50 transition-colors cursor-pointer"
+            aria-label="Close dialog"
+          >
             <X className="w-4 h-4 text-navy-700" />
           </button>
         </header>
         <div className="px-6 pb-6">{children}</div>
       </div>
-    </dialog>
+    </div>,
+    document.body,
   );
 }
