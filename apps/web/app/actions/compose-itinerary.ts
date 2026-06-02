@@ -19,6 +19,21 @@ const HOTEL_CHECKIN_HOUR = 14;
 const HOTEL_CHECKOUT_HOUR = 12;
 
 export async function composeItineraryAction(intake: IntakeForm): Promise<Itinerary> {
+  // Race the whole live-enrichment path against a 9s deadline. Vercel kills
+  // serverless functions at 10s on Hobby — if Hotelbeds is slow, we'd rather
+  // ship a mock-fallback itinerary than crash the intake page.
+  try {
+    return await Promise.race([
+      composeWithLive(intake),
+      new Promise<Itinerary>((_, reject) => setTimeout(() => reject(new Error('compose-deadline')), 9_000)),
+    ]);
+  } catch (e) {
+    console.warn('[compose] live enrichment timed out or failed, falling back to mock:', (e as Error)?.message ?? e);
+    return composeItinerary(intake);
+  }
+}
+
+async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
   const overrides: Record<string, Hotel> = {};
 
   if (isLive('hotels')) {

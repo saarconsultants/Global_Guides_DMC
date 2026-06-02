@@ -14,6 +14,7 @@ import { DayCard } from '@/components/itinerary/day-card';
 import { SaveProposalModal } from '@/components/itinerary/save-proposal-modal';
 import { useItineraryStore } from '@/lib/itinerary/store';
 import { findCityCodeByName } from '@/lib/cities';
+import { cityInfo } from '@/lib/itinerary/mock-inventory';
 import { formatINR } from '@/lib/utils';
 import { saveProposalAction } from '@/app/actions/save-proposal';
 import { loadItineraryByIdAction } from '@/app/actions/load-itinerary';
@@ -32,6 +33,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   const toggleInsurance = useItineraryStore((s) => s.toggleInsurance);
   const setFlight = useItineraryStore((s) => s.setFlight);
   const setReturnFlight = useItineraryStore((s) => s.setReturnFlight);
+  const addTransfer = useItineraryStore((s) => s.addTransfer);
   const setArrivalDetails = useItineraryStore((s) => s.setArrivalDetails);
   const setDepartureDetails = useItineraryStore((s) => s.setDepartureDetails);
   const [saveOpen, setSaveOpen] = useState(false);
@@ -201,8 +203,12 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     key={d.dayNo}
                     day={d}
                     hotelNameForOvernight={overnight}
+                    hotelAtlasCode={hotel?.id.startsWith('HB-') ? hotel.id.replace('HB-', '') : undefined}
+                    airportCode={cityInfo(d.cityCode).airportCode}
+                    airportName={cityInfo(d.cityCode).airportName}
                     paxAdults={itinerary.intake.rooms.reduce((s, r) => s + r.adults, 0)}
                     paxChildren={itinerary.intake.rooms.reduce((s, r) => s + (r.children ?? 0), 0)}
+                    onAddTransfer={(t) => { addTransfer(itinerary.id, d.dayNo, t); }}
                     onSetActivity={(slot, a) => {
                       setActivity(itinerary.id, d.dayNo, slot, a);
                       if (a) toast.success(`Added "${a.name}" to Day ${d.dayNo} ${slot}`);

@@ -42,6 +42,7 @@ export interface Hotel {
   mealPlan: string;          // 'Room Only' | 'Breakfast Included' | etc.
   pricePerNightPaise: number;
   room: { name: string; bedConfig: string };
+  allImages?: string[];        // Full gallery (Hotelbeds Content API). thumb is allImages[0].
 }
 
 export interface Stay {

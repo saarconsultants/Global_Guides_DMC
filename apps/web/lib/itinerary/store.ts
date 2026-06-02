@@ -2,7 +2,7 @@
 // In-memory itinerary store (Zustand). Will be replaced with Postgres persistence in task C.
 
 import { create } from 'zustand';
-import type { Itinerary, Hotel, Activity, FlightSelection, FlightLeg } from './types';
+import type { Itinerary, Hotel, Activity, FlightSelection, FlightLeg, Transfer } from './types';
 
 interface ItineraryStoreState {
   byId: Record<string, Itinerary>;
@@ -11,6 +11,7 @@ interface ItineraryStoreState {
   changeHotel: (id: string, cityCode: string, hotel: Hotel) => void;
   setFlight: (id: string, flight: FlightSelection | undefined) => void;
   setReturnFlight: (id: string, leg: FlightLeg | undefined) => void;
+  addTransfer: (id: string, dayNo: number, transfer: Transfer) => void;
   setActivity: (id: string, dayNo: number, slot: 'morning'|'afternoon'|'evening', activity: Activity | undefined) => void;
   removeInclusion: (id: string, dayNo: number, transferId: string) => void;
   toggleVisa: (id: string, countryCode: string, included: boolean) => void;
@@ -30,6 +31,21 @@ export const useItineraryStore = create<ItineraryStoreState>((set, get) => ({
       // Preserve any existing return leg when replacing the outbound,
       // since outbound and return are selected independently.
       const next: Itinerary = { ...cur, flights: flight ? { ...flight, return: flight.return ?? cur.flights?.return } : undefined };
+      next.pricePaise = recalcPrice(next);
+      next.pricePerAdultPaise = recalcPerAdult(next);
+      return { byId: { ...s.byId, [id]: next } };
+    }),
+
+  addTransfer: (id, dayNo, transfer) =>
+    set((s) => {
+      const cur = s.byId[id]; if (!cur) return s;
+      const next: Itinerary = {
+        ...cur,
+        days: cur.days.map((d) => d.dayNo === dayNo
+          ? { ...d, inclusions: [...d.inclusions, { kind: 'transfer', transfer }] }
+          : d,
+        ),
+      };
       next.pricePaise = recalcPrice(next);
       next.pricePerAdultPaise = recalcPerAdult(next);
       return { byId: { ...s.byId, [id]: next } };

@@ -20,6 +20,7 @@ export interface HotelbedsHotel {
   // Hotelbeds-specific fields we keep for booking confirmation
   rateKey?: string;            // opaque, required at /checkrates and /bookings
   currency?: string;           // EUR / USD — original Hotelbeds currency before INR conversion
+  allImages?: string[];        // Full gallery URLs from Content API (lightbox)
 }
 
 export interface AvailabilitySearchInput {

@@ -72,8 +72,10 @@ export async function hbCall<T = unknown>(path: string, body?: unknown, init?: H
   const method = init?.method ?? (body ? 'POST' : 'GET');
   if (method === 'POST') headers['Content-Type'] = 'application/json';
 
+  // Vercel Hobby has a 10s function timeout — we MUST come back under it
+  // even on slow upstream calls. Default 8s budget per Hotelbeds call.
   const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), init?.timeoutMs ?? 30_000);
+  const t = setTimeout(() => ctl.abort(), init?.timeoutMs ?? 8_000);
   try {
     const res = await fetch(`${baseUrl()}${path}`, {
       method,

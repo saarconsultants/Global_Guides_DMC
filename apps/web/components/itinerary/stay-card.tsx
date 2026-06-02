@@ -7,6 +7,7 @@ import { ChangeHotelModal } from './change-hotel-modal';
 import type { Hotel, Stay, Room } from '@/lib/itinerary/types';
 import { formatINR } from '@/lib/utils';
 import { Star, Check } from 'lucide-react';
+import { HotelPhoto } from '@/components/hotels/hotel-photo';
 
 interface Props {
   cityCode: string;
@@ -26,11 +27,13 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
       <Card>
         <CardContent className="pt-5">
           <div className="grid gap-4 md:grid-cols-[120px_1fr_auto]">
-            {h.thumb ? (
-              <img src={h.thumb} alt={h.name} loading="lazy" className="w-[120px] h-[120px] rounded-md object-cover bg-navy-900" />
-            ) : (
-              <div className="w-[120px] h-[120px] rounded-md bg-gradient-to-br from-navy-500 to-navy-900 text-white/60 text-xs flex items-center justify-center">Hotel photo</div>
-            )}
+            <HotelPhoto
+              thumb={h.thumb}
+              allImages={h.allImages}
+              hotelName={h.name}
+              className="w-[120px] h-[120px] rounded-md"
+              placeholder={<div className="w-[120px] h-[120px] rounded-md bg-gradient-to-br from-navy-500 to-navy-900 text-white/60 text-xs flex items-center justify-center">Hotel photo</div>}
+            />
             <div>
               <div className="flex items-center gap-1 text-gold-500">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-gold-500" />)}</div>
               <h4 className="font-semibold text-navy-900 mt-0.5">{h.name} <button className="text-xs text-crimson-700 font-normal hover:underline ml-1">view</button></h4>

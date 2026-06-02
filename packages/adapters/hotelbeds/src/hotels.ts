@@ -98,8 +98,9 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
         ]);
         for (const h of hotels) {
           const code = parseInt(h.id.replace('HB-', ''), 10);
-          const content = images.get(code) as { thumb?: string } | undefined;
+          const content = images.get(code) as { thumb?: string; allImages?: string[] } | undefined;
           if (content?.thumb) h.thumb = content.thumb;
+          if (content?.allImages) h.allImages = content.allImages;
         }
       }
     } catch (e) {

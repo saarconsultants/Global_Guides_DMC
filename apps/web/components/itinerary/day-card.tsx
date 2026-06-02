@@ -6,17 +6,23 @@ import { Pill } from '@/components/ui/pill';
 import { formatINR } from '@/lib/utils';
 import { toast } from '@/components/ui/toast';
 import type { Day, Activity } from '@/lib/itinerary/types';
-import { Bed, Check, X, Plus, ChevronDown, Plane } from 'lucide-react';
+import { Bed, Check, X, Plus, ChevronDown, Plane, Car } from 'lucide-react';
 import { AddActivityModal } from './add-activity-modal';
 import { FlightDetailsModal } from './flight-details-modal';
+import { AddTransferModal } from './add-transfer-modal';
+import type { Transfer } from '@/lib/itinerary/types';
 
 interface Props {
   day: Day;
   hotelNameForOvernight?: string;
+  hotelAtlasCode?: string;            // HB-#### → #### for live transfer search
+  airportCode?: string;
+  airportName?: string;
   paxAdults?: number;
   paxChildren?: number;
   onSetActivity: (slot: 'morning'|'afternoon'|'evening', a: Activity | undefined) => void;
   onRemoveTransfer: (transferId: string) => void;
+  onAddTransfer?: (transfer: Transfer) => void;
   onSetArrivalDetails?:   (details: { flightNumber: string; arrivalTime: string }) => void;
   onSetDepartureDetails?: (details: { flightNumber: string; departureTime: string }) => void;
 }
@@ -28,10 +34,19 @@ const heading = (d: Day) => {
   return `Stay in ${d.cityName}`;
 };
 
-export function DayCard({ day, hotelNameForOvernight, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onSetArrivalDetails, onSetDepartureDetails }: Props) {
+export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails }: Props) {
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [flightOpen, setFlightOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+
+  // Does this day already have a transfer matching its type? Arrival/departure days
+  // expect an airport transfer; if it was removed, surface a re-add button.
+  const expectsTransfer = day.type === 'arrival' || day.type === 'departure';
+  const hasAirportTransfer = day.inclusions.some(
+    (inc) => inc.kind === 'transfer' && inc.transfer.kind === day.type,
+  );
+  const showAddTransfer = expectsTransfer && !hasAirportTransfer && !!onAddTransfer && !!airportCode && !!hotelAtlasCode;
 
   const missing = day.type === 'arrival' && !day.arrivalDetails ? 'Arrival information is missing'
                 : day.type === 'departure' && !day.departureDetails ? 'Departure information is missing'
@@ -154,6 +169,11 @@ export function DayCard({ day, hotelNameForOvernight, paxAdults, paxChildren, on
                 <Plane className="w-3.5 h-3.5" />Update Departure from {day.cityName}
               </Button>
             )}
+            {showAddTransfer && (
+              <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5">
+                <Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer
+              </Button>
+            )}
           </footer>
         </CardContent>
       </Card>
@@ -171,6 +191,24 @@ export function DayCard({ day, hotelNameForOvernight, paxAdults, paxChildren, on
           date={day.date}
           paxAdults={paxAdults}
           paxChildren={paxChildren}
+        />
+      )}
+
+      {transferOpen && (day.type === 'arrival' || day.type === 'departure') && airportCode && hotelAtlasCode && onAddTransfer && (
+        <AddTransferModal
+          open={transferOpen}
+          onClose={() => setTransferOpen(false)}
+          kind={day.type}
+          cityCode={day.cityCode}
+          cityName={day.cityName}
+          airportCode={airportCode}
+          airportName={airportName}
+          hotelAtlasCode={hotelAtlasCode}
+          hotelName={hotelNameForOvernight ?? 'Hotel'}
+          pickupDate={day.date}
+          adults={paxAdults ?? 2}
+          children={paxChildren ?? 0}
+          onPick={(t) => { onAddTransfer(t); toast.success('Transfer added', `${vehicleLabel(t.vehicle)} pickup confirmed.`); }}
         />
       )}
 

@@ -54,5 +54,6 @@ function hbHotelToAppHotel(h: HotelbedsHotel): Hotel {
     mealPlan: h.mealPlan,
     pricePerNightPaise: h.pricePerNightPaise,
     room: h.room,
+    allImages: h.allImages,
   };
 }

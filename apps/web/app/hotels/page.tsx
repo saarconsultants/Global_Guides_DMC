@@ -40,7 +40,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
         const liveHotels: Hotel[] = res.hotels.map((h) => ({
           id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
           thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
-          pricePerNightPaise: h.pricePerNightPaise, room: h.room,
+          pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages,
         }));
         const liveNames = new Set(liveHotels.map((h) => h.name.toLowerCase()));
         hotels = source === 'live'
