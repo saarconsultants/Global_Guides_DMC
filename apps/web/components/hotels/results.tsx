@@ -25,7 +25,17 @@ export function HotelResults({ hotels, nights }: Props) {
         <Card key={h.id}>
           <CardContent className="pt-5">
             <div className="grid gap-4 md:grid-cols-[140px_1fr_auto]">
-              <div className="w-[140px] h-[140px] rounded-md bg-gradient-to-br from-navy-500 to-navy-900 text-white/60 text-xs flex items-center justify-center">Hotel photo</div>
+              {h.thumb ? (
+                <img
+                  src={h.thumb}
+                  alt={h.name}
+                  loading="lazy"
+                  className="w-[140px] h-[140px] rounded-md object-cover bg-navy-900"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-[140px] h-[140px] rounded-md bg-gradient-to-br from-navy-500 to-navy-900 text-white/60 text-xs flex items-center justify-center">Hotel photo</div>
+              )}
               <div>
                 <div className="flex items-center gap-1 text-gold-500">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-gold-500" />)}</div>
                 <h3 className="font-semibold text-navy-900 text-lg mt-0.5 inline-flex items-center gap-2">

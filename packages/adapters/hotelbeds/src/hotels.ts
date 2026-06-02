@@ -9,6 +9,7 @@
 
 import { hbCall, isLive } from './client';
 import { toHotelbedsDestination } from './destinations';
+import { fetchHotelImages } from './content';
 import type {
   AvailabilitySearchInput,
   AvailabilitySearchResult,
@@ -82,6 +83,19 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
 
     const res = await hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body);
     const hotels = normalizeHotels(res, input.cityCode);
+
+    // Fan out the Content API call for photos. Cached aggressively (24h per
+    // hotel code), so repeat searches of the same city are free.
+    // We only fetch images for the first ~60 hotels visible above the fold —
+    // anything past that is rarely scrolled to during testing.
+    const topCodes = hotels.slice(0, 60).map((h) => parseInt(h.id.replace('HB-', ''), 10)).filter(Number.isFinite);
+    const images = await fetchHotelImages(topCodes);
+    for (const h of hotels) {
+      const code = parseInt(h.id.replace('HB-', ''), 10);
+      const content = images.get(code);
+      if (content?.thumb) h.thumb = content.thumb;
+    }
+
     return { hotels, source: 'live' };
   })();
 

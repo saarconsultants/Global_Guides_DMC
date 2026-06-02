@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { composeItinerary } from '@/lib/itinerary/compose';
+import { composeItineraryAction } from '@/app/actions/compose-itinerary';
 import { useItineraryStore } from '@/lib/itinerary/store';
 import { findCity } from '@/lib/cities';
 import type { IntakeForm, StarRating, Room } from '@/lib/itinerary/types';
@@ -66,7 +66,9 @@ export default function NewItineraryPage() {
   function addRoom() { setRooms((rs) => rs.length < 5 ? [...rs, { adults: 1, children: 0 }] : rs); }
   function removeRoom(i: number) { setRooms((rs) => rs.length > 1 ? rs.filter((_, idx) => idx !== i) : rs); }
 
-  function submit(e: React.FormEvent) {
+  const [composing, setComposing] = useState(false);
+
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (destinations.length === 0) { setError('Please add at least one destination.'); return; }
@@ -83,9 +85,15 @@ export default function NewItineraryPage() {
       leavingFromName,
       nationality, departureDate, rooms, starRating, addTransfers,
     };
-    const itin = composeItinerary(intake);
-    upsert(itin);
-    router.push(`/itinerary/${itin.id}/customize`);
+    setComposing(true);
+    try {
+      const itin = await composeItineraryAction(intake);
+      upsert(itin);
+      router.push(`/itinerary/${itin.id}/customize`);
+    } catch (err: any) {
+      setError(`Could not compose trip: ${err?.message ?? err}`);
+      setComposing(false);
+    }
   }
 
   const totalNights = destinations.reduce((s, d) => s + d.nights, 0);
@@ -204,7 +212,7 @@ export default function NewItineraryPage() {
 
           {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
 
-          <div className="flex justify-end pt-2"><Button type="submit">Create proposal</Button></div>
+          <div className="flex justify-end pt-2"><Button type="submit" disabled={composing} className="gap-2">{composing ? <>Fetching live hotels…</> : 'Create proposal'}</Button></div>
         </CardContent>
       </Card>
       </form>

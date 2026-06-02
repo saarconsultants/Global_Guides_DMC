@@ -1,7 +1,7 @@
 'use server';
 import { db } from '@/lib/db/client';
 import { requireAgency } from '@/lib/auth/ctx';
-import { composeItinerary } from '@/lib/itinerary/compose';
+import { composeItineraryAction } from './compose-itinerary';
 import type { IntakeForm } from '@/lib/itinerary/types';
 import { redirect } from 'next/navigation';
 // Compose an Itinerary in-process, persist it as a Draft Proposal,
@@ -38,7 +38,9 @@ export async function cloneTemplateAction(templateId: string): Promise<{ proposa
     starRating: tpl.category === 'LUXURY' ? 5 : tpl.category === 'FAMILY' ? 4 : undefined,
     addTransfers: true,
   };
-  const it = composeItinerary(intake);
+  // Use the live-Hotelbeds composer so cloned templates also get real hotels
+  // (with our 90s cache, repeat clones of the same template don't re-hit the API).
+  const it = await composeItineraryAction(intake);
 
   const total = BigInt(it.pricePaise);
   const netCost = BigInt(Math.round(Number(total) * 0.85));

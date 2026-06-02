@@ -1,21 +1,26 @@
 // Pure function: turn an intake form into a full Itinerary skeleton.
+//
+// Hotels: by default this falls back to mock inventory (synchronous, fast).
+// Callers that want live Hotelbeds inventory should pre-fetch hotels via a
+// server action and pass them as `hotelOverrides` keyed by cityCode — this
+// keeps compose() pure and decouples it from the adapter package.
 
-import type { IntakeForm, Itinerary, Day, Stay, DayInclusion, VisaItem, InsuranceItem } from './types';
+import type { IntakeForm, Itinerary, Day, Stay, DayInclusion, VisaItem, InsuranceItem, Hotel } from './types';
 import { pickHotelForStars, airportToHotelTransfer, hotelToAirportTransfer, interCityTransfer, cityInfo } from './mock-inventory';
 
 const HOTEL_CHECKIN_HOUR = 14;
 const HOTEL_CHECKOUT_HOUR = 12;
 
-export function composeItinerary(intake: IntakeForm): Itinerary {
+export function composeItinerary(intake: IntakeForm, hotelOverrides?: Record<string, Hotel>): Itinerary {
   const id = `it_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
   const startDate = new Date(intake.departureDate);
   const days: Day[] = [];
 
-  // Resolve stays for each destination
+  // Resolve stays for each destination — prefer live Hotelbeds overrides,
+  // fall back to mock when not provided.
   const destinations = intake.destinations.map((d) => {
-    const hotel = pickHotelForStars(d.cityCode, intake.starRating);
+    const hotel = hotelOverrides?.[d.cityCode] ?? pickHotelForStars(d.cityCode, intake.starRating);
     if (!hotel) return { ...d, stay: undefined };
-    // Compute check-in / check-out using running offset
     return { ...d, stay: undefined as Stay | undefined, _hotel: hotel };
   });
 
