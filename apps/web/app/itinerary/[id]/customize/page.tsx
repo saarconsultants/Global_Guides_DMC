@@ -201,6 +201,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     key={d.dayNo}
                     day={d}
                     hotelNameForOvernight={overnight}
+                    paxAdults={itinerary.intake.rooms.reduce((s, r) => s + r.adults, 0)}
+                    paxChildren={itinerary.intake.rooms.reduce((s, r) => s + (r.children ?? 0), 0)}
                     onSetActivity={(slot, a) => {
                       setActivity(itinerary.id, d.dayNo, slot, a);
                       if (a) toast.success(`Added "${a.name}" to Day ${d.dayNo} ${slot}`);

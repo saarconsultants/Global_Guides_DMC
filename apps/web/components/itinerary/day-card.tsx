@@ -13,6 +13,8 @@ import { FlightDetailsModal } from './flight-details-modal';
 interface Props {
   day: Day;
   hotelNameForOvernight?: string;
+  paxAdults?: number;
+  paxChildren?: number;
   onSetActivity: (slot: 'morning'|'afternoon'|'evening', a: Activity | undefined) => void;
   onRemoveTransfer: (transferId: string) => void;
   onSetArrivalDetails?:   (details: { flightNumber: string; arrivalTime: string }) => void;
@@ -26,7 +28,7 @@ const heading = (d: Day) => {
   return `Stay in ${d.cityName}`;
 };
 
-export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTransfer, onSetArrivalDetails, onSetDepartureDetails }: Props) {
+export function DayCard({ day, hotelNameForOvernight, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onSetArrivalDetails, onSetDepartureDetails }: Props) {
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [flightOpen, setFlightOpen] = useState(false);
@@ -166,6 +168,9 @@ export function DayCard({ day, hotelNameForOvernight, onSetActivity, onRemoveTra
           currentId={day[slotOpen]?.id}
           onPick={(a) => onSetActivity(slotOpen!, a)}
           onClear={() => onSetActivity(slotOpen!, undefined)}
+          date={day.date}
+          paxAdults={paxAdults}
+          paxChildren={paxChildren}
         />
       )}
 

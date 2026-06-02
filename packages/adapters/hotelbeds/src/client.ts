@@ -22,20 +22,26 @@ export class HotelbedsHttpError extends Error {
   }
 }
 
+export type Product = 'hotels' | 'activities' | 'transfers';
+
 function baseUrl(): string {
   return process.env.HOTELBEDS_BASE_URL ?? 'https://api.test.hotelbeds.com';
 }
 
-function apiKey(): string | undefined {
-  return process.env.HOTELBEDS_API_KEY;
+// Per-product credentials with fallback to the generic pair.
+// Hotelbeds often gives separate API keys per product (hotels, activities,
+// transfers) with their own rate limits and quotas. Set product-specific
+// env vars to use them; otherwise the generic key applies to all three.
+function credsFor(product: Product): { key?: string; secret?: string } {
+  const upper = product.toUpperCase();
+  const key = process.env[`HOTELBEDS_${upper}_API_KEY`] ?? process.env.HOTELBEDS_API_KEY;
+  const secret = process.env[`HOTELBEDS_${upper}_API_SECRET`] ?? process.env.HOTELBEDS_API_SECRET;
+  return { key, secret };
 }
 
-function apiSecret(): string | undefined {
-  return process.env.HOTELBEDS_API_SECRET;
-}
-
-export function isLive(): boolean {
-  return !!(apiKey() && apiSecret());
+export function isLive(product: Product = 'hotels'): boolean {
+  const { key, secret } = credsFor(product);
+  return !!(key && secret);
 }
 
 function signature(key: string, secret: string): string {
@@ -46,13 +52,14 @@ function signature(key: string, secret: string): string {
 interface HbCallInit {
   method?: 'GET' | 'POST';
   timeoutMs?: number;
+  product?: Product;
 }
 
 export async function hbCall<T = unknown>(path: string, body?: unknown, init?: HbCallInit): Promise<T> {
-  const key = apiKey();
-  const secret = apiSecret();
+  const product = init?.product ?? 'hotels';
+  const { key, secret } = credsFor(product);
   if (!key || !secret) {
-    throw new Error('HOTELBEDS_API_KEY / HOTELBEDS_API_SECRET not set — adapter is in mock-only mode.');
+    throw new Error(`HOTELBEDS_${product.toUpperCase()}_API_KEY / SECRET (or fallback HOTELBEDS_API_KEY/SECRET) not set — adapter is in mock-only mode for ${product}.`);
   }
 
   const headers: Record<string, string> = {

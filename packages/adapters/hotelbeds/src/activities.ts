@@ -59,7 +59,7 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
 
   const promise = (async (): Promise<ActivitiesSearchResult> => {
-    if (!isLive()) return { activities: [], source: 'mock', warning: 'HOTELBEDS_API_KEY not set' };
+    if (!isLive('activities')) return { activities: [], source: 'mock', warning: 'HOTELBEDS_ACTIVITIES_API_KEY (or fallback HOTELBEDS_API_KEY) not set' };
 
     const destinationCode = toHotelbedsDestination(input.cityCode);
     if (!destinationCode) {
@@ -83,7 +83,7 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
       ],
     };
 
-    const res = await hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body);
+    const res = await hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body, { product: 'activities' });
     return { activities: normalize(res, input.cityCode), source: 'live' };
   })();
 

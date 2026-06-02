@@ -58,11 +58,11 @@ export async function searchTransfers(input: TransferSearchInput): Promise<Trans
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
 
   const promise = (async (): Promise<TransferSearchResult> => {
-    if (!isLive()) return { transfers: [], source: 'mock', warning: 'HOTELBEDS_API_KEY not set' };
+    if (!isLive('transfers')) return { transfers: [], source: 'mock', warning: 'HOTELBEDS_TRANSFERS_API_KEY (or fallback HOTELBEDS_API_KEY) not set' };
 
     const path = `/transfer-api/1.0/availability/en/from/${input.fromType}/${input.fromCode}/to/${input.toType}/${input.toCode}/${input.pickupDate}/${input.pickupDate}/${input.adults}/${input.children ?? 0}/${input.infants ?? 0}`;
     try {
-      const res = await hbCall<HbTransfersResponse>(path, undefined, { method: 'GET', timeoutMs: 20_000 });
+      const res = await hbCall<HbTransfersResponse>(path, undefined, { method: 'GET', timeoutMs: 20_000, product: 'transfers' });
       return { transfers: normalize(res), source: 'live' };
     } catch (e: any) {
       return { transfers: [], source: 'mock', warning: `Hotelbeds Transfers error: ${e?.message ?? e}` };
