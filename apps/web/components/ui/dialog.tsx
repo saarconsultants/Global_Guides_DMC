@@ -23,9 +23,21 @@ export function Dialog({ open, onClose, title, children, size = 'md', glass }: D
     if (!open && el.open) el.close();
   }, [open]);
 
-  // Close on backdrop click
+  // Close on backdrop click — but NOT when the click is on a scrollbar.
+  // Native <dialog> fires events where e.target === the dialog element for
+  // both backdrop clicks AND scrollbar clicks. We disambiguate by checking
+  // the click coordinates are actually outside the dialog's content box.
   function onClickBackdrop(e: React.MouseEvent<HTMLDialogElement>) {
-    if (e.target === ref.current) onClose();
+    if (e.target !== ref.current) return;
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const inside =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom;
+    if (!inside) onClose();
   }
 
   const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-5xl' } as const;
