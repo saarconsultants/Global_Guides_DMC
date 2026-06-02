@@ -181,6 +181,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     cityName={d.cityName}
                     nights={d.nights}
                     stay={d.stay}
+                    rooms={itinerary.intake.rooms}
                     onChange={(h) => { changeHotel(itinerary.id, d.cityCode, h); toast.success('Hotel changed', `Now staying at ${h.name} in ${d.cityName}.`); }}
                   />
                 </div>

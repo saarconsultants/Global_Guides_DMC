@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { ChangeHotelModal } from './change-hotel-modal';
-import type { Hotel, Stay } from '@/lib/itinerary/types';
+import type { Hotel, Stay, Room } from '@/lib/itinerary/types';
 import { formatINR } from '@/lib/utils';
 import { Star, Check } from 'lucide-react';
 
@@ -13,10 +13,11 @@ interface Props {
   cityName: string;
   nights: number;
   stay: Stay;
+  rooms?: Room[];
   onChange: (h: Hotel) => void;
 }
 
-export function StayCard({ cityCode, cityName, nights, stay, onChange }: Props) {
+export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: Props) {
   const [open, setOpen] = useState(false);
   const h = stay.hotel;
   return (
@@ -55,7 +56,17 @@ export function StayCard({ cityCode, cityName, nights, stay, onChange }: Props) 
           </div>
         </CardContent>
       </Card>
-      <ChangeHotelModal open={open} onClose={() => setOpen(false)} cityCode={cityCode} cityName={cityName} currentHotelId={h.id} onPick={onChange} />
+      <ChangeHotelModal
+        open={open}
+        onClose={() => setOpen(false)}
+        cityCode={cityCode}
+        cityName={cityName}
+        currentHotelId={h.id}
+        onPick={onChange}
+        checkIn={stay.checkIn}
+        checkOut={stay.checkOut}
+        rooms={rooms}
+      />
     </>
   );
 }

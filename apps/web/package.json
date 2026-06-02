@@ -19,6 +19,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@gg/tripjack": "*",
+    "@gg/hotelbeds": "*",
     "@react-pdf/renderer": "^4.1.5",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^6.1.0",
