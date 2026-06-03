@@ -106,16 +106,20 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
 
           {/* Slots */}
           {day.type !== 'transit' && (
-            <div className="grid grid-cols-3 gap-2 bg-surface-2 rounded-md py-3 px-3 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-4">
               {(['morning','afternoon','evening'] as const).map((s) => {
                 const act = day[s];
                 return (
-                  <button key={s} onClick={() => setSlotOpen(s)} className="text-left rounded-md hover:bg-white/60 px-2 py-1.5 transition-colors cursor-pointer">
+                  <button
+                    key={s}
+                    onClick={() => setSlotOpen(s)}
+                    className={`text-left rounded-lg border px-2.5 py-2 transition-colors cursor-pointer min-h-[3.75rem] ${act ? 'border-border-subtle bg-surface hover:border-crimson-300' : 'border-dashed border-border bg-surface-2/40 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
+                  >
                     <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-0.5">{s}</p>
                     {act ? (
-                      <span className="text-xs text-navy-900 font-medium">{act.name}</span>
+                      <span className="text-xs text-navy-900 font-medium line-clamp-2 leading-snug">{act.name}</span>
                     ) : (
-                      <span className="text-xs text-success-500 inline-flex items-center gap-1"><Plus className="w-3 h-3" /> Add Activity</span>
+                      <span className="text-xs text-crimson-700 font-medium inline-flex items-center gap-1"><Plus className="w-3 h-3" /> Add</span>
                     )}
                   </button>
                 );

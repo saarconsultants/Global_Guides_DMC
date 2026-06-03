@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMoney } from '@/components/providers/currency-provider';
 import type { Itinerary } from '@/lib/itinerary/types';
-import { Wallet, Plane, Bed, MapPin, ShieldCheck, FileText } from 'lucide-react';
+import { Wallet, Plane, Bed, Car, Sparkles, ShieldCheck, FileText, ArrowRight } from 'lucide-react';
 
 interface Props { itinerary: Itinerary; onSave: () => void; }
 
@@ -23,8 +23,8 @@ export function PriceRail({ itinerary, onSave }: Props) {
   const rows: Array<{ icon: any; label: string; paise: number; muted?: boolean }> = [
     { icon: Plane,       label: 'Flights',           paise: flightPaise,    muted: flightPaise === 0 },
     { icon: Bed,         label: 'Stays',             paise: hotelPaise },
-    { icon: MapPin,      label: 'Transfers',         paise: transferPaise,  muted: transferPaise === 0 },
-    { icon: MapPin,      label: 'Activities',        paise: activityPaise,  muted: activityPaise === 0 },
+    { icon: Car,         label: 'Transfers',         paise: transferPaise,  muted: transferPaise === 0 },
+    { icon: Sparkles,    label: 'Activities',        paise: activityPaise,  muted: activityPaise === 0 },
     { icon: FileText,    label: 'Visa',              paise: visaPaise,      muted: visaPaise === 0 },
     { icon: ShieldCheck, label: 'Insurance',         paise: insurancePaise, muted: insurancePaise === 0 },
   ];
@@ -32,32 +32,39 @@ export function PriceRail({ itinerary, onSave }: Props) {
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-navy-900">Price Summary</h3>
+        <div className="flex items-center justify-between mb-0.5">
+          <h3 className="font-display text-lg font-semibold text-navy-900">Price summary</h3>
           <Wallet className="w-4 h-4 text-[rgb(var(--text-tertiary))]" />
         </div>
-        <a href="#trip-summary" className="text-xs font-semibold text-crimson-700 hover:underline underline-offset-4">Trip Summary</a>
+        <a href="#trip-summary" className="inline-flex items-center gap-0.5 text-xs font-semibold text-crimson-700 hover:underline underline-offset-4">View full trip summary <ArrowRight className="w-3 h-3" /></a>
 
-        <ul className="mt-4 space-y-1.5 text-sm">
+        <ul className="mt-4 space-y-2.5 text-sm">
           {rows.map((r) => (
-            <li key={r.label} className={`flex items-center justify-between ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-[rgb(var(--text-primary))]'}`}>
-              <span className="inline-flex items-center gap-1.5"><r.icon className="w-3.5 h-3.5" />{r.label}</span>
-              <span className="font-mono tabular-nums text-xs">{r.muted ? '—' : money(r.paise)}</span>
+            <li key={r.label} className="flex items-center justify-between">
+              <span className={`inline-flex items-center gap-2 ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-[rgb(var(--text-primary))]'}`}>
+                <r.icon className={`w-4 h-4 ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-crimson-700/70'}`} />{r.label}
+              </span>
+              <span className={`font-mono tabular-nums text-xs ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-navy-900 font-medium'}`}>{r.muted ? 'Not added' : money(r.paise)}</span>
             </li>
           ))}
         </ul>
 
-        <dl className="mt-4 pt-3 border-t border-border-subtle space-y-2 text-sm">
-          <div className="flex items-center justify-between">
-            <dt className="text-[rgb(var(--text-secondary))]">Price per adult</dt>
-            <dd className="font-mono tabular-nums text-navy-900">{money(itinerary.pricePerAdultPaise)}</dd>
+        {/* Hero total block */}
+        <div className="mt-4 rounded-lg bg-surface-2 border border-border-subtle p-3.5">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-[rgb(var(--text-secondary))]">Per adult</span>
+            <span className="font-mono tabular-nums text-navy-900">{money(itinerary.pricePerAdultPaise)}</span>
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
-            <dt className="text-[rgb(var(--text-primary))] font-semibold">Total Price</dt>
-            <dd className="font-mono tabular-nums text-xl font-bold text-navy-900">{money(itinerary.pricePaise)}</dd>
+          <div className="mt-2.5 pt-2.5 border-t border-border-subtle flex items-end justify-between">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Total price</p>
+              <p className="text-[10px] text-[rgb(var(--text-tertiary))]">all taxes included</p>
+            </div>
+            <span className="font-mono tabular-nums text-2xl font-bold text-navy-900 leading-none">{money(itinerary.pricePaise)}</span>
           </div>
-        </dl>
-        <Button onClick={onSave} className="w-full mt-5">Save As Proposal</Button>
+        </div>
+
+        <Button onClick={onSave} className="w-full mt-4">Save as proposal</Button>
       </CardContent>
     </Card>
   );
