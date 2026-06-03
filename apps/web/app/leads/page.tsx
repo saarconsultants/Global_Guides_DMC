@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { listLeads } from '@/lib/db/proposals';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
+import { LeadActions } from '@/components/leads/lead-actions';
 import { ClipboardList, HelpCircle, Plus, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
 
@@ -98,6 +99,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     <th className="py-3 pr-4 font-semibold">Nights</th>
                     <th className="py-3 pr-4 font-semibold">Status</th>
                     <th className="py-3 pr-4 font-semibold">Latest quote</th>
+                    <th className="py-3 pl-4 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -114,6 +116,12 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                         <td className="py-3 pr-4 font-mono">{l.nights ?? '—'}</td>
                         <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{l.status}</Pill></td>
                         <td className="py-3 pr-4 font-mono text-xs">{latest ? `${latest.code} · ${fmt(latest.pricePaise)}` : '—'}</td>
+                        <td className="py-3 pl-4">
+                          <LeadActions
+                            lead={{ id: l.id, customerName: l.customerName, customerEmail: l.customerEmail, customerPhone: l.customerPhone, status: l.status }}
+                            latestProposalId={latest?.id ?? null}
+                          />
+                        </td>
                       </tr>
                     );
                   })}

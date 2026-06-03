@@ -74,12 +74,15 @@ export async function saveCommissionRuleAction(formData: FormData) {
   if (id) await db.commissionRule.update({ where: { id }, data });
   else await db.commissionRule.create({ data });
   revalidatePath('/admin/commissions');
+  if (data.agencyId) revalidatePath(`/admin/agencies/${data.agencyId}`);
 }
 
 export async function deleteCommissionRuleAction(id: string) {
   await requireSuperAdmin();
+  const rule = await db.commissionRule.findUnique({ where: { id }, select: { agencyId: true } });
   await db.commissionRule.delete({ where: { id } });
   revalidatePath('/admin/commissions');
+  if (rule?.agencyId) revalidatePath(`/admin/agencies/${rule.agencyId}`);
 }
 
 export async function saveTemplateAction(formData: FormData) {

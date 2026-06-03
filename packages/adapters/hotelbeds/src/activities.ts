@@ -109,13 +109,26 @@ interface HbModality {
   rateKey?: string;
 }
 
+// Hotelbeds returns each photo in several sizes — pick the sharpest available
+// (the first/default is often a small thumbnail that looks blurry when scaled up).
+const IMG_SIZE_PRIORITY = ['XLARGE', 'LARGE', 'MEDIUM', 'SMALL'];
+function pickBestImage(images?: Array<{ urls?: Array<{ resource?: string; sizeType?: string }> }>): string | undefined {
+  const urls = images?.find((im) => im.urls?.length)?.urls;
+  if (!urls?.length) return undefined;
+  for (const size of IMG_SIZE_PRIORITY) {
+    const hit = urls.find((u) => (u.sizeType ?? '').toUpperCase() === size && u.resource);
+    if (hit?.resource) return hit.resource;
+  }
+  return urls.find((u) => u.resource)?.resource;
+}
+
 function normalize(res: HbActivitiesResponse, cityCode: string, rates: Rates): HotelbedsActivity[] {
   const list = res.activities ?? [];
   return list.map((a): HotelbedsActivity => {
     const mod = a.modalities?.[0];
     const adultAmount = mod?.amountsFrom?.find((x) => x.paxType === 'ADULT')?.amount ?? mod?.amountsFrom?.[0]?.amount ?? 0;
     const currency = mod?.currency ?? 'EUR';
-    const imgPath = a.content?.media?.images?.[0]?.urls?.[0]?.resource;
+    const imgPath = pickBestImage(a.content?.media?.images);
     const durationMin = computeMinutes(a.durationValue, a.durationType);
     return {
       id: `ACT-${a.code ?? Math.random().toString(36).slice(2, 8)}`,

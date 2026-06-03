@@ -6,6 +6,7 @@ import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
+import { ExpandableText } from '@/components/common/expandable-text';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock, Search, ArrowLeft, Tag, ChevronRight } from 'lucide-react';
 
@@ -207,7 +208,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
       {a.description ? (
         <div>
           <p className="text-[11px] uppercase tracking-wider text-[rgb(var(--text-tertiary))] font-bold mb-1">About this experience</p>
-          <p className="text-sm text-[rgb(var(--text-primary))] leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto pr-1">{a.description}</p>
+          <ExpandableText text={a.description} maxChars={300} className="text-sm text-[rgb(var(--text-primary))]" />
         </div>
       ) : (
         <p className="text-sm text-[rgb(var(--text-secondary))]">No description provided for this activity.</p>

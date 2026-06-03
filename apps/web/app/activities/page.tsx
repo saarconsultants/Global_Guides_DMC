@@ -4,9 +4,8 @@ import { ActivitySearchForm } from '@/components/activities/search-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
-import { ImageWithFallback } from '@/components/common/image-with-fallback';
-import { getDisplayMoney } from '@/lib/money-server';
-import { Clock, MapPin, Sparkles } from 'lucide-react';
+import { ActivitiesBrowser } from '@/components/activities/activities-browser';
+import { Sparkles } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +15,6 @@ interface PageProps {
 }
 
 export default async function ActivitiesPage({ searchParams }: PageProps) {
-  const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
   const city = (sp.city ?? 'PAR').toUpperCase();
   const from = sp.from ?? nextWeekIso();
@@ -83,28 +81,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
-              {activities.map((a) => (
-                <Card key={a.id} className="lift overflow-hidden">
-                  {a.thumb && <ImageWithFallback src={a.thumb} className="w-full h-40 object-cover bg-navy-900" />}
-                  <CardContent className="pt-4 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-navy-900 text-sm leading-snug">{a.name}</h3>
-                      {a.id.startsWith('ACT-') && <Pill variant="success">LIVE</Pill>}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
-                      <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{Math.round(a.durationMin / 60)}h {a.durationMin % 60}m</span>
-                      <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" />{cityName}</span>
-                    </div>
-                    {a.description && <p className="text-xs text-[rgb(var(--text-secondary))] line-clamp-3">{a.description}</p>}
-                    <div className="pt-1 flex items-baseline justify-between border-t border-border-subtle">
-                      <span className="text-[10px] text-[rgb(var(--text-secondary))]">from</span>
-                      <span className="font-mono font-bold text-navy-900">{fmt(a.pricePaise)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <ActivitiesBrowser activities={activities} cityName={cityName} />
           )}
           <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-medium">+ Add Activity</span> on any day.</p>
         </>

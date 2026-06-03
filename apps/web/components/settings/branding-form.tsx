@@ -7,7 +7,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
 import { BrandingPreview } from './branding-preview';
 import { saveAgencyBrandingAction } from '@/app/actions/branding';
-import { Eye, Copy } from 'lucide-react';
+import { Eye, Copy, Upload, X } from 'lucide-react';
+
+const MAX_LOGO_BYTES = 250_000; // ~250 KB — keep the stored data URL small
 
 interface Props {
   initial: {
@@ -35,6 +37,18 @@ export function BrandingForm({ initial }: Props) {
   const [supportPhone, setSupportPhone] = useState(initial.supportPhone ?? '');
   const [markupPct, setMarkupPct] = useState(String(initial.markupPct));
   const [pending, start] = useTransition();
+
+  function onLogoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Invalid file', 'Choose an image (PNG, JPG, or SVG).'); return; }
+    if (file.size > MAX_LOGO_BYTES) { toast.error('Image too large', 'Please use a logo under 250 KB (a 256×256 PNG is plenty).'); return; }
+    const reader = new FileReader();
+    reader.onload = () => { setLogoUrl(String(reader.result)); toast.success('Logo loaded', 'Click Save settings to apply it.'); };
+    reader.onerror = () => toast.error('Could not read file', 'Try a different image.');
+    reader.readAsDataURL(file);
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,9 +89,27 @@ export function BrandingForm({ initial }: Props) {
             <p className="text-xs text-[rgb(var(--text-secondary))]">Your logo and colours show on every customer-facing proposal page. The platform brand disappears from your customer's view.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <Label>Logo URL</Label>
-                <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://..." />
-                <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Square PNG/SVG, 256×256+ recommended. File upload coming next — for now paste a URL (imgbb, Cloudinary, etc.).</p>
+                <Label>Logo</Label>
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-md border border-border-subtle bg-surface-2 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {logoUrl
+                      ? <img src={logoUrl} alt="Logo preview" className="w-full h-full object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      : <span className="text-[10px] text-[rgb(var(--text-tertiary))] text-center px-1">No logo</span>}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="inline-flex items-center gap-1.5 text-sm font-medium text-crimson-700 hover:underline cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" /> Upload logo
+                      <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={onLogoFile} className="hidden" />
+                    </label>
+                    {logoUrl && (
+                      <button type="button" onClick={() => setLogoUrl('')} className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-danger-500">
+                        <X className="w-3 h-3" /> Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <Input value={logoUrl.startsWith('data:') ? '' : logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="…or paste an image URL" className="mt-2" />
+                <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Square PNG/JPG, 256×256+ recommended (under 250 KB). Uploads are stored with your branding.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <ColorField label="Primary colour" value={primaryColor} onChange={setPrimaryColor} />

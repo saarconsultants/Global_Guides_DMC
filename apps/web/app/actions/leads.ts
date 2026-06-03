@@ -18,6 +18,27 @@ export async function setLeadStatusAction(leadId: string, formData: FormData) {
   revalidatePath('/leads');
 }
 
+export async function updateLeadAction(leadId: string, formData: FormData) {
+  const actor = await requireAgency();
+  const lead = await db.lead.findFirst({ where: { id: leadId, agencyId: actor.agencyId }, select: { id: true } });
+  if (!lead) return;
+  const customerName = String(formData.get('customerName') ?? '').trim();
+  const customerEmail = String(formData.get('customerEmail') ?? '').trim();
+  const customerPhone = String(formData.get('customerPhone') ?? '').trim();
+  const status = String(formData.get('status') ?? '').trim();
+  await db.lead.update({
+    where: { id: leadId },
+    data: {
+      ...(customerName ? { customerName } : {}),
+      customerEmail: customerEmail || null,
+      customerPhone: customerPhone || null,
+      ...(VALID_STATUSES.includes(status as LeadStatus) ? { status } : {}),
+    },
+  });
+  revalidatePath('/leads');
+  revalidatePath(`/leads/${leadId}`);
+}
+
 const VALID_NOTE_KINDS = ['NOTE', 'CALL', 'EMAIL', 'WHATSAPP'] as const;
 
 export async function addLeadNoteAction(leadId: string, formData: FormData) {

@@ -7,8 +7,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatINR, formatDateShort } from '@/lib/utils';
 import { notFound } from 'next/navigation';
-import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletAction } from '@/app/actions/admin';
-import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent } from 'lucide-react';
+import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletAction, saveCommissionRuleAction, deleteCommissionRuleAction } from '@/app/actions/admin';
+import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -30,6 +30,12 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
   if (!agency) notFound();
 
   const totalRevenue = agency.commissionEntries.reduce((s, e) => s + Number(e.amountPaise), 0);
+  const [commissionRules, platformRules] = await Promise.all([
+    db.commissionRule.findMany({ where: { agencyId: agency.id }, orderBy: { productType: 'asc' } }),
+    db.commissionRule.findMany({ where: { agencyId: null, active: true }, orderBy: { productType: 'asc' } }),
+  ]);
+  const PRODUCT_TYPES = ['FLIGHT', 'HOTEL', 'TRANSFER', 'ACTIVITY', 'VISA', 'INSURANCE', 'INVOICE_TOTAL'];
+  const APPLIES_TO = ['NET', 'MARKUP', 'TOTAL'];
 
   return (
     <div className="p-8 space-y-6">
@@ -109,6 +115,65 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
           </CardContent>
         </Card>
       </div>
+
+      {/* Agency-specific commission overrides */}
+      <section>
+        <h2 className="text-xl font-semibold text-navy-900 mb-1 inline-flex items-center gap-2"><Coins className="w-5 h-5 text-crimson-700" />Commission overrides</h2>
+        <p className="text-sm text-[rgb(var(--text-secondary))] mb-3">Rules set here apply only to <span className="font-medium text-navy-900">{agency.name}</span> and take priority over platform defaults. Product types without an override fall back to the platform rule.</p>
+        <Card><CardContent className="pt-5 space-y-5">
+          {commissionRules.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle"><th className="py-2 pr-4">Product</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4">Applies to</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Note</th><th></th></tr></thead>
+                <tbody>
+                  {commissionRules.map((r) => (
+                    <tr key={r.id} className="border-b border-border-subtle/60">
+                      <td className="py-2 pr-4 font-medium text-navy-900">{r.productType}</td>
+                      <td className="py-2 pr-4 font-mono">{r.percent != null ? `${r.percent}%` : ''}{r.flatPaise ? ` +₹${Number(r.flatPaise) / 100}` : ''}{r.percent == null && !r.flatPaise ? '—' : ''}</td>
+                      <td className="py-2 pr-4">{r.appliesTo}</td>
+                      <td className="py-2 pr-4"><Pill variant={r.active ? 'success' : 'neutral'}>{r.active ? 'Active' : 'Inactive'}</Pill></td>
+                      <td className="py-2 pr-4 text-[rgb(var(--text-secondary))] text-xs">{r.note ?? '—'}</td>
+                      <td className="py-2 text-right">
+                        <form action={deleteCommissionRuleAction.bind(null, r.id)}>
+                          <button className="w-8 h-8 inline-flex items-center justify-center rounded-md text-danger-500 hover:bg-danger-100" aria-label="Delete rule"><Trash2 className="w-4 h-4" /></button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-[rgb(var(--text-secondary))]">No overrides yet — this agency uses the platform defaults{platformRules.length ? ` (${platformRules.map((r) => `${r.productType} ${r.percent ?? 0}%`).join(', ')})` : ''}.</p>
+          )}
+
+          {/* Add rule */}
+          <form action={saveCommissionRuleAction} className="border-t border-border-subtle pt-4 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+            <input type="hidden" name="agencyId" value={agency.id} />
+            <input type="hidden" name="active" value="on" />
+            <div>
+              <Label>Product</Label>
+              <select name="productType" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {PRODUCT_TYPES.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label>Commission %</Label>
+              <Input type="number" name="percent" step={0.5} min={0} max={100} placeholder="e.g. 8" />
+            </div>
+            <div>
+              <Label>Applies to</Label>
+              <select name="appliesTo" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {APPLIES_TO.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" />Add override</Button>
+            <div className="sm:col-span-4">
+              <Input name="note" placeholder="Note (optional) — e.g. negotiated rate for FY26" />
+            </div>
+          </form>
+        </CardContent></Card>
+      </section>
 
       <section>
         <h2 className="text-xl font-semibold text-navy-900 mb-3">Team ({agency.users.length})</h2>
