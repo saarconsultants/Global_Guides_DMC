@@ -4,6 +4,7 @@
 // Docs:     https://developer.hotelbeds.com/documentation/transfers/
 
 import { hbCall, isLive } from './client';
+import { getRates, toInrPaiseWith, type Rates } from './fx';
 
 export type TransferLocationType = 'IATA' | 'ATLAS';
 
@@ -38,12 +39,6 @@ export interface TransferSearchResult {
   warning?: string;
 }
 
-function eurToInr(): number { return parseFloat(process.env.HOTELBEDS_FX_EUR_INR ?? '92'); }
-function usdToInr(): number { return parseFloat(process.env.HOTELBEDS_FX_USD_INR ?? '85'); }
-function toInrPaise(amount: number, currency: string): number {
-  const rate = currency === 'EUR' ? eurToInr() : currency === 'USD' ? usdToInr() : currency === 'INR' ? 1 : eurToInr();
-  return Math.round(amount * rate * 100);
-}
 
 const CACHE_MS = 90_000;
 type CachedEntry = { at: number; promise: Promise<TransferSearchResult> };
@@ -62,8 +57,11 @@ export async function searchTransfers(input: TransferSearchInput): Promise<Trans
 
     const path = `/transfer-api/1.0/availability/en/from/${input.fromType}/${input.fromCode}/to/${input.toType}/${input.toCode}/${input.pickupDate}/${input.pickupDate}/${input.adults}/${input.children ?? 0}/${input.infants ?? 0}`;
     try {
-      const res = await hbCall<HbTransfersResponse>(path, undefined, { method: 'GET', timeoutMs: 20_000, product: 'transfers' });
-      return { transfers: normalize(res), source: 'live' };
+      const [res, rates] = await Promise.all([
+        hbCall<HbTransfersResponse>(path, undefined, { method: 'GET', timeoutMs: 20_000, product: 'transfers' }),
+        getRates(),
+      ]);
+      return { transfers: normalize(res, rates), source: 'live' };
     } catch (e: any) {
       return { transfers: [], source: 'mock', warning: `Hotelbeds Transfers error: ${e?.message ?? e}` };
     }
@@ -90,7 +88,7 @@ interface HbTransferService {
   price?: { totalAmount?: number; currencyId?: string };
 }
 
-function normalize(res: HbTransfersResponse): HotelbedsTransfer[] {
+function normalize(res: HbTransfersResponse, rates: Rates): HotelbedsTransfer[] {
   const list = res.services ?? [];
   return list.map((s, i): HotelbedsTransfer => {
     const kind = mapKind(s.transferType, s.category?.code);
@@ -103,7 +101,7 @@ function normalize(res: HbTransfersResponse): HotelbedsTransfer[] {
       category: s.category?.name,
       maxPax: s.maxPaxCapacity ?? 4,
       durationMin: s.pickupInformation?.duration?.value,
-      pricePaise: toInrPaise(totalAmount, currency),
+      pricePaise: toInrPaiseWith(rates, totalAmount, currency),
       rateKey: s.rateKey,
       currency,
     };

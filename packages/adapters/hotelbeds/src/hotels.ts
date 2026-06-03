@@ -10,31 +10,14 @@
 import { hbCall, isLive } from './client';
 import { toHotelbedsDestination } from './destinations';
 import { fetchHotelImages } from './content';
+import { getRates, toInrPaiseWith } from './fx';
 import type {
   AvailabilitySearchInput,
   AvailabilitySearchResult,
   HotelbedsHotel,
+  HotelbedsRoomOption,
   StarRating,
 } from './types';
-
-// Currency conversion: Hotelbeds returns prices in the supplier currency
-// (usually EUR or USD). For now we use a static fallback rate; production
-// should query a live FX rate. Stored in env for easy override.
-function eurToInr(): number {
-  return parseFloat(process.env.HOTELBEDS_FX_EUR_INR ?? '92');
-}
-function usdToInr(): number {
-  return parseFloat(process.env.HOTELBEDS_FX_USD_INR ?? '85');
-}
-
-function toInrPaise(amount: number, currency: string): number {
-  const rate =
-    currency === 'EUR' ? eurToInr() :
-    currency === 'USD' ? usdToInr() :
-    currency === 'INR' ? 1 :
-    eurToInr(); // unknown currency → assume EUR. Safer to overestimate than undercharge.
-  return Math.round(amount * rate * 100);
-}
 
 // In-memory cache so React strict-mode double-renders / quick refreshes
 // don't hammer Hotelbeds. 90s matches our Tripjack cache.
@@ -81,8 +64,12 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
       } : undefined,
     };
 
-    const res = await hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body);
-    const hotels = normalizeHotels(res, input.cityCode);
+    const [res, rates] = await Promise.all([
+      hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body),
+      getRates(),
+    ]);
+    const nights = Math.max(1, Math.round((new Date(input.checkOut).getTime() - new Date(input.checkIn).getTime()) / 86_400_000));
+    const hotels = normalizeHotels(res, input.cityCode, rates, nights);
 
     // Fan out the Content API call for photos. Cached aggressively (24h per
     // hotel code), so repeat searches of the same city are free.
@@ -156,35 +143,50 @@ interface HbRate {
   children?: number;
 }
 
-function normalizeHotels(res: HbAvailResponse, cityCode: string): HotelbedsHotel[] {
+function normalizeHotels(res: HbAvailResponse, cityCode: string, rates: { eurInr: number; usdInr: number }, nights: number): HotelbedsHotel[] {
   const hotels = res.hotels?.hotels ?? [];
   return hotels.map((h): HotelbedsHotel => {
-    // Pick the cheapest rate from the first room as the "from" price.
-    const firstRoom = h.rooms?.[0];
-    const cheapestRate = firstRoom?.rates?.reduce<HbRate | undefined>((best, r) => {
-      const n = parseFloat(r.net ?? '0');
-      const b = parseFloat(best?.net ?? '999999');
-      return n > 0 && n < b ? r : best;
-    }, undefined);
-
-    const net = parseFloat(cheapestRate?.net ?? h.minRate ?? '0');
     const currency = h.currency ?? 'EUR';
-    const stars = parseStars(h.categoryName);
-    const refundable = cheapestRate?.rateClass === 'NOR';
-    const mealPlan = cleanBoard(cheapestRate?.boardName);
+
+    // Build the full room+rate option list across all rooms.
+    const roomOptions: HotelbedsRoomOption[] = [];
+    for (const room of h.rooms ?? []) {
+      for (const r of room.rates ?? []) {
+        const total = parseFloat(r.net ?? '0');
+        if (!(total > 0)) continue;
+        roomOptions.push({
+          roomName: room.name ?? 'Room',
+          board: cleanBoard(r.boardName),
+          refundable: r.rateClass === 'NOR',
+          totalPaise: toInrPaiseWith(rates, total, currency),
+          // Hotelbeds net is the total for the stay; per-night = /nights.
+          pricePerNightPaise: toInrPaiseWith(rates, total / nights, currency),
+          rateKey: r.rateKey,
+        });
+      }
+    }
+    roomOptions.sort((a, b) => a.totalPaise - b.totalPaise);
+
+    // "From" = cheapest option (or hotel minRate as a fallback).
+    const cheapest = roomOptions[0];
+    const fromPerNight = cheapest
+      ? cheapest.pricePerNightPaise
+      : toInrPaiseWith(rates, parseFloat(h.minRate ?? '0') / nights, currency);
+    const firstRoom = h.rooms?.[0];
 
     return {
       id: `HB-${h.code}`,
       name: h.name,
-      stars,
+      stars: parseStars(h.categoryName),
       address: h.address?.content ?? `${h.zoneName ?? ''}, ${h.destinationName ?? cityCode}`.replace(/^,\s*/, ''),
       cityCode,
-      refundable,
-      mealPlan,
-      pricePerNightPaise: toInrPaise(net, currency),
-      room: { name: firstRoom?.name ?? 'Standard Room', bedConfig: '1 Double' },
-      rateKey: cheapestRate?.rateKey,
+      refundable: cheapest?.refundable ?? false,
+      mealPlan: cheapest?.board ?? 'Room Only',
+      pricePerNightPaise: fromPerNight,
+      room: { name: cheapest?.roomName ?? firstRoom?.name ?? 'Standard Room', bedConfig: '1 Double' },
+      rateKey: cheapest?.rateKey,
       currency,
+      roomOptions: roomOptions.slice(0, 20),
     };
   });
 }

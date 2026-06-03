@@ -5,6 +5,16 @@
 // Match the app's StarRating (3 | 4 | 5). 1–2★ inventory is clamped to 3 in hotels.ts.
 export type StarRating = 3 | 4 | 5;
 
+// A single bookable room+rate option for a hotel (board, refundability, price).
+export interface HotelbedsRoomOption {
+  roomName: string;
+  board: string;               // normalized: Room Only / Breakfast Included / …
+  refundable: boolean;
+  pricePerNightPaise: number;  // converted to INR
+  totalPaise: number;          // converted to INR for the whole stay
+  rateKey?: string;            // opaque, required at /checkrates and /bookings
+}
+
 export interface HotelbedsHotel {
   id: string;                  // Hotelbeds code as string, e.g. "12345"
   name: string;
@@ -21,6 +31,7 @@ export interface HotelbedsHotel {
   rateKey?: string;            // opaque, required at /checkrates and /bookings
   currency?: string;           // EUR / USD — original Hotelbeds currency before INR conversion
   allImages?: string[];        // Full gallery URLs from Content API (lightbox)
+  roomOptions?: HotelbedsRoomOption[];  // all room+rate combos for this hotel
 }
 
 export interface AvailabilitySearchInput {

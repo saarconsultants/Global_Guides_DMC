@@ -8,6 +8,7 @@
 
 import { hbCall, isLive } from './client';
 import { toHotelbedsDestination } from './destinations';
+import { getRates, toInrPaiseWith, type Rates } from './fx';
 
 export interface ActivitiesSearchInput {
   cityCode: string;             // IATA-style city code, translated to Hotelbeds destinationCode
@@ -37,13 +38,6 @@ export interface ActivitiesSearchResult {
   activities: HotelbedsActivity[];
   source: 'live' | 'mock' | 'unsupported-city';
   warning?: string;
-}
-
-function eurToInr(): number { return parseFloat(process.env.HOTELBEDS_FX_EUR_INR ?? '92'); }
-function usdToInr(): number { return parseFloat(process.env.HOTELBEDS_FX_USD_INR ?? '85'); }
-function toInrPaise(amount: number, currency: string): number {
-  const rate = currency === 'EUR' ? eurToInr() : currency === 'USD' ? usdToInr() : currency === 'INR' ? 1 : eurToInr();
-  return Math.round(amount * rate * 100);
 }
 
 const CACHE_MS = 90_000;
@@ -83,8 +77,11 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
       ],
     };
 
-    const res = await hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body, { product: 'activities' });
-    return { activities: normalize(res, input.cityCode), source: 'live' };
+    const [res, rates] = await Promise.all([
+      hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body, { product: 'activities' }),
+      getRates(),
+    ]);
+    return { activities: normalize(res, input.cityCode, rates), source: 'live' };
   })();
 
   cache.set(key, { at: Date.now(), promise });
@@ -112,7 +109,7 @@ interface HbModality {
   rateKey?: string;
 }
 
-function normalize(res: HbActivitiesResponse, cityCode: string): HotelbedsActivity[] {
+function normalize(res: HbActivitiesResponse, cityCode: string, rates: Rates): HotelbedsActivity[] {
   const list = res.activities ?? [];
   return list.map((a): HotelbedsActivity => {
     const mod = a.modalities?.[0];
@@ -127,7 +124,7 @@ function normalize(res: HbActivitiesResponse, cityCode: string): HotelbedsActivi
       durationMin,
       description: a.content?.description,
       thumb: imgPath,
-      pricePaise: toInrPaise(adultAmount, currency),
+      pricePaise: toInrPaiseWith(rates, adultAmount, currency),
       cityCode,
       activityCode: a.code,
       modalityCode: mod?.code,

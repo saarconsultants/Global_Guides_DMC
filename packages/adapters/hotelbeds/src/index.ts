@@ -8,6 +8,7 @@ export { toHotelbedsDestination, IATA_TO_HOTELBEDS_DESTINATION } from './destina
 
 export type {
   HotelbedsHotel,
+  HotelbedsRoomOption,
   AvailabilitySearchInput,
   AvailabilitySearchResult,
   StarRating,
