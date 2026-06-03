@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plane, ArrowRightLeft, Search } from 'lucide-react';
+import { ArrowRightLeft, Search } from 'lucide-react';
+import { AirportCombobox } from './airport-combobox';
 
 interface Props {
   defaults: { from: string; to: string; date: string; adults: string; cabin: string; rdate?: string };
@@ -61,23 +62,11 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
           </div>
         )}
         <form onSubmit={submit} className="grid gap-4 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_1fr_auto] lg:items-end">
-          <div>
-            <Label>From (IATA)</Label>
-            <div className="relative">
-              <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-              <Input value={from} maxLength={3} onChange={(e) => setFrom(e.target.value.toUpperCase())} className="pl-9 uppercase font-mono" />
-            </div>
-          </div>
-          <button type="button" onClick={swap} className="hidden lg:inline-flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-navy-50 transition-colors cursor-pointer" aria-label="Swap from/to">
+          <AirportCombobox label="From" value={from} onChange={setFrom} placeholder="City or airport" />
+          <button type="button" onClick={swap} className="hidden lg:inline-flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-navy-50 transition-colors cursor-pointer mb-0.5" aria-label="Swap from/to">
             <ArrowRightLeft className="w-4 h-4 text-navy-700" />
           </button>
-          <div>
-            <Label>To (IATA)</Label>
-            <div className="relative">
-              <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))] rotate-90" />
-              <Input value={to} maxLength={3} onChange={(e) => setTo(e.target.value.toUpperCase())} className="pl-9 uppercase font-mono" />
-            </div>
-          </div>
+          <AirportCombobox label="To" value={to} onChange={setTo} placeholder="City or airport" iconRotate />
           <div>
             <Label>{roundTrip && !returnTo ? 'Depart' : 'Travel date'}</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
