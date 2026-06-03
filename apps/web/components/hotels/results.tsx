@@ -45,7 +45,7 @@ export function HotelResults({ hotels, nights }: Props) {
         <Card><CardContent className="py-10 text-center text-sm text-[rgb(var(--text-secondary))]">No hotels match “{q}”. <button onClick={() => setQ('')} className="text-crimson-700 hover:underline">Clear</button></CardContent></Card>
       )}
       {filtered.map((h) => (
-        <Card key={h.id}>
+        <Card key={h.id} className="lift">
           <CardContent className="pt-5">
             <div className="grid gap-4 md:grid-cols-[140px_1fr_auto]">
               <HotelPhoto

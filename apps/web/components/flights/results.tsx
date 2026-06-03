@@ -36,7 +36,7 @@ function OfferCard({ offer, returnTo, cabin, leg, fmt }: { offer: FlightOffer; r
   const totalDuration = offer.segments.reduce((sum, s) => sum + s.durationMin, 0);
   const stops = offer.segments.length - 1;
   return (
-    <Card>
+    <Card className="lift">
       <CardContent className="pt-6">
         <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
           <div>
