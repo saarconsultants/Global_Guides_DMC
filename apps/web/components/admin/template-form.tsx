@@ -5,8 +5,22 @@ import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { saveTemplateRedirectAction, deleteTemplateAction } from '@/app/actions/admin';
-import { Sparkles, Eye, Save, Trash2 } from 'lucide-react';
+import { CityCombobox } from '@/components/ui/city-combobox';
+import { findCity } from '@/lib/cities';
+import { Sparkles, Eye, Save, Trash2, Plus, MapPin } from 'lucide-react';
 import Link from 'next/link';
+
+interface DestRow { cityCode: string; nights: number }
+function parseDestRows(json?: string): DestRow[] {
+  try {
+    const arr = JSON.parse(json ?? '[]');
+    if (Array.isArray(arr)) {
+      const rows = arr.map((d: any) => ({ cityCode: String(d?.cityCode ?? '').toUpperCase(), nights: Number(d?.nights) || 1 })).filter((d: DestRow) => d.cityCode);
+      if (rows.length) return rows;
+    }
+  } catch { /* fall through */ }
+  return [{ cityCode: 'PAR', nights: 3 }];
+}
 
 const REGIONS    = ['EUROPE', 'SE_ASIA', 'MIDDLE_EAST', 'INDIAN_SUB', 'OCEANIA', 'AFRICA', 'AMERICAS'];
 const CATEGORIES = ['LEISURE', 'HONEYMOON', 'FAMILY', 'LUXURY', 'ADVENTURE', 'GROUP'];
@@ -38,30 +52,31 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
   const [totalNights, setTotalNights]   = useState(String(initial.totalNights ?? 7));
   const [priceRupees, setPriceRupees]   = useState(String(initial.startingPriceRupees ?? 0));
   const [blurb, setBlurb]               = useState(initial.blurb ?? '');
-  const [destinations, setDestinations] = useState(initial.destinations ?? '[\n  { "cityCode": "PAR", "cityName": "Paris", "countryCode": "FR", "nights": 3 }\n]');
+  const [destRows, setDestRows]         = useState<DestRow[]>(parseDestRows(initial.destinations));
   const [daysJson, setDaysJson]         = useState(initial.daysJson ?? '[]');
   const [visaJson, setVisaJson]         = useState(initial.visaJson ?? '[]');
   const [insuranceJson, setInsuranceJson] = useState(initial.insuranceJson ?? '{}');
   const [published, setPublished]       = useState(initial.published ?? true);
   const [destError, setDestError]       = useState<string | null>(null);
 
-  // Parse destinations live for preview
-  let parsedDestinations: { cityName?: string; nights?: number }[] = [];
-  try { parsedDestinations = JSON.parse(destinations); if (!Array.isArray(parsedDestinations)) parsedDestinations = []; }
-  catch { /* silent */ }
+  // Friendly rows -> JSON for the hidden field + live preview.
+  const destinationsJson = JSON.stringify(destRows.filter((r) => r.cityCode).map((r) => {
+    const c = findCity(r.cityCode);
+    return { cityCode: r.cityCode, cityName: c?.name ?? r.cityCode, countryCode: c?.countryCode ?? '', nights: r.nights };
+  }));
+  const parsedDestinations = destRows.filter((r) => r.cityCode).map((r) => ({ cityName: findCity(r.cityCode)?.name ?? r.cityCode, nights: r.nights }));
+
+  const setRow = (i: number, patch: Partial<DestRow>) => setDestRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const addRow = () => setDestRows((rs) => [...rs, { cityCode: '', nights: 2 }]);
+  const removeRow = (i: number) => setDestRows((rs) => rs.filter((_, j) => j !== i));
 
   function validate(e: React.FormEvent<HTMLFormElement>) {
     setDestError(null);
-    try {
-      const v = JSON.parse(destinations);
-      if (!Array.isArray(v) || v.length === 0) { setDestError('Need at least one destination'); e.preventDefault(); return; }
-      const nights = v.reduce((s: number, d: any) => s + (Number(d?.nights) || 0), 0);
-      if (nights !== parseInt(totalNights, 10)) {
-        if (!confirm(`Sum of destination nights = ${nights} but Total nights = ${totalNights}. Save anyway?`)) e.preventDefault();
-      }
-    } catch (err: any) {
-      setDestError('Destinations JSON is invalid: ' + err.message);
-      e.preventDefault();
+    const rows = destRows.filter((r) => r.cityCode);
+    if (rows.length === 0) { setDestError('Add at least one destination'); e.preventDefault(); return; }
+    const nights = rows.reduce((s, d) => s + (Number(d.nights) || 0), 0);
+    if (nights !== parseInt(totalNights, 10)) {
+      if (!confirm(`Destination nights total ${nights}, but Total nights = ${totalNights}. Save anyway?`)) e.preventDefault();
     }
   }
 
@@ -117,15 +132,46 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
 
         <Card>
           <CardContent className="pt-6 space-y-3">
-            <h2 className="text-lg font-semibold text-navy-900">Destinations</h2>
-            <p className="text-xs text-[rgb(var(--text-secondary))]">JSON array of cities. Use IATA-style city codes from the supported set (PAR, AMS, LON, ROM, ZRH, DXB, BKK, SIN, ISL, MLE).</p>
-            <textarea
-              name="destinations"
-              value={destinations}
-              onChange={(e) => setDestinations(e.target.value)}
-              required
-              className="h-40 w-full rounded-sm border border-border bg-surface-2 px-3 py-2 text-xs font-mono"
-            />
+            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-crimson-700" />Destinations</h2>
+            <p className="text-xs text-[rgb(var(--text-secondary))]">Add the cities this trip visits and the nights in each — just like the itinerary builder. <span className="font-medium">LIVE</span> cities have real hotel &amp; activity inventory.</p>
+            <input type="hidden" name="destinations" value={destinationsJson} />
+
+            <div className="space-y-2">
+              {destRows.map((r, i) => (
+                <div key={i} className="flex items-end gap-2">
+                  <div className="flex-1 min-w-0">
+                    {i === 0 && <Label>City</Label>}
+                    <CityCombobox
+                      value={r.cityCode}
+                      onChange={(code) => setRow(i, { cityCode: code })}
+                      placeholder="Search a city…"
+                      disabledCodes={destRows.filter((_, j) => j !== i).map((x) => x.cityCode)}
+                    />
+                  </div>
+                  <div className="w-24 flex-shrink-0">
+                    {i === 0 && <Label>Nights</Label>}
+                    <Input type="number" min={1} max={30} value={r.nights} onChange={(e) => setRow(i, { nights: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeRow(i)}
+                    disabled={destRows.length === 1}
+                    aria-label="Remove destination"
+                    className="h-10 w-10 inline-flex items-center justify-center rounded-md text-danger-500 hover:bg-danger-100 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <button type="button" onClick={addRow} className="inline-flex items-center gap-1.5 text-sm font-medium text-crimson-700 hover:underline">
+                <Plus className="w-4 h-4" /> Add destination
+              </button>
+              <span className="text-xs text-[rgb(var(--text-tertiary))]">{parsedDestinations.reduce((s, d) => s + (d.nights || 0), 0)} nights across {parsedDestinations.length} {parsedDestinations.length === 1 ? 'city' : 'cities'}</span>
+            </div>
+
             {destError && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{destError}</div>}
           </CardContent>
         </Card>
