@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { requireAgency } from '@/lib/auth/ctx';
 import { agentPerformance } from '@/lib/db/performance';
 import { getDisplayMoney } from '@/lib/money-server';
+import { StatCard } from '@/components/ui/stat-card';
 import { Users2, Send, Eye, Trophy, TrendingUp, Crown } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -55,10 +56,10 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
 
       {/* Summary KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
-        <Kpi label="Won (accepted + booked)" value={String(totals.won)} icon={<Trophy className="w-4 h-4" />} gold />
-        <Kpi label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
-        <Kpi label="Revenue (won)" value={fmt(totals.revenuePaise)} icon={<Crown className="w-4 h-4" />} mono />
+        <StatCard label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
+        <StatCard label="Won (accepted + booked)" value={String(totals.won)} icon={<Trophy className="w-4 h-4" />} tone="gold" />
+        <StatCard label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
+        <StatCard label="Revenue (won)" value={fmt(totals.revenuePaise)} icon={<Crown className="w-4 h-4" />} mono />
       </div>
 
       <Card>
@@ -132,19 +133,6 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function Kpi({ label, value, icon, gold, mono }: { label: string; value: string; icon: React.ReactNode; gold?: boolean; mono?: boolean }) {
-  return (
-    <Card className="lift">
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">
-          <span className="text-crimson-700">{icon}</span>{label}
-        </div>
-        <p className={`mt-1.5 text-3xl font-bold tracking-tight ${gold ? 'text-gold-700' : 'text-navy-900'} ${mono ? 'font-mono tabular-nums' : ''}`}>{value}</p>
-      </CardContent>
-    </Card>
   );
 }
 

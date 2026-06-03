@@ -4,6 +4,7 @@ import { Pill } from '@/components/ui/pill';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
+import { StatCard } from '@/components/ui/stat-card';
 import { listLeads } from '@/lib/db/proposals';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
@@ -47,15 +48,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       />
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
-        {kpis.map((k) => (
-          <Card key={k.l} className="lift">
-            <CardContent className="pt-5">
-              <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{k.l}</p>
-              <p className="mt-1 text-3xl font-bold tracking-tight text-navy-900">{k.v}</p>
-              <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{k.s}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {kpis.map((k) => <StatCard key={k.l} label={k.l} value={k.v} sub={k.s} />)}
       </div>
 
       <Card>

@@ -9,7 +9,8 @@ import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
-import { ArrowRight, Sparkles, Plane, Hotel as HotelIcon, ClipboardList, Receipt, BookOpen, Eye, MessageCircleQuestion, Clock, TrendingUp, TrendingDown, Minus, CheckCircle2 } from 'lucide-react';
+import { StatCard } from '@/components/ui/stat-card';
+import { ArrowRight, Sparkles, Plane, Hotel as HotelIcon, ClipboardList, Receipt, BookOpen, Eye, MessageCircleQuestion, Clock, CheckCircle2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -213,10 +214,10 @@ export default async function DashboardPage() {
             <Link href="/leads" className="text-sm text-crimson-700 hover:underline font-medium inline-flex items-center gap-1">View all leads <ArrowRight className="w-3.5 h-3.5" /></Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger">
-            <KpiCard label="Leads"          value={String(leadCount)}   curr={leadCount}   prev={leadPrev}   sub="enquiries received" />
-            <KpiCard label="Proposals sent" value={String(propCount)}   curr={propCount}   prev={propPrev}   sub="quotes prepared" />
-            <KpiCard label="Converted"      value={String(bookedCount)} curr={bookedCount} prev={bookedPrev} sub={`${convRate}% conv. rate`} gold />
-            <KpiCard label="Wallet balance" value={fmt(wallet?.walletPaise ?? 0n)}  sub="recharge to enable bookings" mono />
+            <StatCard label="Leads"          value={String(leadCount)}   delta={{ curr: leadCount, prev: leadPrev }}     sub="enquiries received" />
+            <StatCard label="Proposals sent" value={String(propCount)}   delta={{ curr: propCount, prev: propPrev }}     sub="quotes prepared" />
+            <StatCard label="Converted"      value={String(bookedCount)} delta={{ curr: bookedCount, prev: bookedPrev }} sub={`${convRate}% conv. rate`} tone="gold" />
+            <StatCard label="Wallet balance" value={fmt(wallet?.walletPaise ?? 0n)} sub="recharge to enable bookings" mono />
           </div>
         </section>
 
@@ -237,40 +238,6 @@ export default async function DashboardPage() {
   );
 }
 
-function KpiCard({ label, value, sub, gold, mono, curr, prev }: { label: string; value: string; sub: string; gold?: boolean; mono?: boolean; curr?: number; prev?: number }) {
-  return (
-    <Card className="lift">
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{label}</p>
-          {curr != null && prev != null && <Delta curr={curr} prev={prev} />}
-        </div>
-        <p className={`mt-1.5 text-3xl lg:text-4xl font-bold tracking-tight ${gold ? 'text-gold-700' : 'text-navy-900'} ${mono ? 'font-mono tabular-nums' : ''}`}>{value}</p>
-        <p className="mt-1.5 text-sm text-[rgb(var(--text-secondary))]">{sub}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Delta({ curr, prev }: { curr: number; prev: number }) {
-  if (prev === 0 && curr === 0) {
-    return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[rgb(var(--text-tertiary))]"><Minus className="w-3 h-3" /> —</span>;
-  }
-  if (prev === 0) {
-    return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-success-500"><TrendingUp className="w-3 h-3" /> new</span>;
-  }
-  const pct = Math.round(((curr - prev) / prev) * 100);
-  if (pct === 0) {
-    return <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[rgb(var(--text-tertiary))]"><Minus className="w-3 h-3" /> flat</span>;
-  }
-  const up = pct > 0;
-  return (
-    <span className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${up ? 'text-success-500' : 'text-danger-500'}`}>
-      {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-      {up ? '+' : ''}{pct}%
-    </span>
-  );
-}
 
 function QuickCard({ href, icon: Icon, title, body, pill, pillVariant }: { href: string; icon: any; title: string; body: string; pill?: string; pillVariant?: any }) {
   return (

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { requireAgency } from '@/lib/auth/ctx';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
+import { StatCard } from '@/components/ui/stat-card';
 import { Briefcase, FileCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,22 +41,10 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       />
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Total bookings</p>
-          <p className="mt-1 text-3xl font-bold text-navy-900">{rows.length}</p>
-        </CardContent></Card>
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Confirmed</p>
-          <p className="mt-1 text-3xl font-bold text-success-500">{rows.filter((b) => b.status === 'CONFIRMED').length}</p>
-        </CardContent></Card>
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Pending</p>
-          <p className="mt-1 text-3xl font-bold text-warning-500">{rows.filter((b) => b.status === 'PENDING').length}</p>
-        </CardContent></Card>
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Confirmed value</p>
-          <p className="mt-1 text-2xl font-bold text-navy-900 font-mono tabular-nums">{fmt(totalSpend)}</p>
-        </CardContent></Card>
+        <StatCard label="Total bookings" value={String(rows.length)} />
+        <StatCard label="Confirmed" value={String(rows.filter((b) => b.status === 'CONFIRMED').length)} tone="success" />
+        <StatCard label="Pending" value={String(rows.filter((b) => b.status === 'PENDING').length)} tone="warning" />
+        <StatCard label="Confirmed value" value={fmt(totalSpend)} mono />
       </div>
 
       <div className="flex items-center gap-2 text-sm">
