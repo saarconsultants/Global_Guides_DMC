@@ -99,7 +99,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                   {rows.map((l) => {
                     const latest = l.proposals?.[0];
                     return (
-                      <tr key={l.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
+                      <tr key={l.id} className="border-b border-border-subtle/70 even:bg-surface-2/30 hover:bg-surface-2 transition-colors">
                         <td className="py-3 pr-4 font-medium"><Link href={`/leads/${l.id}` as any} className="hover:text-crimson-700">{l.customerName}</Link></td>
                         <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{l.customerPhone ?? '—'}</td>
                         <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(l.createdAt)}</td>

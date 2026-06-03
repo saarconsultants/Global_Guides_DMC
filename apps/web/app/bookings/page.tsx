@@ -83,7 +83,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                 </thead>
                 <tbody>
                   {rows.map((b) => (
-                    <tr key={b.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
+                    <tr key={b.id} className="border-b border-border-subtle/70 even:bg-surface-2/30 hover:bg-surface-2 transition-colors">
                       <td className="py-3 pr-4 font-mono text-xs"><Link href={`/itinerary/${b.proposal.id}/customize` as any} className="text-crimson-700 hover:underline">{b.proposal.code}</Link></td>
                       <td className="py-3 pr-4">{b.proposal.lead?.customerName ?? '—'}</td>
                       <td className="py-3 pr-4">{b.proposal.name}</td>

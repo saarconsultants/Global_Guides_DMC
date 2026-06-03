@@ -82,7 +82,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                 </thead>
                 <tbody>
                   {rows.map((p) => (
-                    <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">
+                    <tr key={p.id} className="border-b border-border-subtle/70 even:bg-surface-2/30 hover:bg-surface-2 transition-colors group">
                       <td className="py-3 pr-4 font-mono text-xs">
                         <Link href={`/itinerary/${p.id}/customize` as any} className="text-crimson-700 hover:underline">{p.code}</Link>
                         {(p as any).version > 1 && <span className="ml-1.5 text-[10px] text-[rgb(var(--text-tertiary))]">v{(p as any).version}</span>}
