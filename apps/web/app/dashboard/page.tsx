@@ -224,7 +224,7 @@ export default async function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-3 stagger">
             <QuickCard href="/suggested"     icon={Sparkles}        title="Browse templates"     body="Curated by the platform team. Clone and customise in minutes." pill="New" pillVariant="info" />
             <QuickCard href="/flights"       icon={Plane}            title="Search flights"      body="Live fares via Tripjack. Refundable + non-refundable flagged." pill="Live" pillVariant="success" />
-            <QuickCard href="/hotels"        icon={HotelIcon}        title="Search hotels"       body="1,400+ properties. Activate when Tripjack hotel API arrives."  pill="Mock" pillVariant="warning" />
+            <QuickCard href="/hotels"        icon={HotelIcon}        title="Search hotels"       body="250k+ live properties via Hotelbeds, with photos and full content."  pill="Live" pillVariant="success" />
             <QuickCard href="/leads"         icon={ClipboardList}    title="My leads"            body="Track every enquiry to booking. Filter, follow up, convert." />
             <QuickCard href="/proposals"     icon={BookOpen}         title="My proposals"        body="See what you've sent, who's viewed, who accepted." />
             <QuickCard href="/statement"     icon={Receipt}          title="Account statement"   body="Wallet ledger, downloadable for accounting." />

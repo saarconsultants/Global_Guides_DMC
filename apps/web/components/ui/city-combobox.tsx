@@ -115,7 +115,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
           </ul>
           <div className="px-3 py-2 border-t border-border-subtle text-[10px] text-[rgb(var(--text-tertiary))] flex items-center justify-between">
             <span>↑↓ navigate · Enter select · Esc close</span>
-            <span><Pill variant="success" className="text-[9px]">LIVE</Pill> = we have mock inventory</span>
+            <span><Pill variant="success" className="text-[9px]">LIVE</Pill> = curated destination</span>
           </div>
         </div>
       )}

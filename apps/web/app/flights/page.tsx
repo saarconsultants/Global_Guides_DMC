@@ -41,7 +41,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-navy-900 tracking-tight">Flights</h1>
-          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Live fares via Tripjack. Mock data shown until API key is set.</p>
+          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Live fares via Tripjack. Mock data shown only if the API key is unset.</p>
         </div>
         {results && !('error' in results) && (
           <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
