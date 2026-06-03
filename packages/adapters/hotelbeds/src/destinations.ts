@@ -34,7 +34,7 @@ export const IATA_TO_HOTELBEDS_DESTINATION: Record<string, string> = {
   TYO: 'TYO',  // Tokyo
   KUL: 'KUL',  // Kuala Lumpur
   HKT: 'HKT',  // Phuket
-  BAL: 'BAL',  // Bali (Hotelbeds uses BAL, not DPS)
+  DPS: 'BAL',  // Bali — app uses DPS (Denpasar), Hotelbeds uses BAL
 
   // India (Hotelbeds international inventory; for India hotels Tripjack is better)
   BOM: 'BOM',  // Mumbai

@@ -8,7 +8,7 @@ import type { Hotel } from '@/lib/itinerary/types';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-  searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string }>;
+  searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string; star?: string; board?: string; refundable?: string; sort?: string }>;
 }
 
 export default async function HotelsPage({ searchParams }: PageProps) {
@@ -56,6 +56,23 @@ export default async function HotelsPage({ searchParams }: PageProps) {
     }
   }
 
+  // ── Apply filters + sort (client-chosen, applied server-side) ──
+  const totalBeforeFilter = hotels.length;
+  if (sp.star) {
+    if (sp.star === '4plus') hotels = hotels.filter((h) => h.stars >= 4);
+    else { const s = parseInt(sp.star, 10); if (s) hotels = hotels.filter((h) => h.stars === s); }
+  }
+  if (sp.board) hotels = hotels.filter((h) => h.mealPlan === sp.board);
+  if (sp.refundable === '1') hotels = hotels.filter((h) => h.refundable);
+  const sort = sp.sort ?? 'price-asc';
+  hotels = [...hotels].sort((a, b) => {
+    if (sort === 'price-desc')  return b.pricePerNightPaise - a.pricePerNightPaise;
+    if (sort === 'stars-desc')  return b.stars - a.stars || a.pricePerNightPaise - b.pricePerNightPaise;
+    if (sort === 'rating-desc') return (b.rating?.score ?? 0) - (a.rating?.score ?? 0);
+    return a.pricePerNightPaise - b.pricePerNightPaise; // price-asc default
+  });
+  const filteredOut = totalBeforeFilter - hotels.length;
+
   const liveCount = hotels.filter((h) => h.id.startsWith('HB-')).length;
   const badge =
     source === 'live'
@@ -78,7 +95,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
         {hasQuery && <Pill variant={badge.variant}>{badge.label}</Pill>}
       </div>
 
-      <HotelSearchForm defaults={{ city, checkin, checkout, adults }} />
+      <HotelSearchForm defaults={{ city, checkin, checkout, adults, star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
@@ -88,7 +105,10 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
       {hasQuery && (
         <>
-          <div className="text-sm text-[rgb(var(--text-secondary))]">Hotels in <span className="font-semibold text-navy-900">{cityName}</span> · {checkin} → {checkout}</div>
+          <div className="flex items-center justify-between text-sm text-[rgb(var(--text-secondary))]">
+            <span>Hotels in <span className="font-semibold text-navy-900">{cityName}</span> · {checkin} → {checkout}</span>
+            {filteredOut > 0 && <span className="text-xs">{filteredOut} hidden by filters</span>}
+          </div>
           <HotelResults hotels={hotels} nights={nights} />
         </>
       )}

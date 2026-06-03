@@ -3,6 +3,8 @@
 
 import { anthropic, aiModel } from './anthropic';
 import { CITY_BANK } from '@/lib/itinerary/mock-inventory';
+import { IATA_TO_HOTELBEDS_DESTINATION } from '@gg/hotelbeds';
+import { findCity } from '@/lib/cities';
 
 export interface SuggestInput {
   destinationsText: string;     // "Paris, Amsterdam, Zurich, London"
@@ -25,13 +27,24 @@ export interface SuggestResult {
   warnings: string[];           // e.g. "Visa-on-arrival not available for IN passport in country X"
 }
 
-const SUPPORTED_CITY_CODES = Object.keys(CITY_BANK);
+// Supported = union of mock CITY_BANK and the cities Hotelbeds is live for.
+// This lets the AI suggest any destination that will resolve to real,
+// bookable hotel inventory (not just the original ~10 curated cities).
+const SUPPORTED_CITY_CODES = Array.from(new Set([
+  ...Object.keys(CITY_BANK),
+  ...Object.keys(IATA_TO_HOTELBEDS_DESTINATION),
+]));
 
-const SYSTEM = `You are an expert outbound travel agent assembling multi-city European/Asian itineraries for B2B travel agents in India.
+// "CODE Name" pairs to give the model the right names for codes outside CITY_BANK.
+const SUPPORTED_CITY_LIST = SUPPORTED_CITY_CODES
+  .map((code) => `${code} (${findCity(code)?.name ?? code})`)
+  .join(', ');
+
+const SYSTEM = `You are an expert outbound travel agent assembling multi-city European/Asian/Middle-East itineraries for B2B travel agents in India.
 
 Hard rules:
-- You may ONLY suggest cities from this supported list: ${SUPPORTED_CITY_CODES.join(', ')}.
-- City codes MUST be 3-letter IATA-style codes from the list above (PAR for Paris, AMS for Amsterdam, LON for London, ROM for Rome, ZRH for Zurich, DXB for Dubai, BKK for Bangkok, SIN for Singapore, ISL for Istanbul, MLE for Maldives).
+- You may ONLY suggest cities from this supported list (code + name): ${SUPPORTED_CITY_LIST}.
+- City codes MUST be the exact 3-letter codes from the list above.
 - The sum of nights across all cities MUST equal exactly the user-requested total nights.
 - Order cities for a sensible travel route (minimise long backtracks, group neighbours).
 - Each city should get at least 2 nights for stays (except transit stops).
