@@ -10,6 +10,8 @@ import { findCity } from '@/lib/cities';
 import type { IntakeForm, StarRating, Room } from '@/lib/itinerary/types';
 import { AiSuggestModal } from '@/components/itinerary/ai-suggest-modal';
 import { SortableDestinationRow } from '@/components/itinerary/sortable-destination-row';
+import { AirportCombobox } from '@/components/flights/airport-combobox';
+import { airportByIata } from '@/lib/airports';
 import { Sparkles, Plus, X } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -26,7 +28,7 @@ export default function NewItineraryPage() {
     { id: newId(), cityCode: 'PAR', nights: 3 },
     { id: newId(), cityCode: 'AMS', nights: 2 },
   ]);
-  const [leavingFromName, setLeavingFromName] = useState('Pune');
+  const [leavingFromCode, setLeavingFromCode] = useState('BOM');
   const [nationality, setNationality] = useState('IN');
   const [departureDate, setDepartureDate] = useState(defaultDate());
   const [rooms, setRooms] = useState<Room[]>([{ adults: 2, children: 0 }]);
@@ -81,8 +83,8 @@ export default function NewItineraryPage() {
         const c = findCity(d.cityCode);
         return { cityCode: d.cityCode, cityName: c?.name ?? d.cityCode, countryCode: c?.countryCode ?? '', nights: d.nights };
       }),
-      leavingFromCode: '',
-      leavingFromName,
+      leavingFromCode,
+      leavingFromName: airportByIata(leavingFromCode)?.city ?? leavingFromCode,
       nationality, departureDate, rooms, starRating, addTransfers,
     };
     setComposing(true);
@@ -162,8 +164,7 @@ export default function NewItineraryPage() {
             <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-3">Trip details</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <Label>Leaving from</Label>
-                <Input value={leavingFromName} onChange={(e) => setLeavingFromName(e.target.value)} placeholder="City name" />
+                <AirportCombobox value={leavingFromCode} onChange={setLeavingFromCode} label="Leaving from" placeholder="City or airport" />
               </div>
               <div>
                 <Label required>Nationality</Label>
