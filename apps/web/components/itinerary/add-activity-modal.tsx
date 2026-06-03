@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { formatINR } from '@/lib/utils';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
-import { Clock } from 'lucide-react';
+import { Clock, Search } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -30,6 +30,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   const [liveActivities, setLiveActivities] = useState<Activity[]>([]);
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
+  const [query, setQuery] = useState('');
   // requestId guards against a stale response from an earlier fetch overwriting
   // state when the effect re-runs (e.g. parent re-render shifts paxAdults ref).
   const requestId = useRef(0);
@@ -68,6 +69,9 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       });
   }, [open, cityCode, date, paxAdults, paxChildren]);
 
+  // Reset the search box whenever the modal opens or its city/slot context changes.
+  useEffect(() => { if (open) setQuery(''); }, [open, cityCode, slot]);
+
   const mock = activitiesForCity(cityCode);
   // Live first, then mock entries not already in live (dedupe by name)
   const liveNames = new Set(liveActivities.map((a) => a.name.toLowerCase()));
@@ -75,12 +79,35 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
     ? [...liveActivities, ...mock.filter((a) => !liveNames.has(a.name.toLowerCase()))]
     : mock;
 
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? merged.filter((a) =>
+        a.name.toLowerCase().includes(q) ||
+        a.category.toLowerCase().includes(q) ||
+        (a.description ?? '').toLowerCase().includes(q))
+    : merged;
+
   return (
     <Dialog open={open} onClose={onClose} title={`Add activity — ${slot} in ${cityName}`} size="lg">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-[rgb(var(--text-secondary))]">{merged.length > 0 ? `${merged.length} options` : 'No options'}</p>
+        <p className="text-xs text-[rgb(var(--text-secondary))]">
+          {merged.length === 0 ? 'No options' : q ? `${filtered.length} of ${merged.length}` : `${merged.length} options`}
+        </p>
         <SourceBadge source={source} liveCount={liveActivities.length} />
       </div>
+
+      {source !== 'loading' && merged.length > 0 && (
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search activities by name, type, or description…"
+            className="h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500"
+            autoComplete="off"
+          />
+        </div>
+      )}
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs mb-3">
@@ -94,9 +121,11 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
         </div>
       ) : merged.length === 0 ? (
         <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">No activities for {cityName} yet.</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">No activities match “{query}”. Try a different search.</p>
       ) : (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {merged.map((a) => (
+          {filtered.map((a) => (
             <div key={a.id} className={`p-4 rounded-md border flex items-start gap-4 ${a.id === currentId ? 'border-crimson-500 bg-crimson-50/40' : 'border-border-subtle bg-surface'}`}>
               {a.thumb && (
                 <img src={a.thumb} alt="" loading="lazy" className="w-24 h-24 rounded-md object-cover bg-navy-900 flex-shrink-0" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />

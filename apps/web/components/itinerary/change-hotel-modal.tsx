@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { formatINR } from '@/lib/utils';
 import { hotelsForCity } from '@/lib/itinerary/mock-inventory';
 import type { Hotel, StarRating, Room } from '@/lib/itinerary/types';
-import { Star } from 'lucide-react';
+import { Star, Building2 } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -115,22 +115,28 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
         )}
         {source !== 'loading' && filtered.map((h) => (
           <div key={h.id} className={`p-4 rounded-md border ${h.id === currentHotelId ? 'border-crimson-500 bg-crimson-50/40' : 'border-border-subtle bg-surface'}`}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
+            <div className="flex items-start gap-4">
+              <div className="relative w-28 h-24 rounded-md bg-surface-2 flex items-center justify-center flex-shrink-0 overflow-hidden text-[rgb(var(--text-tertiary))]">
+                <Building2 className="w-7 h-7" />
+                {h.thumb && (
+                  <img src={h.thumb} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 text-gold-500 text-sm">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-gold-500" />)}</div>
-                <h4 className="font-semibold text-navy-900 mt-1 flex items-center gap-2">
+                <h4 className="font-semibold text-navy-900 mt-1 flex items-center gap-2 flex-wrap">
                   {h.name}
                   {h.id.startsWith('HB-') && <Pill variant="success">LIVE</Pill>}
                 </h4>
                 <p className="text-xs text-[rgb(var(--text-secondary))]">{h.address}</p>
-                <div className="mt-2 flex items-center gap-2 text-xs">
+                <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
                   {h.rating && <span className="inline-flex items-center px-2 py-0.5 rounded bg-crimson-900 text-white font-semibold">{h.rating.score}</span>}
                   {h.rating && <span className="text-[rgb(var(--text-secondary))]">{h.rating.label} · {h.rating.reviewCount} ratings</span>}
                   {h.refundable && <Pill variant="success">Refundable</Pill>}
                   <Pill variant="neutral">{h.mealPlan}</Pill>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <p className="text-xs text-[rgb(var(--text-secondary))]">per night</p>
                 <p className="font-mono font-bold text-lg text-navy-900">{formatINR(h.pricePerNightPaise)}</p>
                 <Button size="sm" className="mt-2" onClick={() => { onPick(h); onClose(); }} disabled={h.id === currentHotelId}>

@@ -122,7 +122,7 @@ function normalize(res: HbActivitiesResponse, cityCode: string, rates: Rates): H
       name: a.name ?? 'Activity',
       slot: durationMin >= 360 ? 'full-day' : durationMin >= 240 ? 'afternoon' : 'morning',
       durationMin,
-      description: a.content?.description,
+      description: stripHtml(a.content?.description),
       thumb: imgPath,
       pricePaise: toInrPaiseWith(rates, adultAmount, currency),
       cityCode,
@@ -132,6 +132,23 @@ function normalize(res: HbActivitiesResponse, cityCode: string, rates: Rates): H
       currency,
     };
   });
+}
+
+// Hotelbeds activity descriptions arrive as HTML (e.g. "<p>Visit …</p>").
+// Strip tags + decode the common entities so the UI shows clean prose.
+function stripHtml(s?: string): string | undefined {
+  if (!s) return undefined;
+  const text = s
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text || undefined;
 }
 
 function computeMinutes(val?: number, type?: string): number {
