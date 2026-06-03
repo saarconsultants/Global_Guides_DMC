@@ -151,7 +151,11 @@ model Proposal {
   shareToken      String   @unique
   lastViewedAt    DateTime?
   acceptedAt      DateTime?
-  status          String   @default("DRAFT")  // DRAFT | SENT | VIEWED | ACCEPTED | DECLINED | BOOKED
+  status          String   @default("DRAFT")  // DRAFT | SENT | VIEWED | ACCEPTED | DECLINED | BOOKED | SUPERSEDED
+  // Versioning: a revision is a linked copy with version+1. The original is
+  // marked SUPERSEDED so the customer link always points at the latest.
+  version         Int      @default(1)
+  revisedFromId   String?                       // the proposal this one was revised from
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -5,15 +5,16 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
 import { formatINR, formatDateShort } from '@/lib/utils';
-import { FileText, ExternalLink, Copy, Search, Filter } from 'lucide-react';
+import { FileText, ExternalLink, Copy, Search, Filter, Download, GitBranch } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { duplicateProposalAction } from '@/app/actions/duplicate-proposal';
+import { reviseProposalAction } from '@/app/actions/revise-proposal';
 
 export const dynamic = 'force-dynamic';
 
 const statusVariant: Record<string, 'neutral' | 'info' | 'success' | 'warning' | 'danger'> = {
-  DRAFT: 'neutral', SENT: 'info', VIEWED: 'info', ACCEPTED: 'success', BOOKED: 'success', DECLINED: 'danger',
+  DRAFT: 'neutral', SENT: 'info', VIEWED: 'info', ACCEPTED: 'success', BOOKED: 'success', DECLINED: 'danger', SUPERSEDED: 'neutral',
 };
 
 export default async function ProposalsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
@@ -75,6 +76,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                     <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">
                       <td className="py-3 pr-4 font-mono text-xs">
                         <Link href={`/itinerary/${p.id}/customize` as any} className="text-crimson-700 hover:underline">{p.code}</Link>
+                        {(p as any).version > 1 && <span className="ml-1.5 text-[10px] text-[rgb(var(--text-tertiary))]">v{(p as any).version}</span>}
                       </td>
                       <td className="py-3 pr-4">{p.lead?.customerName ?? '—'}</td>
                       <td className="py-3 pr-4">{p.name}</td>
@@ -87,6 +89,10 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                           <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline" title="Open customer link">
                             Open <ExternalLink className="w-3 h-3" />
                           </a>
+                          <a href={`/api/proposal-pdf/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Download branded PDF"><Download className="w-3 h-3" />PDF</a>
+                          <form action={reviseProposalAction.bind(null, p.id)} className="inline">
+                            <button className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Create a revised version (v2)"><GitBranch className="w-3 h-3" />Revise</button>
+                          </form>
                           <form action={duplicateProposalAction.bind(null, p.id)} className="inline">
                             <button className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Duplicate as a new draft"><Copy className="w-3 h-3" />Copy</button>
                           </form>

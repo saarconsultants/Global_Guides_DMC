@@ -170,6 +170,47 @@ export async function duplicateProposal(sourceId: string): Promise<{ id: string;
   return { id: copy.id, code: copy.code };
 }
 
+// Create a revised version: a linked copy with version+1. The source is
+// marked SUPERSEDED. Returns the new proposal id+code (or null).
+export async function reviseProposal(sourceId: string): Promise<{ id: string; code: string } | null> {
+  const actor = await requireAgency();
+  const src = await db.proposal.findFirst({ where: { id: sourceId, agencyId: actor.agencyId } });
+  if (!src) return null;
+
+  const next = await db.proposal.create({
+    data: {
+      code: genCode(),
+      agencyId: actor.agencyId,
+      ownerUserId: actor.userId,
+      leadId: src.leadId,
+      name: src.name,
+      travelDate: src.travelDate,
+      nationality: src.nationality,
+      travelers: src.travelers,
+      destinations: src.destinations,
+      days: src.days,
+      flights: src.flights,
+      visa: src.visa,
+      insurance: src.insurance,
+      netCostPaise: src.netCostPaise,
+      markupPaise: src.markupPaise,
+      pricePaise: src.pricePaise,
+      pricePerAdultPaise: src.pricePerAdultPaise,
+      currency: src.currency,
+      shareToken: genShareToken(),
+      status: 'DRAFT',
+      version: ((src as any).version ?? 1) + 1,
+      revisedFromId: src.id,
+    },
+  });
+  // Retire the old version so its share link no longer collects responses.
+  await db.proposal.update({ where: { id: src.id }, data: { status: 'SUPERSEDED' } });
+  if (src.leadId) {
+    await db.leadNote.create({ data: { leadId: src.leadId, authorId: actor.userId, kind: 'SYSTEM', body: `Revised ${src.code} → ${next.code} (v${(next as any).version})` } });
+  }
+  return { id: next.id, code: next.code };
+}
+
 export interface LeadListFilter { q?: string; status?: string }
 
 export async function listLeads(filter: LeadListFilter = {}) {
