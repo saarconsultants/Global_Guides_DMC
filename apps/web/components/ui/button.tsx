@@ -3,14 +3,14 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-colors ease-standard duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
+  'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all ease-standard duration-200 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
   {
     variants: {
       variant: {
         // PLATFORM-BRAND primary — deep crimson + white text.
-        primary: 'bg-crimson-900 text-white hover:bg-crimson-700 active:bg-crimson-500 shadow-sm',
+        primary: 'bg-crimson-900 text-white hover:bg-crimson-700 active:bg-crimson-500 shadow-sm hover:shadow-md hover:shadow-crimson-900/15',
         // High-emphasis accent — vibrant amber with crimson text. Use sparingly (KPI hero / sales CTA).
-        accent:  'bg-amber-500 text-crimson-900 hover:bg-amber-300 hover:text-crimson-900 shadow-sm',
+        accent:  'bg-amber-500 text-crimson-900 hover:bg-amber-300 hover:text-crimson-900 shadow-sm hover:shadow-md hover:shadow-amber-500/25',
         // Neutrals
         secondary: 'bg-surface-2 text-navy-900 hover:bg-navy-50 border border-border',
         outline:   'bg-transparent text-crimson-900 border border-crimson-900 hover:bg-crimson-50',
