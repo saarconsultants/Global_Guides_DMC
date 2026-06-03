@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
-import { HOTEL_SEARCH_CITIES } from '@/lib/supported-cities';
+import { CitySearchCombobox } from '@/components/common/city-search-combobox';
 
 interface Props {
   defaults: { city: string; date: string; adults: string };
@@ -26,12 +26,7 @@ export function TransferSearchForm({ defaults }: Props) {
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={submit} className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">
-          <div>
-            <Label>Destination city</Label>
-            <select value={city} onChange={(e) => setCity(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
-              {HOTEL_SEARCH_CITIES.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
-            </select>
-          </div>
+          <CitySearchCombobox label="Destination city" value={city} onChange={setCity} placeholder="Search destination" />
           <div>
             <Label>Pickup date</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
