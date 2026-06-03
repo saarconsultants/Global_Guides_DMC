@@ -78,10 +78,10 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
       <main className="mx-auto max-w-3xl px-6 py-10 space-y-12">
         {/* Trip Summary at-a-glance */}
         <section>
-          <h2 className="text-2xl font-bold text-navy-900 mb-4">At a glance</h2>
+          <h2 className="font-display text-2xl font-semibold text-navy-900 mb-4">At a glance</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {it.destinations.map((d) => d.stay && (
-              <div key={d.cityCode} className="rounded-lg bg-surface border border-border-subtle p-4">
+              <div key={d.cityCode} className="rounded-lg bg-surface border border-border-subtle p-4 lift">
                 <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{d.nights} night{d.nights !== 1 ? 's' : ''} in</p>
                 <p className="text-lg font-bold text-navy-900">{d.cityName}</p>
                 <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">{d.stay.hotel.stars}★ {d.stay.hotel.name}</p>
@@ -92,13 +92,13 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
 
         {/* Day by day */}
         <section>
-          <h2 className="text-2xl font-bold text-navy-900 mb-4">Day by day</h2>
-          <ol className="relative border-l-2 border-crimson-500/30 pl-6 space-y-6">
+          <h2 className="font-display text-2xl font-semibold text-navy-900 mb-4">Day by day</h2>
+          <ol className="relative border-l-2 pl-6 space-y-6" style={{ borderColor: `${primary}2e` }}>
             {it.days.map((day) => {
               const hotel = it.destinations.find((x) => x.cityCode === day.cityCode)?.stay?.hotel;
               return (
                 <li key={day.dayNo} className="relative">
-                  <span className="absolute -left-[33px] top-1 w-6 h-6 rounded-full bg-crimson-900 text-white text-xs font-bold inline-flex items-center justify-center">{day.dayNo}</span>
+                  <span className="absolute -left-[33px] top-1 w-6 h-6 rounded-full text-white text-xs font-bold inline-flex items-center justify-center shadow-sm" style={{ background: primary }}>{day.dayNo}</span>
                   <p className="text-xs uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{fmtDayLabel(day.date)}</p>
                   <p className="text-lg font-bold text-navy-900 mt-0.5">{heading(day)}</p>
                   <p className="text-sm text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed">{day.narrative}</p>
@@ -136,7 +136,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         {/* Flights */}
         {it.flights && (
           <section>
-            <h2 className="text-2xl font-bold text-navy-900 mb-4 flex items-center gap-2"><Plane className="w-5 h-5 text-crimson-700" />How you'll fly</h2>
+            <h2 className="font-display text-2xl font-semibold text-navy-900 mb-4 flex items-center gap-2"><Plane className="w-5 h-5" style={{ color: primary }} />How you'll fly</h2>
             <FlightLegCard label="Outbound" leg={it.flights} cabin={it.flights.cabin} fmt={fmt} />
             {it.flights.return && (
               <div className="mt-3">
@@ -148,10 +148,10 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
 
         {/* Hotels detail */}
         <section>
-          <h2 className="text-2xl font-bold text-navy-900 mb-4 flex items-center gap-2"><Bed className="w-5 h-5 text-crimson-700" />Where you'll stay</h2>
+          <h2 className="font-display text-2xl font-semibold text-navy-900 mb-4 flex items-center gap-2"><Bed className="w-5 h-5" style={{ color: primary }} />Where you'll stay</h2>
           <div className="space-y-3">
             {it.destinations.map((d) => d.stay && (
-              <div key={d.cityCode} className="rounded-lg bg-surface border border-border-subtle p-4">
+              <div key={d.cityCode} className="rounded-lg bg-surface border border-border-subtle p-4 lift">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -175,16 +175,16 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         {/* Visa / Insurance */}
         {(it.visa.length > 0 || it.insurance) && (
           <section>
-            <h2 className="text-2xl font-bold text-navy-900 mb-4">Documents &amp; cover</h2>
+            <h2 className="font-display text-2xl font-semibold text-navy-900 mb-4">Documents &amp; cover</h2>
             <div className="space-y-2">
               {it.visa.map((v) => (
                 <div key={v.countryCode} className="rounded-md bg-surface border border-border-subtle p-3 flex items-start justify-between text-sm">
-                  <div className="flex gap-2"><FileText className="w-4 h-4 text-crimson-700 mt-0.5" /><span>{v.description}</span></div>
+                  <div className="flex gap-2"><FileText className="w-4 h-4 mt-0.5" style={{ color: primary }} /><span>{v.description}</span></div>
                   <span className={v.included ? 'text-success-500 font-semibold' : 'text-[rgb(var(--text-secondary))]'}>{v.included ? 'Included' : 'Not Included'}</span>
                 </div>
               ))}
               <div className="rounded-md bg-surface border border-border-subtle p-3 flex items-start justify-between text-sm">
-                <div className="flex gap-2"><ShieldCheck className="w-4 h-4 text-crimson-700 mt-0.5" /><span>{it.insurance.description}</span></div>
+                <div className="flex gap-2"><ShieldCheck className="w-4 h-4 mt-0.5" style={{ color: primary }} /><span>{it.insurance.description}</span></div>
                 <span className={it.insurance.included ? 'text-success-500 font-semibold' : 'text-[rgb(var(--text-secondary))]'}>{it.insurance.included ? 'Included' : 'Not Included'}</span>
               </div>
             </div>
@@ -245,7 +245,7 @@ function transferLine(t: any) {
 
 function FlightLegCard({ label, leg, cabin, fmt }: { label: string; leg: { segments: Array<{ airlineCode: string; airlineName: string; flightNumber: string; fromIATA: string; toIATA: string; departureAt: string; arrivalAt: string }>; totalPaise: number }; cabin: string; fmt: (p: number | bigint) => string }) {
   return (
-    <div className="rounded-lg bg-surface border border-border-subtle p-4">
+    <div className="rounded-lg bg-surface border border-border-subtle p-4 lift">
       <p className="text-[10px] uppercase tracking-widest text-crimson-700 font-bold mb-2">{label}</p>
       <div className="flex items-start justify-between gap-4 mb-3">
         <div>
