@@ -102,7 +102,7 @@ export function FlyerPdf({ agency, template }: FlyerInput) {
           <View style={s.priceBox}>
             <View>
               <Text style={s.priceLabel}>Starting from</Text>
-              <Text style={s.price}>₹ {priceRupees.toLocaleString('en-IN')}</Text>
+              <Text style={s.price}>Rs {priceRupees.toLocaleString('en-IN')}</Text>
               <Text style={{ fontSize: 9, color: '#64748B', marginTop: 2 }}>per person · twin sharing · ex-India</Text>
             </View>
             <Text style={s.cta}>Talk to us today</Text>

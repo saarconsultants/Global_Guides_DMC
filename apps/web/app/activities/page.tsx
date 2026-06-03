@@ -4,6 +4,7 @@ import { ActivitySearchForm } from '@/components/activities/search-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ImageWithFallback } from '@/components/common/image-with-fallback';
 import { formatINR } from '@/lib/utils';
 import { Clock, MapPin, Sparkles } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
@@ -84,7 +85,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
               {activities.map((a) => (
                 <Card key={a.id} className="lift overflow-hidden">
-                  {a.thumb && <img src={a.thumb} alt="" loading="lazy" className="w-full h-40 object-cover bg-navy-900" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
+                  {a.thumb && <ImageWithFallback src={a.thumb} className="w-full h-40 object-cover bg-navy-900" />}
                   <CardContent className="pt-4 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-navy-900 text-sm leading-snug">{a.name}</h3>

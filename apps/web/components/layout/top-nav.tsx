@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Plane, Users, Hotel, Megaphone, ClipboardList, Settings, Receipt, Sparkles, Menu, X, Briefcase, Wallet, ShieldCheck, LogOut, MapPin, Car, BarChart3 } from 'lucide-react';
+import { Home, Plane, Users, Hotel, Megaphone, ClipboardList, Settings, Receipt, Sparkles, Menu, X, Briefcase, Wallet, ShieldCheck, LogOut, MapPin, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from './notification-bell';
 import { NavUtilityStrip } from './nav-utility-strip';
@@ -13,7 +13,6 @@ const NAV_AGENCY = [
   { href: '/flights', label: 'Flights', icon: Plane },
   { href: '/hotels', label: 'Hotels', icon: Hotel },
   { href: '/activities', label: 'Activities', icon: MapPin },
-  { href: '/transfers', label: 'Transfers', icon: Car },
   { href: '/holidays', label: 'Holidays', icon: Users },
   { href: '/marketing', label: 'Marketing', icon: Megaphone },
   { href: '/leads', label: 'My Leads', icon: ClipboardList },
