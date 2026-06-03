@@ -10,6 +10,9 @@ export interface SessionPayload {
   role?: 'SUPER_ADMIN' | 'AGENCY_OWNER' | 'COUNSELLOR' | 'OPS';
   email?: string;
   name?: string;
+  // Super-admin "view as agency": when set, the admin sees the agency-side app
+  // scoped to this agency. Only honoured for SUPER_ADMIN.
+  impersonatingAgencyId?: string;
 }
 
 const SESSION_PASSWORD = process.env.SESSION_PASSWORD ?? 'dev-only-please-change-min-32-chars-long-secret';

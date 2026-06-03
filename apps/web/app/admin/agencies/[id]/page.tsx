@@ -9,7 +9,8 @@ import { formatINR, formatDateShort } from '@/lib/utils';
 import { StatCard } from '@/components/ui/stat-card';
 import { notFound } from 'next/navigation';
 import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletAction, saveCommissionRuleAction, deleteCommissionRuleAction } from '@/app/actions/admin';
-import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus } from 'lucide-react';
+import { viewAsAgencyAction } from '@/app/actions/impersonation';
+import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -48,6 +49,9 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
         description={`${agency.email ?? '—'} · ${agency.contact ?? '—'} · /${agency.slug} · joined ${formatDateShort(agency.createdAt)}`}
         actions={
           <div className="flex items-center gap-3">
+            <form action={viewAsAgencyAction.bind(null, agency.id)}>
+              <Button size="sm" variant="secondary" className="gap-1.5"><ArrowLeftRight className="w-4 h-4" />View as this agency</Button>
+            </form>
             <Pill variant={statusVariant[agency.status] ?? 'neutral'}>{agency.status}</Pill>
             {agency.logoUrl && <img src={agency.logoUrl} alt="" className="h-10 w-auto rounded bg-white p-1 border border-border-subtle" />}
             <span className="w-8 h-8 rounded-full border border-border-subtle" style={{ background: agency.primaryColor ?? '#0369A1' }} />

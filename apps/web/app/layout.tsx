@@ -8,6 +8,8 @@ import { getActor } from '@/lib/auth/ctx';
 import { formatMoney } from '@/lib/money';
 import { getDisplayRate } from '@/lib/fx-display';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
+import { exitImpersonationAction } from '@/app/actions/impersonation';
+import { Eye } from 'lucide-react';
 import { db } from '@/lib/db/client';
 import { countUnread, listNotifications } from '@/lib/db/notifications';
 
@@ -43,6 +45,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <CurrencyProvider currency={currency} rate={rate}>
           <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:rounded-md focus:bg-crimson-900 focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-white">Skip to content</a>
+          {actor?.impersonating && (
+            <div className="bg-amber-500 text-crimson-900">
+              <div className="mx-auto max-w-7xl px-6 h-9 flex items-center justify-between gap-3 text-sm">
+                <span className="inline-flex items-center gap-1.5 font-medium"><Eye className="w-4 h-4" /> Viewing <strong>{actor.agency?.name}</strong> as platform admin</span>
+                <form action={exitImpersonationAction}><button className="text-xs font-bold underline hover:no-underline">Exit to admin</button></form>
+              </div>
+            </div>
+          )}
           <TopNav
             walletLabel={walletLabel}
             actor={actor ? { name: actor.name ?? actor.email, role: actor.role, agencyName: actor.agency?.name ?? 'Platform', logoUrl: actor.agency?.logoUrl ?? null } : null}

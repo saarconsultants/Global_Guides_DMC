@@ -11,8 +11,9 @@ export interface ActorContext {
   email: string;
   name?: string;
   role: Role;
-  agencyId: string | null;     // null only for SUPER_ADMIN
+  agencyId: string | null;     // null only for SUPER_ADMIN (unless impersonating)
   agency?: { id: string; name: string; code: string; slug: string; logoUrl: string | null; primaryColor: string | null; accentColor: string | null };
+  impersonating?: boolean;     // super-admin is "viewing as" agency
 }
 
 export async function getActor(): Promise<ActorContext | null> {
@@ -20,16 +21,27 @@ export async function getActor(): Promise<ActorContext | null> {
   if (!s.userId || !s.role) return null;
   const user = await db.user.findUnique({ where: { id: s.userId }, include: { agency: true } });
   if (!user) return null;
+
+  let agencyId = user.agencyId;
+  let agency = user.agency;
+  let impersonating = false;
+  // Super-admin "view as agency": override the effective agency with the chosen one.
+  if (user.role === 'SUPER_ADMIN' && s.impersonatingAgencyId) {
+    const imp = await db.agency.findUnique({ where: { id: s.impersonatingAgencyId } });
+    if (imp) { agencyId = imp.id; agency = imp; impersonating = true; }
+  }
+
   return {
     userId: user.id,
     email: user.email,
     name: user.name ?? undefined,
     role: user.role as Role,
-    agencyId: user.agencyId,
-    agency: user.agency ? {
-      id: user.agency.id, name: user.agency.name, code: user.agency.code, slug: user.agency.slug,
-      logoUrl: user.agency.logoUrl, primaryColor: user.agency.primaryColor, accentColor: user.agency.accentColor,
+    agencyId,
+    agency: agency ? {
+      id: agency.id, name: agency.name, code: agency.code, slug: agency.slug,
+      logoUrl: agency.logoUrl, primaryColor: agency.primaryColor, accentColor: agency.accentColor,
     } : undefined,
+    impersonating,
   };
 }
 
