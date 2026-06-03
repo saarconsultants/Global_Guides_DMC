@@ -31,7 +31,10 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   let source: 'live' | 'mock' | 'unsupported-city' = 'mock';
   let warning: string | undefined;
 
-  if (hasQuery) {
+  // Guard invalid date ranges before hitting Hotelbeds (which 400s on checkout ≤ checkin).
+  const dateInvalid = hasQuery && new Date(checkout) <= new Date(checkin);
+
+  if (hasQuery && !dateInvalid) {
     if (isLive()) {
       try {
         const res = await searchHotels({
@@ -99,18 +102,24 @@ export default async function HotelsPage({ searchParams }: PageProps) {
             {isLive() ? 'Live inventory via Hotelbeds (HBX Group) — 250k+ properties globally.' : 'Mock inventory. Add HOTELBEDS_API_KEY + HOTELBEDS_API_SECRET to go live.'}
           </p>
         </div>
-        {hasQuery && <Pill variant={badge.variant}>{badge.label}</Pill>}
+        {hasQuery && !dateInvalid && <Pill variant={badge.variant}>{badge.label}</Pill>}
       </div>
 
       <HotelSearchForm defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
-      {warning && source !== 'live' && (
-        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
-          {warning}
+      {dateInvalid && (
+        <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm" role="alert">
+          Check-out must be after check-in. Please adjust the dates and search again.
         </div>
       )}
 
-      {hasQuery && (
+      {!dateInvalid && warning && source !== 'live' && (
+        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
+          {warning.length > 180 ? warning.slice(0, 180) + '…' : warning}
+        </div>
+      )}
+
+      {hasQuery && !dateInvalid && (
         <>
           <div className="flex items-center justify-between text-sm text-[rgb(var(--text-secondary))]">
             <span>Hotels in <span className="font-semibold text-navy-900">{cityName}</span> · {checkin} → {checkout}</span>

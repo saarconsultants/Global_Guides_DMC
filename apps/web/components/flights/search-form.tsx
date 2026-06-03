@@ -25,9 +25,14 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
   // leg to an itinerary (returnTo set), force one-way to keep the flow simple.
   const [roundTrip, setRoundTrip] = useState(!!defaults.rdate && !returnTo);
   const [rdate, setRdate] = useState(defaults.rdate ?? defaults.date);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (roundTrip && !returnTo && new Date(rdate) < new Date(date)) {
+      setDateError('Return date must be on or after the departure date.');
+      return;
+    }
     const params = new URLSearchParams({ from, to, date, adults, cabin });
     if (directOnly) params.set('directOnly', '1');
     if (roundTrip && !returnTo) params.set('rdate', rdate);
@@ -69,12 +74,12 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
           <AirportCombobox label="To" value={to} onChange={setTo} placeholder="City or airport" iconRotate />
           <div>
             <Label>{roundTrip && !returnTo ? 'Depart' : 'Travel date'}</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input type="date" value={date} onChange={(e) => { setDate(e.target.value); setDateError(null); }} />
           </div>
           {roundTrip && !returnTo && (
             <div>
               <Label>Return</Label>
-              <Input type="date" value={rdate} min={date} onChange={(e) => setRdate(e.target.value)} />
+              <Input type="date" value={rdate} min={date} onChange={(e) => { setRdate(e.target.value); setDateError(null); }} />
             </div>
           )}
           <div>
@@ -94,6 +99,9 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
           </div>
           <Button type="submit" className="gap-2"><Search className="w-4 h-4" />Search</Button>
         </form>
+        {dateError && (
+          <p className="mt-3 text-sm text-danger-500" role="alert">{dateError}</p>
+        )}
         <label className="mt-4 inline-flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] cursor-pointer">
           <input type="checkbox" checked={directOnly} onChange={(e) => setDirectOnly(e.target.checked)} className="rounded border-border" />
           Direct flights only

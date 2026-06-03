@@ -28,9 +28,14 @@ export function HotelSearchForm({ defaults }: Props) {
   const [refundable, setRefundable] = useState(defaults.refundable === '1');
   const [sort, setSort] = useState(defaults.sort ?? 'price-asc');
   const [showFilters, setShowFilters] = useState(!!(defaults.star || defaults.board || defaults.refundable === '1'));
+  const [dateError, setDateError] = useState<string | null>(null);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (new Date(checkout) <= new Date(checkin)) {
+      setDateError('Check-out must be after check-in.');
+      return;
+    }
     const params = new URLSearchParams({ city, checkin, checkout, adults, rooms, children });
     if (star) params.set('star', star);
     if (board) params.set('board', board);
@@ -47,14 +52,17 @@ export function HotelSearchForm({ defaults }: Props) {
             <CitySearchCombobox label="Going to" value={city} onChange={setCity} placeholder="Search destination" />
             <div>
               <Label>Check-in</Label>
-              <Input type="date" value={checkin} onChange={(e) => setCheckin(e.target.value)} />
+              <Input type="date" value={checkin} onChange={(e) => { setCheckin(e.target.value); setDateError(null); }} />
             </div>
             <div>
               <Label>Check-out</Label>
-              <Input type="date" value={checkout} onChange={(e) => setCheckout(e.target.value)} />
+              <Input type="date" value={checkout} min={checkin} onChange={(e) => { setCheckout(e.target.value); setDateError(null); }} />
             </div>
             <Button type="submit" className="gap-2"><Search className="w-4 h-4" />Search Hotels</Button>
           </div>
+          {dateError && (
+            <p className="text-sm text-danger-500 -mt-1" role="alert">{dateError}</p>
+          )}
           <div className="grid gap-4 sm:grid-cols-3 max-w-lg">
             <div>
               <Label>Rooms</Label>

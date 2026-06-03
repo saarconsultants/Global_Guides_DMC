@@ -11,10 +11,13 @@ interface Props {
   kind: 'arrival' | 'departure';
   cityName: string;
   initial?: { flightNumber: string; time: string };
+  // True when `initial` was auto-filled from the flight attached via Flights search
+  // (rather than from previously-saved details). Controls the hint text.
+  prefilled?: boolean;
   onSave: (details: { flightNumber: string; time: string }) => void;
 }
 
-export function FlightDetailsModal({ open, onClose, kind, cityName, initial, onSave }: Props) {
+export function FlightDetailsModal({ open, onClose, kind, cityName, initial, prefilled, onSave }: Props) {
   const [flightNumber, setFlightNumber] = useState(initial?.flightNumber ?? '');
   const [time, setTime] = useState(initial?.time ?? '');
   const verb = kind === 'arrival' ? 'Arrival' : 'Departure';
@@ -56,9 +59,15 @@ export function FlightDetailsModal({ open, onClose, kind, cityName, initial, onS
           </div>
         </div>
 
-        <div className="rounded-md bg-surface-2 border border-border-subtle px-3 py-2 text-xs text-[rgb(var(--text-secondary))]">
-          💡 If you've already attached a flight via Flights search, copy the {kind === 'arrival' ? 'last leg arrival' : 'first leg departure'} time here so the transfer matches.
-        </div>
+        {prefilled ? (
+          <div className="rounded-md bg-success-500/10 border border-success-500/30 px-3 py-2 text-xs text-success-600">
+            ✓ Pre-filled from the flight you attached via Flights search. Edit if the customer is on a different flight.
+          </div>
+        ) : (
+          <div className="rounded-md bg-surface-2 border border-border-subtle px-3 py-2 text-xs text-[rgb(var(--text-secondary))]">
+            💡 If you've already attached a flight via Flights search, copy the {kind === 'arrival' ? 'last leg arrival' : 'first leg departure'} time here so the transfer matches.
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>

@@ -25,6 +25,9 @@ interface Props {
   onAddTransfer?: (transfer: Transfer) => void;
   onSetArrivalDetails?:   (details: { flightNumber: string; arrivalTime: string }) => void;
   onSetDepartureDetails?: (details: { flightNumber: string; departureTime: string }) => void;
+  // Auto-fill values derived from the flight attached via Flights search.
+  arrivalPrefill?:   { flightNumber: string; time: string };
+  departurePrefill?: { flightNumber: string; time: string };
 }
 
 const heading = (d: Day) => {
@@ -34,7 +37,7 @@ const heading = (d: Day) => {
   return `Stay in ${d.cityName}`;
 };
 
-export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails }: Props) {
+export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails, arrivalPrefill, departurePrefill }: Props) {
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [flightOpen, setFlightOpen] = useState(false);
@@ -219,11 +222,17 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
           kind={day.type}
           cityName={day.cityName}
           initial={
-            day.type === 'arrival' && day.arrivalDetails
-              ? { flightNumber: day.arrivalDetails.flightNumber, time: day.arrivalDetails.arrivalTime }
-              : day.type === 'departure' && day.departureDetails
-              ? { flightNumber: day.departureDetails.flightNumber, time: day.departureDetails.departureTime }
-              : undefined
+            day.type === 'arrival'
+              ? (day.arrivalDetails
+                  ? { flightNumber: day.arrivalDetails.flightNumber, time: day.arrivalDetails.arrivalTime }
+                  : arrivalPrefill)
+              : (day.departureDetails
+                  ? { flightNumber: day.departureDetails.flightNumber, time: day.departureDetails.departureTime }
+                  : departurePrefill)
+          }
+          prefilled={
+            day.type === 'arrival' ? (!day.arrivalDetails && !!arrivalPrefill)
+                                   : (!day.departureDetails && !!departurePrefill)
           }
           onSave={({ flightNumber, time }) => {
             if (day.type === 'arrival') {

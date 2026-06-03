@@ -219,6 +219,15 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     }}
                     onSetArrivalDetails={(details) => setArrivalDetails(itinerary.id, d.dayNo, details)}
                     onSetDepartureDetails={(details) => setDepartureDetails(itinerary.id, d.dayNo, details)}
+                    arrivalPrefill={(() => {
+                      const segs = itinerary.flights?.segments;
+                      const seg = segs?.[segs.length - 1];
+                      return seg ? { flightNumber: seg.flightNumber, time: toHHMM(seg.arrivalAt) } : undefined;
+                    })()}
+                    departurePrefill={(() => {
+                      const seg = itinerary.flights?.return?.segments?.[0];
+                      return seg ? { flightNumber: seg.flightNumber, time: toHHMM(seg.departureAt) } : undefined;
+                    })()}
                   />
                 );
               })}
@@ -284,6 +293,14 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
 function fmtDate(s: string) {
   return new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+// Pull a local HH:MM out of a flight segment timestamp (ISO or "…T14:30…").
+function toHHMM(s?: string): string {
+  if (!s) return '';
+  const m = s.match(/T(\d{2}:\d{2})/);
+  if (m) return m[1]!;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? '' : `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 function airport(cityCode: string) {
   // For now, leveraging IATA city codes 1:1. Fine for PAR/AMS/DXB/BKK/etc.
