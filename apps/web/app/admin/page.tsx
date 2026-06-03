@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { db } from '@/lib/db/client';
@@ -34,13 +35,7 @@ export default async function AdminOverview() {
       />
       <section className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger">
         {kpis.map((k) => (
-          <Card key={k.l} className="lift">
-            <CardContent className="pt-6">
-              <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{k.l}</p>
-              <p className={`mt-1.5 text-3xl font-bold tracking-tight ${k.gold ? 'text-gold-700' : 'text-navy-900'} ${typeof k.v === 'string' && k.v.includes('₹') ? 'font-mono tabular-nums' : ''}`}>{k.v}</p>
-              <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">{k.s}</p>
-            </CardContent>
-          </Card>
+          <StatCard key={k.l} label={k.l} value={String(k.v)} sub={k.s} tone={k.gold ? 'gold' : 'navy'} mono={/[₹$€£]/.test(String(k.v))} />
         ))}
       </section>
 

@@ -6,6 +6,7 @@ import { Input, Label } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatINR, formatDateShort } from '@/lib/utils';
+import { StatCard } from '@/components/ui/stat-card';
 import { notFound } from 'next/navigation';
 import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletAction, saveCommissionRuleAction, deleteCommissionRuleAction } from '@/app/actions/admin';
 import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus } from 'lucide-react';
@@ -55,26 +56,10 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       />
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Users</p>
-          <p className="font-mono text-3xl font-bold text-navy-900">{agency.users.length}</p>
-          <p className="text-xs text-[rgb(var(--text-secondary))]">team members</p>
-        </CardContent></Card>
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Proposals</p>
-          <p className="font-mono text-3xl font-bold text-navy-900">{agency._count.proposals}</p>
-          <p className="text-xs text-[rgb(var(--text-secondary))]">{agency._count.bookings} booked</p>
-        </CardContent></Card>
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Wallet</p>
-          <p className="font-mono text-3xl font-bold text-navy-900">{formatINR(agency.walletPaise)}</p>
-          <p className="text-xs text-[rgb(var(--text-secondary))]">available balance</p>
-        </CardContent></Card>
-        <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Commission earned</p>
-          <p className="font-mono text-3xl font-bold text-amber-700">{formatINR(BigInt(totalRevenue))}</p>
-          <p className="text-xs text-[rgb(var(--text-secondary))]">{agency._count.commissionEntries} entries</p>
-        </CardContent></Card>
+        <StatCard label="Users" value={String(agency.users.length)} sub="team members" mono />
+        <StatCard label="Proposals" value={String(agency._count.proposals)} sub={`${agency._count.bookings} booked`} mono />
+        <StatCard label="Wallet" value={formatINR(agency.walletPaise)} sub="available balance" mono />
+        <StatCard label="Commission earned" value={formatINR(BigInt(totalRevenue))} sub={`${agency._count.commissionEntries} entries`} tone="gold" mono />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

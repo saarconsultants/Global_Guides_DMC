@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { requireSuperAdmin } from '@/lib/auth/ctx';
 import { platformPerformance } from '@/lib/db/performance';
 import { formatINR } from '@/lib/utils';
+import { StatCard } from '@/components/ui/stat-card';
 import { BarChart3, Building2, Send, Trophy, TrendingUp, Users2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -48,11 +49,11 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Kpi label="Agencies" value={String(totals.agencies)} icon={<Building2 className="w-4 h-4" />} />
-        <Kpi label="Counsellors" value={String(totals.counsellors)} icon={<Users2 className="w-4 h-4" />} />
-        <Kpi label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
-        <Kpi label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
-        <Kpi label="Revenue (won)" value={formatINR(totals.revenuePaise)} icon={<Trophy className="w-4 h-4" />} mono gold />
+        <StatCard label="Agencies" value={String(totals.agencies)} icon={<Building2 className="w-4 h-4" />} />
+        <StatCard label="Counsellors" value={String(totals.counsellors)} icon={<Users2 className="w-4 h-4" />} />
+        <StatCard label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
+        <StatCard label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
+        <StatCard label="Revenue (won)" value={formatINR(totals.revenuePaise)} icon={<Trophy className="w-4 h-4" />} mono tone="gold" />
       </div>
 
       <Card>
@@ -110,18 +111,5 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function Kpi({ label, value, icon, gold, mono }: { label: string; value: string; icon: React.ReactNode; gold?: boolean; mono?: boolean }) {
-  return (
-    <Card className="lift">
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">
-          <span className="text-crimson-700">{icon}</span>{label}
-        </div>
-        <p className={`mt-1.5 text-2xl font-bold tracking-tight ${gold ? 'text-gold-700' : 'text-navy-900'} ${mono ? 'font-mono tabular-nums' : ''}`}>{value}</p>
-      </CardContent>
-    </Card>
   );
 }
