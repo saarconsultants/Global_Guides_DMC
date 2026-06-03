@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Plane, ArrowRightLeft, Search } from 'lucide-react';
 
 interface Props {
-  defaults: { from: string; to: string; date: string; adults: string; cabin: string };
+  defaults: { from: string; to: string; date: string; adults: string; cabin: string; rdate?: string };
   returnTo?: string;
   leg?: 'outbound' | 'return';
 }
@@ -20,11 +20,16 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
   const [adults, setAdults] = useState(defaults.adults);
   const [cabin, setCabin] = useState(defaults.cabin);
   const [directOnly, setDirectOnly] = useState(false);
+  // Round-trip only applies to standalone browsing. When attaching a single
+  // leg to an itinerary (returnTo set), force one-way to keep the flow simple.
+  const [roundTrip, setRoundTrip] = useState(!!defaults.rdate && !returnTo);
+  const [rdate, setRdate] = useState(defaults.rdate ?? defaults.date);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams({ from, to, date, adults, cabin });
     if (directOnly) params.set('directOnly', '1');
+    if (roundTrip && !returnTo) params.set('rdate', rdate);
     if (returnTo) params.set('returnTo', returnTo);
     if (leg) params.set('leg', leg);
     router.push(`/flights?${params}`);
@@ -38,6 +43,23 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
   return (
     <Card>
       <CardContent className="pt-6">
+        {!returnTo && (
+          <div className="flex items-center gap-2 mb-4">
+            {(['oneway', 'round'] as const).map((t) => {
+              const active = (t === 'round') === roundTrip;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setRoundTrip(t === 'round')}
+                  className={`px-3 h-8 rounded-full text-xs font-medium border transition-colors ${active ? 'bg-crimson-900 text-white border-crimson-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50'}`}
+                >
+                  {t === 'round' ? 'Round-trip' : 'One-way'}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <form onSubmit={submit} className="grid gap-4 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_1fr_auto] lg:items-end">
           <div>
             <Label>From (IATA)</Label>
@@ -57,9 +79,15 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
             </div>
           </div>
           <div>
-            <Label>Travel date</Label>
+            <Label>{roundTrip && !returnTo ? 'Depart' : 'Travel date'}</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
+          {roundTrip && !returnTo && (
+            <div>
+              <Label>Return</Label>
+              <Input type="date" value={rdate} min={date} onChange={(e) => setRdate(e.target.value)} />
+            </div>
+          )}
           <div>
             <Label>Adults</Label>
             <select value={adults} onChange={(e) => setAdults(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">

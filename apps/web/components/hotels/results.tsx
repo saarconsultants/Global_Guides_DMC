@@ -1,8 +1,11 @@
+'use client';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
+import { Input } from '@/components/ui/input';
 import { formatINR } from '@/lib/utils';
 import type { Hotel } from '@/lib/itinerary/types';
-import { Star } from 'lucide-react';
+import { Star, Search } from 'lucide-react';
 import Link from 'next/link';
 import { SelectHotelButton } from './select-hotel-button';
 import { HotelPhoto } from './hotel-photo';
@@ -13,6 +16,8 @@ interface Props {
 }
 
 export function HotelResults({ hotels, nights }: Props) {
+  const [q, setQ] = useState('');
+
   if (!hotels.length) {
     return (
       <Card>
@@ -20,10 +25,25 @@ export function HotelResults({ hotels, nights }: Props) {
       </Card>
     );
   }
+
+  const query = q.trim().toLowerCase();
+  const filtered = query
+    ? hotels.filter((h) => h.name.toLowerCase().includes(query) || h.address.toLowerCase().includes(query))
+    : hotels;
+
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[rgb(var(--text-secondary))]">{hotels.length} options · {nights} night{nights !== 1 ? 's' : ''}</p>
-      {hotels.map((h) => (
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative flex-1 min-w-[240px] max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by hotel name or area…" className="pl-9" />
+        </div>
+        <p className="text-sm text-[rgb(var(--text-secondary))]">{filtered.length}{query ? ` of ${hotels.length}` : ''} options · {nights} night{nights !== 1 ? 's' : ''}</p>
+      </div>
+      {filtered.length === 0 && (
+        <Card><CardContent className="py-10 text-center text-sm text-[rgb(var(--text-secondary))]">No hotels match “{q}”. <button onClick={() => setQ('')} className="text-crimson-700 hover:underline">Clear</button></CardContent></Card>
+      )}
+      {filtered.map((h) => (
         <Card key={h.id}>
           <CardContent className="pt-5">
             <div className="grid gap-4 md:grid-cols-[140px_1fr_auto]">
