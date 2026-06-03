@@ -2,6 +2,7 @@
 import { db } from '@/lib/db/client';
 import { requireAgency } from '@/lib/auth/ctx';
 import { revalidatePath } from 'next/cache';
+import { isValidRule, type MarkupRule } from '@/lib/markup';
 
 export async function saveAgencyBrandingAction(formData: FormData): Promise<void> {
   const actor = await requireAgency();
@@ -47,11 +48,22 @@ export async function saveSalesSettingsAction(formData: FormData): Promise<void>
     if (!isNaN(v) && v >= 0 && v <= 100) overrides[t] = v;
   }
 
+  // Destination / season override rules (serialized JSON from the editor)
+  let rules: MarkupRule[] = [];
+  const rulesRaw = String(formData.get('markupRules') ?? '').trim();
+  if (rulesRaw) {
+    try {
+      const parsed = JSON.parse(rulesRaw);
+      if (Array.isArray(parsed)) rules = parsed.filter(isValidRule);
+    } catch { /* ignore malformed payload — keep rules empty */ }
+  }
+
   await db.agency.update({
     where: { id: actor.agencyId },
     data: {
       markupPct: defaultPct,
       markupConfigJson: Object.keys(overrides).length ? JSON.stringify(overrides) : null,
+      markupRulesJson: rules.length ? JSON.stringify(rules) : null,
     },
   });
   revalidatePath('/settings');

@@ -3,6 +3,7 @@ import { HotelResults } from '@/components/hotels/results';
 import { hotelsForCity, CITY_BANK } from '@/lib/itinerary/mock-inventory';
 import { Pill } from '@/components/ui/pill';
 import { searchHotels, isLive } from '@gg/hotelbeds';
+import { captureException } from '@/lib/observability';
 import type { Hotel } from '@/lib/itinerary/types';
 
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
       } catch (e: any) {
         source = 'mock';
         warning = `Hotelbeds error: ${e?.message ?? e}`;
+        void captureException(e, { scope: 'hotels-search', city, checkin, checkout });
         hotels = hotelsForCity(city);
       }
     } else {

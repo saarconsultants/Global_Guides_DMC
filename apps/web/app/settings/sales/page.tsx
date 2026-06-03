@@ -8,6 +8,9 @@ import { saveSalesSettingsAction } from '@/app/actions/branding';
 import { Percent, Plane, Hotel as HotelIcon, Car, MapPin, FileText, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { MarginCalculator } from '@/components/settings/margin-calculator';
+import { MarkupRulesEditor } from '@/components/settings/markup-rules-editor';
+import { parseMarkupRules } from '@/lib/markup';
+import { CalendarRange } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +28,7 @@ export default async function SalesSettingsPage() {
   const agency = await db.agency.findUnique({ where: { id: actor.agencyId } });
   if (!agency) return null;
   const overrides: Record<string, number> = agency.markupConfigJson ? JSON.parse(agency.markupConfigJson) : {};
+  const markupRules = parseMarkupRules(agency.markupRulesJson);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10 space-y-6">
@@ -70,6 +74,16 @@ export default async function SalesSettingsPage() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><CalendarRange className="w-4 h-4 text-crimson-700" />Destination &amp; season rules</h2>
+              <p className="text-xs text-[rgb(var(--text-secondary))]">Charge more (or less) for specific destinations or travel dates. The most specific matching rule wins; otherwise the default markup applies. Used automatically when you save a proposal.</p>
+            </div>
+            <MarkupRulesEditor initial={markupRules} defaultPct={agency.markupPct} />
           </CardContent>
         </Card>
 

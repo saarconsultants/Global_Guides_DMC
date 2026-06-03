@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Building2, Sparkles, Percent, Coins, LogOut, ArrowLeftRight, Menu, X, Bug, Plug } from 'lucide-react';
+import { LayoutDashboard, Building2, Sparkles, Percent, Coins, LogOut, ArrowLeftRight, Menu, X, Bug, Plug, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -11,6 +11,7 @@ const items = [
   { href: '/admin/templates',   label: 'Templates',        icon: Sparkles },
   { href: '/admin/commissions', label: 'Commission rules', icon: Percent },
   { href: '/admin/revenue',     label: 'Revenue ledger',   icon: Coins },
+  { href: '/admin/performance', label: 'Performance',      icon: BarChart3 },
   { href: '/admin/inventory',   label: 'Inventory APIs',   icon: Plug },
   { href: '/admin/bug-reports', label: 'Bug reports',      icon: Bug },
 ] as const;

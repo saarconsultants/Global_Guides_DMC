@@ -5,6 +5,7 @@ import { db } from './client';
 import { requireAgency } from '@/lib/auth/ctx';
 import { computeAndRecordCommissions } from './commissions';
 import { emitNotification } from './notifications';
+import { parseMarkupRules, resolveTripMarkupPct } from '@/lib/markup';
 import type { Itinerary } from '@/lib/itinerary/types';
 
 const PROPOSAL_PREFIX = 'GG';
@@ -39,7 +40,27 @@ export async function saveProposal(args: SaveProposalArgs): Promise<{ id: string
   // Treat the price shown in the builder as the supplier-net total (approximation
   // until adapters return per-line cost). Apply the markup % the agent picked at save.
   const net = BigInt(it.pricePaise);
-  const markupPct = typeof args.markupPct === 'number' && args.markupPct >= 0 && args.markupPct <= 100 ? args.markupPct : 15;
+
+  // Markup precedence: explicit per-proposal override (set at Save) wins; otherwise
+  // resolve the agency's destination/season rules, falling back to the agency default.
+  const agency = await db.agency.findUnique({
+    where: { id: actor.agencyId },
+    select: { markupPct: true, markupRulesJson: true },
+  });
+  let markupPct: number;
+  let markupReason = 'per-proposal override';
+  if (typeof args.markupPct === 'number' && args.markupPct >= 0 && args.markupPct <= 100) {
+    markupPct = args.markupPct;
+  } else {
+    const resolved = resolveTripMarkupPct(agency?.markupPct ?? 15, {
+      rules: parseMarkupRules(agency?.markupRulesJson),
+      destinationCodes: it.destinations.map((d) => d.cityCode),
+      travelDate: it.intake.departureDate,
+    });
+    markupPct = resolved.pct;
+    markupReason = resolved.reason;
+  }
+  void markupReason;
   const total = BigInt(Math.round(Number(net) * (1 + markupPct / 100)));
   const netCost = net;
   const markup = total - net;
