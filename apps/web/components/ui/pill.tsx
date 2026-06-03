@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
-const pillVariants = cva('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium', {
+const pillVariants = cva('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ring-black/[0.05] whitespace-nowrap', {
   variants: {
     variant: {
       neutral: 'bg-navy-50 text-navy-700',

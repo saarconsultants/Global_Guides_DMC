@@ -38,7 +38,7 @@ export default function LoginPage() {
         <div className="relative max-w-md">
           <img src="/brand/ggdmc-logo-white.svg" alt="Global Guides DMC" className="h-12 w-auto mb-6" />
           <p className="text-xs uppercase tracking-widest text-amber-300 font-bold inline-flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> The platform</p>
-          <h1 className="mt-3 text-4xl font-bold leading-tight">The B2B travel OS for outbound agencies.</h1>
+          <h1 className="mt-3 font-display text-4xl font-semibold leading-tight">The B2B travel OS for outbound agencies.</h1>
           <p className="mt-4 text-white/80 leading-relaxed">AI-assisted itinerary builder, live inventory, and white-label customer proposals — all in one workspace.</p>
           <ul className="mt-6 space-y-2 text-sm text-white/80">
             <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> Build a quote in under 30 minutes</li>
@@ -52,7 +52,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-8">
             <Link href="/dashboard" className="lg:hidden inline-block mb-6"><img src="/brand/ggdmc-logo.svg" alt="Global Guides DMC" className="h-10 w-auto" /></Link>
-            <h2 className="text-2xl font-bold text-navy-900">Welcome back</h2>
+            <h2 className="font-display text-2xl font-semibold text-navy-900">Welcome back</h2>
             <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Sign in to your agency workspace.</p>
             <form onSubmit={submit} className="mt-6 space-y-4">
               <div>

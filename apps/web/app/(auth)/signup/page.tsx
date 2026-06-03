@@ -34,7 +34,7 @@ export default function SignupPage() {
         <div className="relative max-w-md">
           <img src="/brand/ggdmc-logo-white.svg" alt="Global Guides DMC" className="h-12 w-auto mb-6" />
           <p className="text-xs uppercase tracking-widest text-amber-300 font-bold inline-flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> Onboard your agency</p>
-          <h1 className="mt-3 text-4xl font-bold leading-tight">Build your first proposal in 30 minutes.</h1>
+          <h1 className="mt-3 font-display text-4xl font-semibold leading-tight">Build your first proposal in 30 minutes.</h1>
           <ul className="mt-6 space-y-2 text-sm text-white/85">
             <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> Multi-city itinerary builder with AI suggestions</li>
             <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> Brand the customer proposal with your logo &amp; colours</li>
@@ -46,7 +46,7 @@ export default function SignupPage() {
       <main className="flex items-center justify-center p-6 lg:p-12">
         <Card className="w-full max-w-md">
           <CardContent className="pt-8">
-            <h2 className="text-2xl font-bold text-navy-900">Create your agency</h2>
+            <h2 className="font-display text-2xl font-semibold text-navy-900">Create your agency</h2>
             <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">You'll be the agency owner. Add team members later.</p>
             <form onSubmit={submit} className="mt-6 space-y-4">
               <div><Label required>Agency name</Label><Input value={agencyName} onChange={(e) => setAgencyName(e.target.value)} required placeholder="e.g. Wandermark Travels Pvt Ltd" /></div>
