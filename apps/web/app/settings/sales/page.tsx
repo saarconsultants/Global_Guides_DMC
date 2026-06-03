@@ -10,7 +10,8 @@ import Link from 'next/link';
 import { MarginCalculator } from '@/components/settings/margin-calculator';
 import { MarkupRulesEditor } from '@/components/settings/markup-rules-editor';
 import { parseMarkupRules } from '@/lib/markup';
-import { CalendarRange } from 'lucide-react';
+import { SUPPORTED_CURRENCIES } from '@/lib/money';
+import { CalendarRange, Globe } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,20 @@ export default async function SalesSettingsPage() {
       />
 
       <form action={saveSalesSettingsAction} className="space-y-6">
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><Globe className="w-4 h-4 text-crimson-700" />Display currency</h2>
+            <p className="text-xs text-[rgb(var(--text-secondary))]">Quote your customers in this currency. Live exchange rates convert supplier costs automatically — your internal books stay in INR.</p>
+            <div className="max-w-xs">
+              <select name="currency" defaultValue={agency.currency ?? 'INR'} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.code} · {c.name} ({c.symbol})</option>
+                ))}
+              </select>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardContent className="pt-6 space-y-4">
             <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h2>

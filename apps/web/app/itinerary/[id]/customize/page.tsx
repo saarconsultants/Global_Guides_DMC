@@ -15,7 +15,7 @@ import { SaveProposalModal } from '@/components/itinerary/save-proposal-modal';
 import { useItineraryStore } from '@/lib/itinerary/store';
 import { findCityCodeByName } from '@/lib/cities';
 import { cityInfo } from '@/lib/itinerary/mock-inventory';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import { saveProposalAction } from '@/app/actions/save-proposal';
 import { loadItineraryByIdAction } from '@/app/actions/load-itinerary';
 import { toast } from '@/components/ui/toast';
@@ -24,6 +24,7 @@ import { Plane, ShieldCheck, FileText, Check, Loader2 } from 'lucide-react';
 export default function CustomizePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const money = useMoney();
   const itinerary = useItineraryStore((s) => s.byId[id]);
   const upsert = useItineraryStore((s) => s.upsert);
   const changeHotel = useItineraryStore((s) => s.changeHotel);
@@ -64,10 +65,10 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
       if (itineraryId !== id) return;
       if (leg === 'return') {
         setReturnFlight(id, selection);
-        toast.success('Return flight attached', `${selection.segments[0].airlineName} · ${formatINR(selection.totalPaise)} added.`);
+        toast.success('Return flight attached', `${selection.segments[0].airlineName} · ${money(selection.totalPaise)} added.`);
       } else {
         setFlight(id, selection);
-        toast.success('Outbound flight attached', `${selection.segments[0].airlineName} · ${formatINR(selection.totalPaise)} added.`);
+        toast.success('Outbound flight attached', `${selection.segments[0].airlineName} · ${money(selection.totalPaise)} added.`);
       }
       sessionStorage.removeItem('gg-pending-flight');
     } catch (e) {
@@ -93,7 +94,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
           <Stepper step={2} />
           <div className="text-right">
             <p className="text-xs text-[rgb(var(--text-secondary))]">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room · {adults} adult{adults !== 1 ? 's' : ''}</p>
-            <p className="font-mono font-bold text-navy-900">{formatINR(itinerary.pricePaise)}</p>
+            <p className="font-mono font-bold text-navy-900">{money(itinerary.pricePaise)}</p>
           </div>
         </div>
       </div>
@@ -262,7 +263,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
               <CardContent className="pt-5 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-navy-900">{itinerary.insurance.description}</p>
-                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? `Included — ${formatINR(itinerary.insurance.pricePaise)}` : 'Not Included'}</p>
+                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? `Included — ${money(itinerary.insurance.pricePaise)}` : 'Not Included'}</p>
                 </div>
                 <Button size="sm" variant={itinerary.insurance.included ? 'secondary' : 'outline'} onClick={() => toggleInsurance(itinerary.id, !itinerary.insurance.included)}>
                   {itinerary.insurance.included ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />Added</span> : '+ Add'}
@@ -314,6 +315,7 @@ function resolveOriginIATA(code: string, name: string) {
 }
 
 function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNullable<ReturnType<typeof useItineraryStore.getState>['byId'][string]>['flights']; searchHref: string; onRemove: () => void }) {
+  const money = useMoney();
   if (!flight) return null;
   const first = flight.segments[0]!;
   const last  = flight.segments[flight.segments.length - 1]!;
@@ -325,7 +327,7 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Pill variant="success" className="inline-flex items-center gap-1.5"><Check className="w-3 h-3" />Flight attached</Pill>
-        <p className="font-mono text-lg font-bold text-navy-900">{formatINR(flight.totalPaise)}</p>
+        <p className="font-mono text-lg font-bold text-navy-900">{money(flight.totalPaise)}</p>
       </div>
       <div className="rounded-md border border-border-subtle bg-surface-2 p-4">
         <div className="flex items-center gap-3 mb-3">

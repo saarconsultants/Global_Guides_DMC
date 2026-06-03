@@ -4,7 +4,7 @@ import { Pill } from '@/components/ui/pill';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { formatINR } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { cloneAndRedirectAction } from '@/app/actions/clone-template';
 import { Sparkles, MapPin, Plane } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +23,7 @@ const regionTint: Record<string, string> = {
 };
 
 export default async function SuggestedPage({ searchParams }: { searchParams: Promise<{ region?: string; category?: string }> }) {
+  const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
   const where: any = { published: true };
   if (sp.region)   where.region   = sp.region;
@@ -89,7 +90,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                     <div className="mt-4 flex items-center justify-between pt-3 border-t border-border-subtle">
                       <div>
                         <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Starting from</p>
-                        <p className="font-mono font-bold text-navy-900">{formatINR(t.startingPricePaise)}</p>
+                        <p className="font-mono font-bold text-navy-900">{fmt(t.startingPricePaise)}</p>
                       </div>
                       <form action={cloneAndRedirectAction.bind(null, t.id)}>
                         <Button type="submit" size="sm">Use this</Button>

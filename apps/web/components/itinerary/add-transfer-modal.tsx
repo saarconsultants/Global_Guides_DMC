@@ -4,7 +4,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import type { Transfer } from '@/lib/itinerary/types';
 import { Car } from 'lucide-react';
 
@@ -27,6 +27,7 @@ interface Props {
 type Source = 'live' | 'mock' | 'loading';
 
 export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airportCode, airportName, hotelAtlasCode, hotelName, pickupDate, adults, children = 0, onPick }: Props) {
+  const money = useMoney();
   const [alternatives, setAlternatives] = useState<Transfer[]>([]);
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
@@ -114,7 +115,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
                 <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Up to {t.bagsAllowed} bags · {kind === 'arrival' ? 'Airport pickup' : 'Hotel pickup'} on {pickupDate}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-mono font-semibold text-navy-900">{formatINR(t.pricePaise)}</p>
+                <p className="font-mono font-semibold text-navy-900">{money(t.pricePaise)}</p>
                 <Button size="sm" className="mt-2" onClick={() => { onPick(t); onClose(); }}>Select</Button>
               </div>
             </div>

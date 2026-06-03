@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { ChangeHotelModal } from './change-hotel-modal';
 import type { Hotel, Stay, Room } from '@/lib/itinerary/types';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import { Star, Check } from 'lucide-react';
 import { HotelPhoto } from '@/components/hotels/hotel-photo';
 
@@ -19,6 +19,7 @@ interface Props {
 }
 
 export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: Props) {
+  const money = useMoney();
   const [open, setOpen] = useState(false);
   const h = stay.hotel;
   return (
@@ -55,8 +56,8 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
               </div>
             </div>
             <div className="flex flex-col gap-2 self-center">
-              <p className="text-xs text-[rgb(var(--text-secondary))]">{nights} × {formatINR(h.pricePerNightPaise)}/night</p>
-              <p className="font-mono font-bold text-lg text-navy-900 text-right">{formatINR(h.pricePerNightPaise * nights)}</p>
+              <p className="text-xs text-[rgb(var(--text-secondary))]">{nights} × {money(h.pricePerNightPaise)}/night</p>
+              <p className="font-mono font-bold text-lg text-navy-900 text-right">{money(h.pricePerNightPaise * nights)}</p>
               <Button size="sm" variant="brick" onClick={() => setOpen(true)}>Change Hotel</Button>
               <Pill variant="neutral" className="text-center justify-center">Change Room</Pill>
             </div>

@@ -7,6 +7,7 @@ import { buildProposalPdf } from '@/lib/pdf/proposal';
 import { db } from '@/lib/db/client';
 import { requireAgency } from '@/lib/auth/ctx';
 import { getProposal, proposalToItinerary } from '@/lib/db/proposals';
+import { getDisplayRate } from '@/lib/fx-display';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,6 +31,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     ? (agency.logoUrl.startsWith('/') ? `${origin}${agency.logoUrl}` : agency.logoUrl)
     : null;
 
+  const currency = agency.currency ?? 'INR';
+  const rate = await getDisplayRate(currency);
+
   const stream = await renderToStream(buildProposalPdf({
     agency: {
       name: agency.name,
@@ -44,6 +48,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     code: p.code,
     version: (p as any).version ?? 1,
     customerName: p.lead?.customerName ?? null,
+    currency,
+    rate,
     itinerary,
   }));
 

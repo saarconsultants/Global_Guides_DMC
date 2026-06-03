@@ -4,7 +4,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { FileText, ExternalLink, Copy, Search, Filter, Download, GitBranch } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ const statusVariant: Record<string, 'neutral' | 'info' | 'success' | 'warning' |
 };
 
 export default async function ProposalsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+  const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
   const rows = await listProposals({ q: sp.q, status: sp.status });
 
@@ -82,7 +84,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                       <td className="py-3 pr-4">{p.name}</td>
                       <td className="py-3 pr-4">{formatDateShort(p.travelDate)}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(p.createdAt)}</td>
-                      <td className="py-3 pr-4 font-mono text-right">{formatINR(p.pricePaise)}</td>
+                      <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
                       <td className="py-3 pr-4">
                         <div className="inline-flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">

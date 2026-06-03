@@ -5,7 +5,9 @@ import { TopNav } from '@/components/layout/top-nav';
 import { Toaster } from '@/components/ui/toast';
 import { BugReportButton } from '@/components/feedback/bug-report-button';
 import { getActor } from '@/lib/auth/ctx';
-import { formatINR } from '@/lib/utils';
+import { formatMoney } from '@/lib/money';
+import { getDisplayRate } from '@/lib/fx-display';
+import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { db } from '@/lib/db/client';
 import { countUnread, listNotifications } from '@/lib/db/notifications';
 
@@ -21,27 +23,33 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const actor = await getActor();
   let walletLabel = '₹ 0';
+  let currency = 'INR';
+  let rate = 1;
   let notif: { unread: number; items: any[] } | undefined = undefined;
   if (actor?.agencyId) {
     const [a, unread, items] = await Promise.all([
-      db.agency.findUnique({ where: { id: actor.agencyId }, select: { walletPaise: true } }),
+      db.agency.findUnique({ where: { id: actor.agencyId }, select: { walletPaise: true, currency: true } }),
       countUnread(actor.agencyId, actor.userId),
       listNotifications(actor.agencyId, actor.userId, 15),
     ]);
-    walletLabel = formatINR(a?.walletPaise ?? 0n);
+    currency = a?.currency ?? 'INR';
+    rate = await getDisplayRate(currency);
+    walletLabel = formatMoney(a?.walletPaise ?? 0n, currency, rate);
     notif = { unread, items: items.map((n) => ({ id: n.id, kind: n.kind, title: n.title, body: n.body, href: n.href, readAt: n.readAt?.toISOString() ?? null, createdAt: n.createdAt.toISOString() })) };
   }
 
   return (
     <html lang="en" className={`${jakarta.variable} ${jbm.variable} ${fraunces.variable}`}>
       <body>
-        <TopNav
-          walletLabel={walletLabel}
-          actor={actor ? { name: actor.name ?? actor.email, role: actor.role, agencyName: actor.agency?.name ?? 'Platform', logoUrl: actor.agency?.logoUrl ?? null } : null}
-          notif={notif}
-        />
-        <main className="min-h-screen">{children}</main>
-        <BugReportButton />
+        <CurrencyProvider currency={currency} rate={rate}>
+          <TopNav
+            walletLabel={walletLabel}
+            actor={actor ? { name: actor.name ?? actor.email, role: actor.role, agencyName: actor.agency?.name ?? 'Platform', logoUrl: actor.agency?.logoUrl ?? null } : null}
+            notif={notif}
+          />
+          <main className="min-h-screen">{children}</main>
+          <BugReportButton />
+        </CurrencyProvider>
         <Toaster />
       </body>
     </html>

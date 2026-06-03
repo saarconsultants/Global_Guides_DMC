@@ -7,7 +7,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { ArrowRight, Sparkles, Plane, Hotel as HotelIcon, ClipboardList, Receipt, BookOpen, Eye, MessageCircleQuestion, Clock, TrendingUp, TrendingDown, Minus, CheckCircle2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export const dynamic = 'force-dynamic';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default async function DashboardPage() {
+  const { fmt } = await getDisplayMoney();
   const actor = await requireAgency();
 
   const now = Date.now();
@@ -214,7 +216,7 @@ export default async function DashboardPage() {
             <KpiCard label="Leads"          value={String(leadCount)}   curr={leadCount}   prev={leadPrev}   sub="enquiries received" />
             <KpiCard label="Proposals sent" value={String(propCount)}   curr={propCount}   prev={propPrev}   sub="quotes prepared" />
             <KpiCard label="Converted"      value={String(bookedCount)} curr={bookedCount} prev={bookedPrev} sub={`${convRate}% conv. rate`} gold />
-            <KpiCard label="Wallet balance" value={formatINR(wallet?.walletPaise ?? 0n)}  sub="recharge to enable bookings" mono />
+            <KpiCard label="Wallet balance" value={fmt(wallet?.walletPaise ?? 0n)}  sub="recharge to enable bookings" mono />
           </div>
         </section>
 

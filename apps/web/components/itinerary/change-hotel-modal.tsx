@@ -4,7 +4,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import { hotelsForCity } from '@/lib/itinerary/mock-inventory';
 import type { Hotel, StarRating, Room } from '@/lib/itinerary/types';
 import { Star, Building2 } from 'lucide-react';
@@ -25,6 +25,7 @@ interface Props {
 type Source = 'live' | 'mock' | 'unsupported-city' | 'loading';
 
 export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHotelId, onPick, checkIn, checkOut, rooms }: Props) {
+  const money = useMoney();
   const [starFilter, setStarFilter] = useState<StarRating | undefined>(undefined);
   const [liveHotels, setLiveHotels] = useState<Hotel[]>([]);
   const [source, setSource] = useState<Source>('mock');
@@ -138,7 +139,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-xs text-[rgb(var(--text-secondary))]">per night</p>
-                <p className="font-mono font-bold text-lg text-navy-900">{formatINR(h.pricePerNightPaise)}</p>
+                <p className="font-mono font-bold text-lg text-navy-900">{money(h.pricePerNightPaise)}</p>
                 <Button size="sm" className="mt-2" onClick={() => { onPick(h); onClose(); }} disabled={h.id === currentHotelId}>
                   {h.id === currentHotelId ? 'Selected' : 'Select'}
                 </Button>

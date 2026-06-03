@@ -5,7 +5,7 @@ import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
 import { requireAgency } from '@/lib/auth/ctx';
 import { agentPerformance } from '@/lib/db/performance';
-import { formatINR } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Users2, Send, Eye, Trophy, TrendingUp, Crown } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +24,7 @@ interface PageProps { searchParams: Promise<{ d?: string }> }
 
 export default async function TeamPerformancePage({ searchParams }: PageProps) {
   const actor = await requireAgency();
+  const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
   const win = WINDOWS.find((w) => w.key === sp.d) ?? WINDOWS[1];
   const { rows, totals } = await agentPerformance(actor.agencyId, { windowDays: win.days });
@@ -57,7 +58,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
         <Kpi label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
         <Kpi label="Won (accepted + booked)" value={String(totals.won)} icon={<Trophy className="w-4 h-4" />} gold />
         <Kpi label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
-        <Kpi label="Revenue (won)" value={formatINR(totals.revenuePaise)} icon={<Crown className="w-4 h-4" />} mono />
+        <Kpi label="Revenue (won)" value={fmt(totals.revenuePaise)} icon={<Crown className="w-4 h-4" />} mono />
       </div>
 
       <Card>
@@ -106,7 +107,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
                         <td className="py-2.5 px-3 text-right">
                           <ConvBadge pct={r.conversionPct} sent={r.sent} />
                         </td>
-                        <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{formatINR(r.revenuePaise)}</td>
+                        <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{fmt(r.revenuePaise)}</td>
                       </tr>
                     );
                   })}
@@ -119,7 +120,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.viewed}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.won}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.conversionPct}%</td>
-                    <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{formatINR(totals.revenuePaise)}</td>
+                    <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{fmt(totals.revenuePaise)}</td>
                   </tr>
                 </tfoot>
               </table>

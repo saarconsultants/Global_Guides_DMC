@@ -5,7 +5,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { requireAgency } from '@/lib/auth/ctx';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Briefcase } from 'lucide-react';
 import Link from 'next/link';
 
@@ -16,6 +17,7 @@ const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'neutral'
 };
 
 export default async function BookingsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const { fmt } = await getDisplayMoney();
   const actor = await requireAgency();
   const sp = await searchParams;
   const where: any = { agencyId: actor.agencyId };
@@ -52,7 +54,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         </CardContent></Card>
         <Card className="lift"><CardContent className="pt-5">
           <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Confirmed value</p>
-          <p className="mt-1 text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(totalSpend)}</p>
+          <p className="mt-1 text-2xl font-bold text-navy-900 font-mono tabular-nums">{fmt(totalSpend)}</p>
         </CardContent></Card>
       </div>
 
@@ -97,7 +99,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4">{b.proposal.name}</td>
                       <td className="py-3 pr-4">{formatDateShort(b.proposal.travelDate)}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(b.bookedAt)}</td>
-                      <td className="py-3 pr-4 font-mono text-right">{formatINR(b.paidPaise)}</td>
+                      <td className="py-3 pr-4 font-mono text-right">{fmt(b.paidPaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
                     </tr>

@@ -4,13 +4,15 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { getWalletBalance, listWalletTxns } from '@/lib/db/wallet';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Wallet, Download, Plus, Receipt } from 'lucide-react';
 import { RechargeButton } from '@/components/wallet/recharge-button';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StatementPage() {
+  const { fmt } = await getDisplayMoney();
   const balance = await getWalletBalance();
   const txns = await listWalletTxns();
 
@@ -33,7 +35,7 @@ export default async function StatementPage() {
           <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-amber-300/10 blur-3xl" />
           <CardContent className="relative pt-6">
             <p className="text-[11px] uppercase tracking-widest text-amber-300 font-bold inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>
-            <p className="mt-2 text-5xl font-bold font-mono tabular-nums">{formatINR(balance)}</p>
+            <p className="mt-2 text-5xl font-bold font-mono tabular-nums">{fmt(balance)}</p>
             <p className="text-sm text-white/75 mt-2 max-w-md">Top up via ICICI Virtual Account once Razorpay is wired (Phase 2). Until then, manually credit via the admin DB tool.</p>
           </CardContent>
         </Card>
@@ -74,7 +76,7 @@ export default async function StatementPage() {
                       <td className="py-3 pr-4 font-mono text-xs">{t.ref ?? '—'}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{t.note ?? '—'}</td>
                       <td className={`py-3 pr-4 font-mono text-right ${t.type === 'DEBIT' ? 'text-danger-500' : 'text-success-500'}`}>
-                        {t.type === 'DEBIT' ? '−' : '+'}{formatINR(t.amountPaise)}
+                        {t.type === 'DEBIT' ? '−' : '+'}{fmt(t.amountPaise)}
                       </td>
                     </tr>
                   ))}

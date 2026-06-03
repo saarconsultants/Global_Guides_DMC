@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { Input } from '@/components/ui/input';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import type { Hotel } from '@/lib/itinerary/types';
 import { Star, Search } from 'lucide-react';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ interface Props {
 }
 
 export function HotelResults({ hotels, nights }: Props) {
+  const money = useMoney();
   const [q, setQ] = useState('');
 
   if (!hotels.length) {
@@ -79,8 +80,8 @@ export function HotelResults({ hotels, nights }: Props) {
               </div>
               <div className="md:text-right md:border-l md:border-border-subtle md:pl-6">
                 <p className="text-xs text-[rgb(var(--text-secondary))]">from / night</p>
-                <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(h.pricePerNightPaise)}</p>
-                <p className="text-xs text-[rgb(var(--text-secondary))]">Total: {formatINR(h.pricePerNightPaise * nights)}</p>
+                <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{money(h.pricePerNightPaise)}</p>
+                <p className="text-xs text-[rgb(var(--text-secondary))]">Total: {money(h.pricePerNightPaise * nights)}</p>
                 <SelectHotelButton hotelName={h.name} />
               </div>
             </div>
@@ -106,7 +107,7 @@ export function HotelResults({ hotels, nights }: Props) {
                           <td className="py-1.5 pr-3">{r.roomName}</td>
                           <td className="py-1.5 pr-3">{r.board}</td>
                           <td className="py-1.5 pr-3">{r.refundable ? <span className="text-success-500">Refundable</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}</td>
-                          <td className="py-1.5 pr-3 text-right font-mono">{formatINR(r.totalPaise)}</td>
+                          <td className="py-1.5 pr-3 text-right font-mono">{money(r.totalPaise)}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -1,13 +1,14 @@
 'use client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import type { Itinerary } from '@/lib/itinerary/types';
 import { Wallet, Plane, Bed, MapPin, ShieldCheck, FileText } from 'lucide-react';
 
 interface Props { itinerary: Itinerary; onSave: () => void; }
 
 export function PriceRail({ itinerary, onSave }: Props) {
+  const money = useMoney();
   // Breakdown components
   const flightPaise = (itinerary.flights?.totalPaise ?? 0) + (itinerary.flights?.return?.totalPaise ?? 0);
   let hotelPaise = 0; for (const d of itinerary.destinations) if (d.stay) hotelPaise += d.stay.hotel.pricePerNightPaise * d.nights;
@@ -41,7 +42,7 @@ export function PriceRail({ itinerary, onSave }: Props) {
           {rows.map((r) => (
             <li key={r.label} className={`flex items-center justify-between ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-[rgb(var(--text-primary))]'}`}>
               <span className="inline-flex items-center gap-1.5"><r.icon className="w-3.5 h-3.5" />{r.label}</span>
-              <span className="font-mono tabular-nums text-xs">{r.muted ? '—' : formatINR(r.paise)}</span>
+              <span className="font-mono tabular-nums text-xs">{r.muted ? '—' : money(r.paise)}</span>
             </li>
           ))}
         </ul>
@@ -49,11 +50,11 @@ export function PriceRail({ itinerary, onSave }: Props) {
         <dl className="mt-4 pt-3 border-t border-border-subtle space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <dt className="text-[rgb(var(--text-secondary))]">Price per adult</dt>
-            <dd className="font-mono tabular-nums text-navy-900">{formatINR(itinerary.pricePerAdultPaise)}</dd>
+            <dd className="font-mono tabular-nums text-navy-900">{money(itinerary.pricePerAdultPaise)}</dd>
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
             <dt className="text-[rgb(var(--text-primary))] font-semibold">Total Price</dt>
-            <dd className="font-mono tabular-nums text-xl font-bold text-navy-900">{formatINR(itinerary.pricePaise)}</dd>
+            <dd className="font-mono tabular-nums text-xl font-bold text-navy-900">{money(itinerary.pricePaise)}</dd>
           </div>
         </dl>
         <Button onClick={onSave} className="w-full mt-5">Save As Proposal</Button>

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ImageWithFallback } from '@/components/common/image-with-fallback';
-import { formatINR } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Clock, MapPin, Sparkles } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
 
@@ -16,6 +16,7 @@ interface PageProps {
 }
 
 export default async function ActivitiesPage({ searchParams }: PageProps) {
+  const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
   const city = (sp.city ?? 'PAR').toUpperCase();
   const from = sp.from ?? nextWeekIso();
@@ -98,7 +99,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
                     {a.description && <p className="text-xs text-[rgb(var(--text-secondary))] line-clamp-3">{a.description}</p>}
                     <div className="pt-1 flex items-baseline justify-between border-t border-border-subtle">
                       <span className="text-[10px] text-[rgb(var(--text-secondary))]">from</span>
-                      <span className="font-mono font-bold text-navy-900">{formatINR(a.pricePaise)}</span>
+                      <span className="font-mono font-bold text-navy-900">{fmt(a.pricePaise)}</span>
                     </div>
                   </CardContent>
                 </Card>

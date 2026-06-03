@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getProposalByToken, proposalToItinerary, recordProposalView } from '@/lib/db/share';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { displayMoneyFor } from '@/lib/money-server';
 import { Check, Bed, ShieldCheck, FileText, MapPin, Sparkles, Plane } from 'lucide-react';
 import { ResponseButtons } from './response-buttons';
 
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   if (!p) return { title: 'Proposal not found' };
   return {
     title: `${p.name} — ${p.agency.name}`,
-    description: `Trip proposal: ${p.name}. Total ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(p.pricePaise) / 100)}.`,
+    description: `Trip proposal: ${p.name}. Total ${(await displayMoneyFor(p.agency.currency)).fmt(p.pricePaise)}.`,
   };
 }
 
@@ -32,6 +33,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
   if (!p) notFound();
   await recordProposalView(token);
   const it = proposalToItinerary(p)!;
+  const { fmt } = await displayMoneyFor(p.agency.currency);
   const accepted = p.status === 'ACCEPTED' || p.status === 'BOOKED';
   const declined = p.status === 'DECLINED';
 
@@ -135,10 +137,10 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         {it.flights && (
           <section>
             <h2 className="text-2xl font-bold text-navy-900 mb-4 flex items-center gap-2"><Plane className="w-5 h-5 text-crimson-700" />How you'll fly</h2>
-            <FlightLegCard label="Outbound" leg={it.flights} cabin={it.flights.cabin} />
+            <FlightLegCard label="Outbound" leg={it.flights} cabin={it.flights.cabin} fmt={fmt} />
             {it.flights.return && (
               <div className="mt-3">
-                <FlightLegCard label="Return" leg={it.flights.return} cabin={it.flights.cabin} />
+                <FlightLegCard label="Return" leg={it.flights.return} cabin={it.flights.cabin} fmt={fmt} />
               </div>
             )}
           </section>
@@ -162,7 +164,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-[rgb(var(--text-secondary))]">{d.nights} night{d.nights !== 1 ? 's' : ''}</p>
-                    <p className="font-mono font-bold text-navy-900">{formatINR(d.stay.hotel.pricePerNightPaise * d.nights)}</p>
+                    <p className="font-mono font-bold text-navy-900">{fmt(d.stay.hotel.pricePerNightPaise * d.nights)}</p>
                   </div>
                 </div>
               </div>
@@ -194,8 +196,8 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-widest font-bold" style={{ color: accent }}>Your trip total</p>
-              <p className="mt-1 text-4xl font-bold font-mono">{formatINR(it.pricePaise)}</p>
-              <p className="text-sm text-white/70 mt-0.5">Per adult: {formatINR(it.pricePerAdultPaise)}</p>
+              <p className="mt-1 text-4xl font-bold font-mono">{fmt(it.pricePaise)}</p>
+              <p className="text-sm text-white/70 mt-0.5">Per adult: {fmt(it.pricePerAdultPaise)}</p>
             </div>
             <div className="text-right text-xs text-white/70">
               <p>Prepared by</p>
@@ -241,7 +243,7 @@ function transferLine(t: any) {
   return `${t.fromName} → ${t.toName} (Private transfer)`;
 }
 
-function FlightLegCard({ label, leg, cabin }: { label: string; leg: { segments: Array<{ airlineCode: string; airlineName: string; flightNumber: string; fromIATA: string; toIATA: string; departureAt: string; arrivalAt: string }>; totalPaise: number }; cabin: string }) {
+function FlightLegCard({ label, leg, cabin, fmt }: { label: string; leg: { segments: Array<{ airlineCode: string; airlineName: string; flightNumber: string; fromIATA: string; toIATA: string; departureAt: string; arrivalAt: string }>; totalPaise: number }; cabin: string; fmt: (p: number | bigint) => string }) {
   return (
     <div className="rounded-lg bg-surface border border-border-subtle p-4">
       <p className="text-[10px] uppercase tracking-widest text-crimson-700 font-bold mb-2">{label}</p>
@@ -252,7 +254,7 @@ function FlightLegCard({ label, leg, cabin }: { label: string; leg: { segments: 
         </div>
         <div className="text-right">
           <p className="text-xs text-[rgb(var(--text-secondary))]">Total</p>
-          <p className="font-mono font-bold text-navy-900">{formatINR(leg.totalPaise)}</p>
+          <p className="font-mono font-bold text-navy-900">{fmt(leg.totalPaise)}</p>
         </div>
       </div>
       <ol className="space-y-2.5">

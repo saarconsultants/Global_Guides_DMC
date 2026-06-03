@@ -5,7 +5,7 @@ import { proposalToItinerary } from './proposals';
 import { emitNotification } from './notifications';
 
 export async function getProposalByToken(token: string) {
-  const p = await db.proposal.findUnique({ where: { shareToken: token }, include: { lead: true, agency: { select: { id: true, name: true, code: true, contact: true, email: true, primaryColor: true, accentColor: true, logoUrl: true, tagline: true, footerText: true, supportEmail: true, supportPhone: true } } } });
+  const p = await db.proposal.findUnique({ where: { shareToken: token }, include: { lead: true, agency: { select: { id: true, name: true, code: true, contact: true, email: true, primaryColor: true, accentColor: true, logoUrl: true, tagline: true, footerText: true, supportEmail: true, supportPhone: true, currency: true } } } });
   return p;
 }
 

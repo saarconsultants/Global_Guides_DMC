@@ -3,6 +3,7 @@ import { db } from '@/lib/db/client';
 import { requireAgency } from '@/lib/auth/ctx';
 import { revalidatePath } from 'next/cache';
 import { isValidRule, type MarkupRule } from '@/lib/markup';
+import { isSupportedCurrency } from '@/lib/money';
 
 export async function saveAgencyBrandingAction(formData: FormData): Promise<void> {
   const actor = await requireAgency();
@@ -58,12 +59,16 @@ export async function saveSalesSettingsAction(formData: FormData): Promise<void>
     } catch { /* ignore malformed payload — keep rules empty */ }
   }
 
+  const currencyRaw = String(formData.get('currency') ?? '').toUpperCase().trim();
+  const currency = isSupportedCurrency(currencyRaw) ? currencyRaw : undefined;
+
   await db.agency.update({
     where: { id: actor.agencyId },
     data: {
       markupPct: defaultPct,
       markupConfigJson: Object.keys(overrides).length ? JSON.stringify(overrides) : null,
       markupRulesJson: rules.length ? JSON.stringify(rules) : null,
+      ...(currency ? { currency } : {}),
     },
   });
   revalidatePath('/settings');

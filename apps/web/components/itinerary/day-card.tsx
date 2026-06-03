@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import { toast } from '@/components/ui/toast';
 import type { Day, Activity } from '@/lib/itinerary/types';
 import { Bed, Check, X, Plus, ChevronDown, Plane, Car } from 'lucide-react';
@@ -38,6 +38,7 @@ const heading = (d: Day) => {
 };
 
 export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails, arrivalPrefill, departurePrefill }: Props) {
+  const money = useMoney();
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [flightOpen, setFlightOpen] = useState(false);
@@ -142,7 +143,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
                         <div className="mt-1 flex items-center gap-2">
                           <Pill variant="neutral">{vehicleLabel(t.vehicle)}</Pill>
                           <Pill variant="neutral">🧳 {t.bagsAllowed} Bags</Pill>
-                          <span className="text-xs text-[rgb(var(--text-tertiary))] font-mono ml-auto">{formatINR(t.pricePaise)}</span>
+                          <span className="text-xs text-[rgb(var(--text-tertiary))] font-mono ml-auto">{money(t.pricePaise)}</span>
                           <button onClick={() => onRemoveTransfer(t.id)} className="ml-1 text-[rgb(var(--text-tertiary))] hover:text-danger-500" aria-label="Remove transfer">
                             <X className="w-4 h-4" />
                           </button>

@@ -5,7 +5,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { listLeads } from '@/lib/db/proposals';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { ClipboardList, HelpCircle, Plus, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
 
@@ -16,6 +17,7 @@ const statusVariant: Record<string, 'neutral' | 'info' | 'success' | 'warning' |
 };
 
 export default async function LeadsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+  const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
   const rows = await listLeads({ q: sp.q, status: sp.status });
   const total = rows.length;
@@ -111,7 +113,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                         <td className="py-3 pr-4">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</td>
                         <td className="py-3 pr-4 font-mono">{l.nights ?? '—'}</td>
                         <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{l.status}</Pill></td>
-                        <td className="py-3 pr-4 font-mono text-xs">{latest ? `${latest.code} · ${formatINR(latest.pricePaise)}` : '—'}</td>
+                        <td className="py-3 pr-4 font-mono text-xs">{latest ? `${latest.code} · ${fmt(latest.pricePaise)}` : '—'}</td>
                       </tr>
                     );
                   })}

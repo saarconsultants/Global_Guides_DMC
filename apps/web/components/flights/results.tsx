@@ -1,12 +1,13 @@
 import type { FlightSearchResult, FlightOffer, Segment } from '@gg/tripjack';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { formatINR } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Plane, Clock, ArrowRight } from 'lucide-react';
 import { SelectFlightButton, type FlightLegKind } from './select-flight-button';
 import type { CabinClass } from '@/lib/itinerary/types';
 
-export function FlightResults({ result, returnTo, cabin, leg }: { result: FlightSearchResult; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind }) {
+export async function FlightResults({ result, returnTo, cabin, leg }: { result: FlightSearchResult; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind }) {
+  const { fmt } = await getDisplayMoney();
   if (!result.offers.length) {
     return (
       <Card>
@@ -23,13 +24,13 @@ export function FlightResults({ result, returnTo, cabin, leg }: { result: Flight
         {returnTo && <Pill variant="info">Attaching {leg === 'return' ? 'return leg' : 'outbound leg'} to your itinerary</Pill>}
       </div>
       {result.offers.map((offer) => (
-        <OfferCard key={offer.priceId} offer={offer} returnTo={returnTo} cabin={cabin} leg={leg} />
+        <OfferCard key={offer.priceId} offer={offer} returnTo={returnTo} cabin={cabin} leg={leg} fmt={fmt} />
       ))}
     </div>
   );
 }
 
-function OfferCard({ offer, returnTo, cabin, leg }: { offer: FlightOffer; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind }) {
+function OfferCard({ offer, returnTo, cabin, leg, fmt }: { offer: FlightOffer; returnTo?: string; cabin: CabinClass; leg?: FlightLegKind; fmt: (p: number | bigint) => string }) {
   const first = offer.segments[0]!;
   const last = offer.segments[offer.segments.length - 1]!;
   const totalDuration = offer.segments.reduce((sum, s) => sum + s.durationMin, 0);
@@ -68,7 +69,7 @@ function OfferCard({ offer, returnTo, cabin, leg }: { offer: FlightOffer; return
           </div>
           <div className="md:text-right md:border-l md:border-border-subtle md:pl-6">
             <p className="text-xs text-[rgb(var(--text-secondary))]">From</p>
-            <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(offer.fare.totalPaise)}</p>
+            <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{fmt(offer.fare.totalPaise)}</p>
             <p className="text-xs text-[rgb(var(--text-secondary))] mb-3">All-inclusive</p>
             <SelectFlightButton offer={offer} returnTo={returnTo} cabin={cabin} leg={leg} />
           </div>

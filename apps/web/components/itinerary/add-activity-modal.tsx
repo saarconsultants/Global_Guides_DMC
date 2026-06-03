@@ -4,7 +4,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
-import { formatINR } from '@/lib/utils';
+import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock, Search, ArrowLeft, Tag, ChevronRight } from 'lucide-react';
@@ -27,6 +27,7 @@ interface Props {
 type Source = 'live' | 'mock' | 'unsupported-city' | 'loading';
 
 export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPick, onClear, currentId, date, paxAdults = 2, paxChildren = 0 }: Props) {
+  const money = useMoney();
   const [liveActivities, setLiveActivities] = useState<Activity[]>([]);
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
@@ -159,7 +160,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
                 <span className="mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium text-crimson-700">View details <ChevronRight className="w-3 h-3" /></span>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-mono font-semibold text-navy-900">{formatINR(a.pricePaise)}</p>
+                <p className="font-mono font-semibold text-navy-900">{money(a.pricePaise)}</p>
                 <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); onPick(a); onClose(); }} disabled={a.id === currentId}>
                   {a.id === currentId ? 'Added' : 'Add'}
                 </Button>
@@ -181,6 +182,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
 }
 
 function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurrent: boolean; onBack: () => void; onAdd: () => void }) {
+  const money = useMoney();
   return (
     <div className="space-y-4">
       <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-sm text-crimson-700 hover:underline">
@@ -214,7 +216,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
       <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
         <div>
           <p className="text-[11px] text-[rgb(var(--text-secondary))]">Price (per person)</p>
-          <p className="font-mono font-bold text-xl text-navy-900">{formatINR(a.pricePaise)}</p>
+          <p className="font-mono font-bold text-xl text-navy-900">{money(a.pricePaise)}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={onBack}>Back</Button>

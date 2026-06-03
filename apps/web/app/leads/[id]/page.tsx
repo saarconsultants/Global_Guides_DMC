@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { requireAgency } from '@/lib/auth/ctx';
-import { formatINR, formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { setLeadStatusAction } from '@/app/actions/leads';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -22,6 +23,7 @@ const proposalStatusVariant: Record<string, 'info' | 'neutral' | 'success' | 'da
 };
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { fmt } = await getDisplayMoney();
   const actor = await requireAgency();
   const { id } = await params;
   const lead = await db.lead.findFirst({
@@ -50,7 +52,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   const events: Array<{ at: Date; title: string; sub?: string; icon: 'create' | 'quote' | 'view' | 'accept' | 'decline' | 'book' }> = [];
   events.push({ at: lead.createdAt, title: `Lead created · ${lead.source}`, sub: `Status: ${lead.status}`, icon: 'create' });
   for (const p of lead.proposals) {
-    events.push({ at: p.createdAt, title: `Proposal ${p.code} sent`, sub: `${p.name} · ${formatINR(p.pricePaise)}`, icon: 'quote' });
+    events.push({ at: p.createdAt, title: `Proposal ${p.code} sent`, sub: `${p.name} · ${fmt(p.pricePaise)}`, icon: 'quote' });
     if (p.lastViewedAt) events.push({ at: p.lastViewedAt, title: `Customer viewed ${p.code}`, icon: 'view' });
     if (p.acceptedAt)   events.push({ at: p.acceptedAt,   title: `Customer accepted ${p.code}`, icon: 'accept' });
     if (p.status === 'DECLINED') events.push({ at: p.updatedAt, title: `Customer declined ${p.code}`, icon: 'decline' });
@@ -89,7 +91,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
               <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Total quoted</p>
-              <p className="mt-1 text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(BigInt(totalQuoted))}</p>
+              <p className="mt-1 text-2xl font-bold text-navy-900 font-mono tabular-nums">{fmt(BigInt(totalQuoted))}</p>
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
               <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Status</p>
@@ -129,7 +131,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                           <td className="py-3 pr-4 font-mono text-xs"><Link href={`/itinerary/${p.id}/customize` as any} className="text-crimson-700 hover:underline">{p.code}</Link></td>
                           <td className="py-3 pr-4">{p.name}</td>
                           <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs">{formatDateShort(p.createdAt)}</td>
-                          <td className="py-3 pr-4 font-mono text-right">{formatINR(p.pricePaise)}</td>
+                          <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
                           <td className="py-3 pr-4"><Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
                           <td className="py-3 pr-4 text-right">
                             <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1">Open <ExternalLink className="w-3 h-3" /></a>

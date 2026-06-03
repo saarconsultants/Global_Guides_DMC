@@ -32,6 +32,7 @@ model Agency {
   supportEmail  String?  // for customer page contact
   supportPhone  String?
   // Commercials
+  currency      String   @default("INR")  // display currency for this agency (INR canonical pivot)
   markupPct     Float    @default(15)   // default agency markup over net
   markupConfigJson String?               // JSON: per-product overrides, e.g. { FLIGHT: 5, HOTEL: 12 }
   markupRulesJson  String?               // JSON: destination/season overrides — array of MarkupRule (see lib/markup.ts)

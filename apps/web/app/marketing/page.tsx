@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Pill } from '@/components/ui/pill';
 import { Button } from '@/components/ui/button';
-import { formatINR } from '@/lib/utils';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Download, Megaphone, Eye, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { headers } from 'next/headers';
@@ -14,6 +14,7 @@ import { WidgetSnippet } from '@/components/marketing/widget-snippet';
 export const dynamic = 'force-dynamic';
 
 export default async function MarketingPage() {
+  const { fmt } = await getDisplayMoney();
   const actor = await requireAgency();
   const agency = await db.agency.findUnique({ where: { id: actor.agencyId }, select: { slug: true } });
   const h = await headers();
@@ -57,7 +58,7 @@ export default async function MarketingPage() {
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-1 line-clamp-2">{t.blurb}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">{cities.join(' → ') || '—'}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">
-                      <span className="font-mono">{t.totalNights}N</span> · from <span className="font-mono font-bold text-navy-900">{formatINR(t.startingPricePaise)}</span>
+                      <span className="font-mono">{t.totalNights}N</span> · from <span className="font-mono font-bold text-navy-900">{fmt(t.startingPricePaise)}</span>
                     </p>
 
                     <div className="mt-4 pt-3 border-t border-border-subtle grid grid-cols-2 gap-2">

@@ -3,12 +3,13 @@
 // docs & cover → price → contact. Rendered server-side via @react-pdf/renderer.
 //
 // Notes on @react-pdf limitations we work around here:
-//  - The built-in Helvetica font has NO ₹ (U+20B9) glyph, so we print "Rs "
-//    instead of the rupee symbol (otherwise it renders as a tofu box).
+//  - Helvetica lacks many currency glyphs (₹, €, ฿…), so money is printed with
+//    the 3-letter ISO code (formatMoneyCode) instead of the symbol.
 //  - <Image> cannot render SVG. Agency logos that aren't PNG/JPG fall back to a
 //    styled text wordmark so the brand always shows.
 
 import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer';
+import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
 
 interface AgencyBrand {
@@ -27,13 +28,11 @@ export interface ProposalPdfInput {
   code: string;
   version?: number;
   customerName?: string | null;
+  currency?: string;   // agency display currency (default INR)
+  rate?: number;       // INR→currency multiplier
   itinerary: Itinerary;
 }
 
-// Rupee symbol is unavailable in the built-in PDF font — use "Rs " for reliability.
-function inr(paise: number | bigint) {
-  return 'Rs ' + Math.round(Number(paise) / 100).toLocaleString('en-IN');
-}
 function fmtDate(s: string) {
   return new Date(s).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
 }
@@ -99,9 +98,10 @@ export function buildProposalPdf(input: ProposalPdfInput) {
   return <ProposalPdf {...input} />;
 }
 
-function ProposalPdf({ agency, code, version, customerName, itinerary: it }: ProposalPdfInput) {
+function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, itinerary: it }: ProposalPdfInput) {
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
+  const money = (paise: number | bigint) => formatMoneyCode(paise, currency, rate);
   const s = styles(primary, accent);
   const cities = it.destinations.map((d) => d.cityName);
   const nights = it.destinations.reduce((sum, d) => sum + d.nights, 0);
@@ -177,8 +177,8 @@ function ProposalPdf({ agency, code, version, customerName, itinerary: it }: Pro
           {it.flights && (
             <View style={s.section}>
               <Text style={s.sectionLabel}>Flights</Text>
-              <FlightLegPdf s={s} label="Outbound" leg={it.flights} />
-              {it.flights.return && <FlightLegPdf s={s} label="Return" leg={it.flights.return} />}
+              <FlightLegPdf s={s} label="Outbound" leg={it.flights} money={money} />
+              {it.flights.return && <FlightLegPdf s={s} label="Return" leg={it.flights.return} money={money} />}
             </View>
           )}
 
@@ -190,7 +190,7 @@ function ProposalPdf({ agency, code, version, customerName, itinerary: it }: Pro
                 <View key={d.cityCode} style={s.card}>
                   <View style={s.row}>
                     <Text style={s.bold}>{'★'.repeat(d.stay.hotel.stars)} {d.stay.hotel.name}</Text>
-                    <Text style={s.bold}>{inr(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
+                    <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
                   </View>
                   <Text style={s.muted}>{d.stay.hotel.address}</Text>
                   <Text style={s.muted}>{d.nights} night{d.nights !== 1 ? 's' : ''} · {d.stay.hotel.room.name} · {d.stay.hotel.mealPlan}{d.stay.hotel.refundable ? ' · Refundable' : ''}</Text>
@@ -233,8 +233,8 @@ function ProposalPdf({ agency, code, version, customerName, itinerary: it }: Pro
           {/* Price */}
           <View style={s.priceBox} wrap={false}>
             <Text style={{ fontSize: 8, color: accent, textTransform: 'uppercase', letterSpacing: 1 }}>Your trip total</Text>
-            <Text style={s.priceTotal}>{inr(it.pricePaise)}</Text>
-            <Text style={{ fontSize: 9, color: '#E5E9F0', marginTop: 3 }}>Per adult: {inr(it.pricePerAdultPaise)}  ·  {travellers}  ·  All taxes included</Text>
+            <Text style={s.priceTotal}>{money(it.pricePaise)}</Text>
+            <Text style={{ fontSize: 9, color: '#E5E9F0', marginTop: 3 }}>Per adult: {money(it.pricePerAdultPaise)}  ·  {travellers}  ·  All taxes included</Text>
           </View>
 
           {/* Contact */}
@@ -255,12 +255,12 @@ function ProposalPdf({ agency, code, version, customerName, itinerary: it }: Pro
   );
 }
 
-function FlightLegPdf({ s, label, leg }: { s: any; label: string; leg: { segments: Array<{ airlineName: string; airlineCode: string; flightNumber: string; fromIATA: string; toIATA: string; departureAt: string; arrivalAt: string }>; totalPaise: number } }) {
+function FlightLegPdf({ s, label, leg, money }: { s: any; label: string; leg: { segments: Array<{ airlineName: string; airlineCode: string; flightNumber: string; fromIATA: string; toIATA: string; departureAt: string; arrivalAt: string }>; totalPaise: number }; money: (p: number | bigint) => string }) {
   return (
     <View style={s.card}>
       <View style={s.row}>
         <Text style={s.bold}>{label} · {leg.segments[0]!.airlineName}</Text>
-        <Text style={s.bold}>{inr(leg.totalPaise)}</Text>
+        <Text style={s.bold}>{money(leg.totalPaise)}</Text>
       </View>
       {leg.segments.map((seg, i) => (
         <Text key={i} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} → {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
