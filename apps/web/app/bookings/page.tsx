@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { requireAgency } from '@/lib/auth/ctx';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, FileCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -89,6 +89,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                     <th className="py-3 pr-4 font-semibold text-right">Paid</th>
                     <th className="py-3 pr-4 font-semibold">Status</th>
                     <th className="py-3 pr-4 font-semibold">PNRs</th>
+                    <th className="py-3 pl-4 font-semibold text-right">Voucher</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -102,6 +103,9 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4 font-mono text-right">{fmt(b.paidPaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
+                      <td className="py-3 pl-4 text-right">
+                        <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

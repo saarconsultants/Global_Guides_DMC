@@ -4,13 +4,17 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
+import { getWalletBalance } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
-import { FileText, ExternalLink, Copy, Search, Filter, Download, GitBranch } from 'lucide-react';
+import { FileText, ExternalLink, Copy, Search, Filter, Download, GitBranch, FileCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { duplicateProposalAction } from '@/app/actions/duplicate-proposal';
 import { reviseProposalAction } from '@/app/actions/revise-proposal';
+import { BookTripModal } from '@/components/bookings/book-trip-modal';
+
+const BOOKABLE = ['SENT', 'VIEWED', 'ACCEPTED'];
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +25,10 @@ const statusVariant: Record<string, 'neutral' | 'info' | 'success' | 'warning' |
 export default async function ProposalsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
-  const rows = await listProposals({ q: sp.q, status: sp.status });
+  const [rows, walletBalance] = await Promise.all([
+    listProposals({ q: sp.q, status: sp.status }),
+    getWalletBalance(),
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
@@ -87,10 +94,26 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                       <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
                       <td className="py-3 pr-4">
-                        <div className="inline-flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline" title="Open customer link">
-                            Open <ExternalLink className="w-3 h-3" />
-                          </a>
+                        <div className="flex items-center gap-3">
+                          {BOOKABLE.includes(p.status) && (
+                            <BookTripModal
+                              proposalId={p.id}
+                              code={p.code}
+                              tripName={p.name}
+                              customerName={p.lead?.customerName}
+                              netCostPaise={Number(p.netCostPaise)}
+                              balancePaise={Number(walletBalance)}
+                              accepted={p.status === 'ACCEPTED'}
+                              variant="link"
+                            />
+                          )}
+                          {p.status === 'BOOKED' && (
+                            <a href={`/api/booking-voucher/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-success-600 hover:underline" title="Download booking voucher"><FileCheck className="w-3 h-3" />Voucher</a>
+                          )}
+                          <div className="inline-flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline" title="Open customer link">
+                              Open <ExternalLink className="w-3 h-3" />
+                            </a>
                           <a href={`/api/proposal-pdf/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Download branded PDF"><Download className="w-3 h-3" />PDF</a>
                           <form action={reviseProposalAction.bind(null, p.id)} className="inline">
                             <button className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Create a revised version (v2)"><GitBranch className="w-3 h-3" />Revise</button>
@@ -98,6 +121,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                           <form action={duplicateProposalAction.bind(null, p.id)} className="inline">
                             <button className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Duplicate as a new draft"><Copy className="w-3 h-3" />Copy</button>
                           </form>
+                          </div>
                         </div>
                       </td>
                     </tr>
