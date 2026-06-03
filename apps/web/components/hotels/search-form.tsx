@@ -10,6 +10,7 @@ import { CitySearchCombobox } from '@/components/common/city-search-combobox';
 interface Props {
   defaults: {
     city: string; checkin: string; checkout: string; adults: string;
+    rooms?: string; children?: string;
     star?: string; board?: string; refundable?: string; sort?: string;
   };
 }
@@ -20,6 +21,8 @@ export function HotelSearchForm({ defaults }: Props) {
   const [checkin, setCheckin] = useState(defaults.checkin);
   const [checkout, setCheckout] = useState(defaults.checkout);
   const [adults, setAdults] = useState(defaults.adults);
+  const [rooms, setRooms] = useState(defaults.rooms ?? '1');
+  const [children, setChildren] = useState(defaults.children ?? '0');
   const [star, setStar] = useState(defaults.star ?? '');
   const [board, setBoard] = useState(defaults.board ?? '');
   const [refundable, setRefundable] = useState(defaults.refundable === '1');
@@ -28,7 +31,7 @@ export function HotelSearchForm({ defaults }: Props) {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams({ city, checkin, checkout, adults });
+    const params = new URLSearchParams({ city, checkin, checkout, adults, rooms, children });
     if (star) params.set('star', star);
     if (board) params.set('board', board);
     if (refundable) params.set('refundable', '1');
@@ -40,7 +43,7 @@ export function HotelSearchForm({ defaults }: Props) {
     <Card>
       <CardContent className="pt-6 space-y-4">
         <form onSubmit={submit} className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] lg:items-end">
+          <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">
             <CitySearchCombobox label="Going to" value={city} onChange={setCity} placeholder="Search destination" />
             <div>
               <Label>Check-in</Label>
@@ -50,13 +53,27 @@ export function HotelSearchForm({ defaults }: Props) {
               <Label>Check-out</Label>
               <Input type="date" value={checkout} onChange={(e) => setCheckout(e.target.value)} />
             </div>
+            <Button type="submit" className="gap-2"><Search className="w-4 h-4" />Search Hotels</Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3 max-w-lg">
             <div>
-              <Label>Adults</Label>
-              <select value={adults} onChange={(e) => setAdults(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
-                {[1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
+              <Label>Rooms</Label>
+              <select value={rooms} onChange={(e) => setRooms(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {[1,2,3,4].map((n) => <option key={n} value={n}>{n} room{n > 1 ? 's' : ''}</option>)}
               </select>
             </div>
-            <Button type="submit" className="gap-2"><Search className="w-4 h-4" />Search Hotels</Button>
+            <div>
+              <Label>Adults / room</Label>
+              <select value={adults} onChange={(e) => setAdults(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {[1,2,3,4].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label>Children / room</Label>
+              <select value={children} onChange={(e) => setChildren(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {[0,1,2,3].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
           </div>
 
           <div>

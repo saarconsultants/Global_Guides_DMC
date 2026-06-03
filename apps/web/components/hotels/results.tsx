@@ -78,12 +78,42 @@ export function HotelResults({ hotels, nights }: Props) {
                 </div>
               </div>
               <div className="md:text-right md:border-l md:border-border-subtle md:pl-6">
-                <p className="text-xs text-[rgb(var(--text-secondary))]">per night</p>
+                <p className="text-xs text-[rgb(var(--text-secondary))]">from / night</p>
                 <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{formatINR(h.pricePerNightPaise)}</p>
                 <p className="text-xs text-[rgb(var(--text-secondary))]">Total: {formatINR(h.pricePerNightPaise * nights)}</p>
                 <SelectHotelButton hotelName={h.name} />
               </div>
             </div>
+
+            {h.roomOptions && h.roomOptions.length > 1 && (
+              <details className="mt-3 group/rooms">
+                <summary className="cursor-pointer text-xs font-medium text-crimson-700 hover:underline select-none">
+                  View {h.roomOptions.length} room &amp; board options
+                </summary>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-left text-[10px] uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
+                        <th className="py-1.5 pr-3 font-semibold">Room</th>
+                        <th className="py-1.5 pr-3 font-semibold">Board</th>
+                        <th className="py-1.5 pr-3 font-semibold">Cancellation</th>
+                        <th className="py-1.5 pr-3 font-semibold text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {h.roomOptions.map((r, i) => (
+                        <tr key={i} className="border-b border-border-subtle/50">
+                          <td className="py-1.5 pr-3">{r.roomName}</td>
+                          <td className="py-1.5 pr-3">{r.board}</td>
+                          <td className="py-1.5 pr-3">{r.refundable ? <span className="text-success-500">Refundable</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}</td>
+                          <td className="py-1.5 pr-3 text-right font-mono">{formatINR(r.totalPaise)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            )}
           </CardContent>
         </Card>
       ))}

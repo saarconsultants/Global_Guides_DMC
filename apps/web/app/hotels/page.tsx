@@ -8,7 +8,7 @@ import type { Hotel } from '@/lib/itinerary/types';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-  searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string; star?: string; board?: string; refundable?: string; sort?: string }>;
+  searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string; rooms?: string; children?: string; star?: string; board?: string; refundable?: string; sort?: string }>;
 }
 
 export default async function HotelsPage({ searchParams }: PageProps) {
@@ -17,6 +17,10 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   const checkin = sp.checkin ?? nextWeekIso();
   const checkout = sp.checkout ?? nextWeekIso(3);
   const adults = sp.adults ?? '2';
+  const roomsCount = Math.max(1, Math.min(4, parseInt(sp.rooms ?? '1', 10) || 1));
+  const childrenPerRoom = Math.max(0, Math.min(3, parseInt(sp.children ?? '0', 10) || 0));
+  const adultsPerRoom = parseInt(adults, 10) || 2;
+  const occupancy = Array.from({ length: roomsCount }, () => ({ adults: adultsPerRoom, children: childrenPerRoom }));
   const hasQuery = !!sp.city;
 
   const cityName = CITY_BANK[city]?.name ?? city;
@@ -33,7 +37,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
           cityCode: city,
           checkIn: checkin,
           checkOut: checkout,
-          rooms: [{ adults: parseInt(adults, 10) || 2, children: 0 }],
+          rooms: occupancy,
         });
         source = res.source;
         warning = res.warning;
@@ -41,6 +45,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
           id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
           thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
           pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages,
+          roomOptions: h.roomOptions,
         }));
         const liveNames = new Set(liveHotels.map((h) => h.name.toLowerCase()));
         hotels = source === 'live'
@@ -95,7 +100,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
         {hasQuery && <Pill variant={badge.variant}>{badge.label}</Pill>}
       </div>
 
-      <HotelSearchForm defaults={{ city, checkin, checkout, adults, star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
+      <HotelSearchForm defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">

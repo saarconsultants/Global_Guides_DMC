@@ -115,23 +115,36 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
             </CardContent>
           </Card>
 
-          {hotel.latitude && hotel.longitude && (
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-sm font-semibold text-navy-900 mb-2 inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-crimson-700" />Location</h3>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${hotel.latitude},${hotel.longitude}`}
-                  target="_blank" rel="noreferrer"
-                  className="block"
-                >
-                  <div className="aspect-video rounded-md bg-navy-50 border border-border-subtle flex items-center justify-center text-sm text-crimson-700 hover:bg-navy-100 transition-colors">
-                    Open in Google Maps →
+          {hotel.latitude && hotel.longitude && (() => {
+            const lat = hotel.latitude!, lon = hotel.longitude!;
+            const d = 0.012; // ~1.3km bbox around the marker
+            const bbox = `${lon - d}%2C${lat - d}%2C${lon + d}%2C${lat + d}`;
+            const embed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
+            return (
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-sm font-semibold text-navy-900 mb-2 inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-crimson-700" />Location</h3>
+                  <div className="rounded-md overflow-hidden border border-border-subtle">
+                    <iframe
+                      title={`Map of ${hotel.name}`}
+                      src={embed}
+                      className="w-full aspect-video"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
                   </div>
-                </a>
-                <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-1.5 font-mono">{hotel.latitude.toFixed(4)}, {hotel.longitude.toFixed(4)}</p>
-              </CardContent>
-            </Card>
-          )}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
+                    target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline mt-2"
+                  >
+                    Open in Google Maps →
+                  </a>
+                  <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-1 font-mono">{lat.toFixed(4)}, {lon.toFixed(4)}</p>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           <Link href={backHref as any} className="block">
             <Button variant="secondary" className="w-full">Back to search results</Button>
