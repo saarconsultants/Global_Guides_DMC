@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { searchCities, findCity, type CityEntry } from '@/lib/cities';
+import { cityByCode } from '@/lib/supported-cities';
 import { Pill } from '@/components/ui/pill';
 import { Search, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -107,7 +108,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
                     <span className="ml-1.5 text-xs text-[rgb(var(--text-secondary))]">{c.country}</span>
                   </span>
                   <span className="text-[10px] font-mono text-[rgb(var(--text-tertiary))]">{c.code}</span>
-                  {c.supported && <Pill variant="success" className="text-[9px]">LIVE</Pill>}
+                  {cityByCode(c.code) && <Pill variant="success" className="text-[9px]">LIVE</Pill>}
                   {isCurrent && <span className="text-[10px] text-crimson-700 font-bold">✓</span>}
                 </li>
               );
@@ -115,7 +116,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
           </ul>
           <div className="px-3 py-2 border-t border-border-subtle text-[10px] text-[rgb(var(--text-tertiary))] flex items-center justify-between">
             <span>↑↓ navigate · Enter select · Esc close</span>
-            <span><Pill variant="success" className="text-[9px]">LIVE</Pill> = curated destination</span>
+            <span><Pill variant="success" className="text-[9px]">LIVE</Pill> = live hotels, activities &amp; transfers</span>
           </div>
         </div>
       )}
