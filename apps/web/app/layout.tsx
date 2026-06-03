@@ -42,12 +42,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={`${jakarta.variable} ${jbm.variable} ${fraunces.variable}`}>
       <body>
         <CurrencyProvider currency={currency} rate={rate}>
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:rounded-md focus:bg-crimson-900 focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-white">Skip to content</a>
           <TopNav
             walletLabel={walletLabel}
             actor={actor ? { name: actor.name ?? actor.email, role: actor.role, agencyName: actor.agency?.name ?? 'Platform', logoUrl: actor.agency?.logoUrl ?? null } : null}
             notif={notif}
           />
-          <main className="min-h-screen">{children}</main>
+          <main id="main-content" className="min-h-screen">{children}</main>
           <BugReportButton />
         </CurrencyProvider>
         <Toaster />

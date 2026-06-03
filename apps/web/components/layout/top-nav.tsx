@@ -68,6 +68,7 @@ export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
                 <Link
                   key={n.href}
                   href={n.href as any}
+                  aria-current={active ? 'page' : undefined}
                   className={cn(
                     'group inline-flex items-center gap-1.5 px-3 py-2 rounded-md transition-colors',
                     active ? 'text-crimson-900 bg-amber-500' : 'text-white/80 hover:text-white hover:bg-white/10',
@@ -99,6 +100,7 @@ export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
                     key={n.href}
                     href={n.href as any}
                     onClick={() => setMobileOpen(false)}
+                    aria-current={active ? 'page' : undefined}
                     className={cn('inline-flex items-center gap-2 px-3 py-2.5 rounded-md', active ? 'bg-amber-500 text-crimson-900' : 'text-white/85 hover:bg-white/10 hover:text-white')}
                   >
                     <Icon className="w-4 h-4 opacity-80" />{n.label}

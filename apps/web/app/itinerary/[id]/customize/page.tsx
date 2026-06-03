@@ -89,7 +89,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   return (
     <div className="bg-canvas min-h-screen">
       {/* sticky stepper bar */}
-      <div className="sticky top-[92px] z-20 bg-canvas border-b border-border-subtle">
+      <div className="sticky top-16 lg:top-[92px] z-20 bg-canvas border-b border-border-subtle">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4">
           <Stepper step={2} />
           <div className="text-right">
