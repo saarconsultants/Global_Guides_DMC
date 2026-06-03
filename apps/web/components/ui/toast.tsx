@@ -53,11 +53,11 @@ function subscribe(cb: () => void) { listeners.add(cb); return () => { listeners
 function getSnap() { return toasts; }
 
 const palette: Record<ToastVariant, { wrap: string; icon: React.ReactNode }> = {
-  success: { wrap: 'bg-surface border-success-500/30 text-navy-900',  icon: <Check className="w-4 h-4 text-success-500 flex-shrink-0" /> },
-  error:   { wrap: 'bg-surface border-danger-500/40 text-navy-900',   icon: <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0" /> },
-  info:    { wrap: 'bg-surface border-action-500/30 text-navy-900',   icon: <Info className="w-4 h-4 text-action-500 flex-shrink-0" /> },
-  warning: { wrap: 'bg-surface border-warning-500/40 text-navy-900',  icon: <AlertTriangle className="w-4 h-4 text-warning-500 flex-shrink-0" /> },
-  loading: { wrap: 'bg-surface border-action-500/30 text-navy-900',   icon: <Loader2 className="w-4 h-4 text-action-500 animate-spin flex-shrink-0" /> },
+  success: { wrap: 'bg-surface border-success-500/25 border-l-4 border-l-success-500 text-navy-900',  icon: <Check className="w-4 h-4 text-success-500 flex-shrink-0" /> },
+  error:   { wrap: 'bg-surface border-danger-500/30 border-l-4 border-l-danger-500 text-navy-900',    icon: <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0" /> },
+  info:    { wrap: 'bg-surface border-action-500/25 border-l-4 border-l-action-500 text-navy-900',    icon: <Info className="w-4 h-4 text-action-500 flex-shrink-0" /> },
+  warning: { wrap: 'bg-surface border-warning-500/30 border-l-4 border-l-warning-500 text-navy-900',  icon: <AlertTriangle className="w-4 h-4 text-warning-500 flex-shrink-0" /> },
+  loading: { wrap: 'bg-surface border-action-500/25 border-l-4 border-l-action-500 text-navy-900',    icon: <Loader2 className="w-4 h-4 text-action-500 animate-spin flex-shrink-0" /> },
 };
 
 export function Toaster() {
