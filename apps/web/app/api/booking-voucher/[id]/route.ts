@@ -8,6 +8,7 @@ import { db } from '@/lib/db/client';
 import { requireAgency } from '@/lib/auth/ctx';
 import { proposalToItinerary } from '@/lib/db/proposals';
 import { getDisplayRate } from '@/lib/fx-display';
+import { pdfLogoUrl } from '@/lib/pdf/logo';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!agency) return NextResponse.json({ error: 'no_agency' }, { status: 404 });
 
   const origin = new URL(_req.url).origin;
-  const logoUrl = agency.logoUrl ? (agency.logoUrl.startsWith('/') ? `${origin}${agency.logoUrl}` : agency.logoUrl) : null;
+  const logoUrl = pdfLogoUrl(agency.logoUrl, origin);
   const currency = agency.currency ?? 'INR';
   const rate = await getDisplayRate(currency);
 
