@@ -49,5 +49,7 @@ function toApp(a: HotelbedsActivity): Activity {
     durationMin: a.durationMin,
     pricePaise: a.pricePaise,
     cityCode: a.cityCode,
+    thumb: a.thumb,
+    description: a.description,
   };
 }

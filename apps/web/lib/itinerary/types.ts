@@ -69,6 +69,7 @@ export interface Activity {
   durationMin: number;
   pricePaise: number;
   thumb?: string;
+  description?: string;        // Hotelbeds activity description (live inventory)
   category: 'sightseeing' | 'museum' | 'tour' | 'experience';
 }
 

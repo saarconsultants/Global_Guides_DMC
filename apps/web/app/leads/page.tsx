@@ -37,7 +37,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         description="Every enquiry, proposal request, and customer interaction in one place."
         actions={
           <>
-            <Button variant="secondary" className="gap-1.5"><HelpCircle className="w-4 h-4" />I need help</Button>
+            <a href="https://wa.me/918378073375?text=Hi%20Global%20Guides%20ops%2C%20I%20need%20help%20with%20a%20lead." target="_blank" rel="noreferrer" className="inline-flex"><Button variant="secondary" className="gap-1.5"><HelpCircle className="w-4 h-4" />I need help</Button></a>
             <Link href="/itinerary/new"><Button className="gap-1.5"><Plus className="w-4 h-4" />New lead</Button></Link>
           </>
         }

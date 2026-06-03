@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { formatINR } from '@/lib/utils';
 import { cloneAndRedirectAction } from '@/app/actions/clone-template';
 import { Sparkles, MapPin, Plane } from 'lucide-react';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
           eyebrow="Hand-curated"
           title="Suggested itineraries"
           description="Built by the platform team. Click a template — we'll clone it into a draft proposal you can edit and send to your customer."
-          actions={<Button variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</Button>}
+          actions={<Link href="/itinerary/new?ai=1"><Button variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</Button></Link>}
         />
 
         <div className="flex flex-wrap items-center gap-2 text-sm">

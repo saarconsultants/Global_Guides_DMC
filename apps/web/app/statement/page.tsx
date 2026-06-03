@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getWalletBalance, listWalletTxns } from '@/lib/db/wallet';
 import { formatINR, formatDateShort } from '@/lib/utils';
 import { Wallet, Download, Plus, Receipt } from 'lucide-react';
+import { RechargeButton } from '@/components/wallet/recharge-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export default async function StatementPage() {
         actions={
           <>
             <a href="/api/export/statement" className="inline-flex"><Button variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</Button></a>
-            <Button className="gap-1.5"><Plus className="w-4 h-4" />Recharge wallet</Button>
+            <RechargeButton />
           </>
         }
       />

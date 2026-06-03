@@ -97,7 +97,10 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       ) : (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
           {merged.map((a) => (
-            <div key={a.id} className={`p-4 rounded-md border flex items-start justify-between gap-4 ${a.id === currentId ? 'border-crimson-500 bg-crimson-50/40' : 'border-border-subtle bg-surface'}`}>
+            <div key={a.id} className={`p-4 rounded-md border flex items-start gap-4 ${a.id === currentId ? 'border-crimson-500 bg-crimson-50/40' : 'border-border-subtle bg-surface'}`}>
+              {a.thumb && (
+                <img src={a.thumb} alt="" loading="lazy" className="w-24 h-24 rounded-md object-cover bg-navy-900 flex-shrink-0" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-navy-900 text-sm inline-flex items-center gap-2">
                   {a.name}
@@ -107,6 +110,9 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
                   <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{Math.round(a.durationMin / 60)}h {a.durationMin % 60}m</span>
                   <Pill variant="neutral">{a.category}</Pill>
                 </div>
+                {a.description && (
+                  <p className="mt-1.5 text-xs text-[rgb(var(--text-secondary))] line-clamp-2">{a.description}</p>
+                )}
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-mono font-semibold text-navy-900">{formatINR(a.pricePaise)}</p>
