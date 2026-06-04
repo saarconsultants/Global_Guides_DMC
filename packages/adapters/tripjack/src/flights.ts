@@ -50,7 +50,8 @@ export async function searchFlights(input: FlightSearchInput): Promise<FlightSea
         paxInfo: { ADULT: input.adults, CHILD: input.children, INFANT: input.infants },
       },
     };
-    const raw = await tjPost<any>(SEARCH_PATH, body);
+    // Search is read-only/idempotent → safe to retry once on a transient gateway 502.
+    const raw = await tjPost<any>(SEARCH_PATH, body, { retries: 1 });
     const result = normalise(raw);
     cache.set(key, { at: Date.now(), result });
     return result;

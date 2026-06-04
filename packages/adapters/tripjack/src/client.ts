@@ -67,7 +67,7 @@ export function isLive(): boolean {
  * 2. Proxy mode (Vercel): TRIPJACK_PROXY_TOKEN set, TRIPJACK_BASE_URL points at
  *    Railway proxy. We send `x-proxy-token`; the proxy injects the real `apikey`.
  */
-export async function tjPost<T = unknown>(path: string, body: unknown, init?: { timeoutMs?: number }): Promise<T> {
+export async function tjPost<T = unknown>(path: string, body: unknown, init?: { timeoutMs?: number; retries?: number }): Promise<T> {
   const proxy = isProxyMode();
   const key = apiKey();
   if (!proxy && !key) {
@@ -81,43 +81,58 @@ export async function tjPost<T = unknown>(path: string, body: unknown, init?: { 
     headers['apikey'] = key!;
   }
 
-  const ctl = new AbortController();
   // Default 9s — under Vercel's 10s Hobby function cap, so OUR clean error fires
   // before Vercel kills the function with its own opaque 504. Override via env for local dev.
   const timeoutMs = init?.timeoutMs ?? Number(process.env.TRIPJACK_TIMEOUT_MS ?? 9_000);
-  const t = setTimeout(() => ctl.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${baseUrl()}${path}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-      signal: ctl.signal,
-      cache: 'no-store',
-    });
-    const text = await res.text();
-    if (!res.ok) {
-      // Full upstream body (often an HTML gateway page) → server logs only, never the client.
-      console.error(`[Tripjack] HTTP ${res.status} on ${path}:\n`, text.slice(0, 1000));
-      throw new TripjackHttpError(res.status, text);
-    }
-    let json: any;
+  const maxRetries = init?.retries ?? 0;
+  const overallStart = Date.now();
+
+  for (let attempt = 0; ; attempt++) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
     try {
-      json = text ? JSON.parse(text) : {};
-    } catch {
-      console.error(`[Tripjack] 200 but non-JSON body on ${path}:\n`, text.slice(0, 1000));
-      throw new TripjackHttpError(502, text);
+      const res = await fetch(`${baseUrl()}${path}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: ctl.signal,
+        cache: 'no-store',
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        // Full upstream body (often an HTML gateway page) → server logs only, never the client.
+        console.error(`[Tripjack] HTTP ${res.status} on ${path}:\n`, text.slice(0, 1000));
+        throw new TripjackHttpError(res.status, text);
+      }
+      let json: any;
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        console.error(`[Tripjack] 200 but non-JSON body on ${path}:\n`, text.slice(0, 1000));
+        throw new TripjackHttpError(502, text);
+      }
+      // Tripjack pattern: HTTP 200 with embedded status.success === false
+      if (json && typeof json === 'object' && 'status' in json && json.status && json.status.success === false) {
+        // Log the full body to server console so Bipin can see it in `npm run dev` output.
+        console.error('[Tripjack] Business error response body:\n', text);
+        throw new TripjackBizError(json.status, text);
+      }
+      return json as T;
+    } catch (e: any) {
+      if (e?.name === 'AbortError') e = new TripjackHttpError(504, `Request aborted after ${timeoutMs}ms timeout.`);
+      // Retry once on a FAST transient upstream blip (5xx / HTML gateway page) — these
+      // recover in seconds. Never retry rate-limits (429) or timeouts (504, budget already
+      // spent), and only while we still have time budget left (<3s elapsed).
+      const transient = e instanceof TripjackHttpError && e.upstream && e.status !== 429 && e.status !== 504;
+      if (transient && attempt < maxRetries && Date.now() - overallStart < 3_000) {
+        console.warn(`[Tripjack] transient ${e.status} on ${path} — retry ${attempt + 1}/${maxRetries}`);
+        clearTimeout(t);
+        await new Promise((r) => setTimeout(r, 400));
+        continue;
+      }
+      throw e;
+    } finally {
+      clearTimeout(t);
     }
-    // Tripjack pattern: HTTP 200 with embedded status.success === false
-    if (json && typeof json === 'object' && 'status' in json && json.status && json.status.success === false) {
-      // Log the full body to server console so Bipin can see it in `npm run dev` output.
-      console.error('[Tripjack] Business error response body:\n', text);
-      throw new TripjackBizError(json.status, text);
-    }
-    return json as T;
-  } catch (e: any) {
-    if (e?.name === 'AbortError') throw new TripjackHttpError(504, `Request aborted after ${timeoutMs}ms timeout.`);
-    throw e;
-  } finally {
-    clearTimeout(t);
   }
 }
