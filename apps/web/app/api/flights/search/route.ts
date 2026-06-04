@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { searchFlights } from '@gg/tripjack';
+import { searchFlights, TripjackHttpError, TripjackBizError } from '@gg/tripjack';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,6 +32,14 @@ export async function GET(req: Request) {
     });
     return NextResponse.json(result);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message ?? 'Search failed' }, { status: 500 });
+    // Full detail (incl. raw upstream body) to server logs only — never to the client.
+    console.error('[flights/search] error:', err?.body ? `${err.message}\n--- upstream body ---\n${String(err.body).slice(0, 1000)}` : err);
+    if (err instanceof TripjackHttpError) {
+      return NextResponse.json({ error: err.userMessage, upstream: err.upstream }, { status: err.upstream ? 502 : 400 });
+    }
+    if (err instanceof TripjackBizError) {
+      return NextResponse.json({ error: 'Tripjack could not fulfil this search. Try different dates or route.', upstream: false }, { status: 422 });
+    }
+    return NextResponse.json({ error: 'Flight search failed. Please try again.', upstream: false }, { status: 500 });
   }
 }

@@ -3,7 +3,7 @@ import { FlightResults } from '@/components/flights/results';
 import { searchFlights } from '@gg/tripjack';
 import { Pill } from '@/components/ui/pill';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 
 interface PageProps {
   searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
@@ -25,9 +25,9 @@ export default async function FlightsPage({ searchParams }: PageProps) {
 
   const [results, returnResults] = hasQuery
     ? await Promise.all([
-        searchFlights({ legs: [{ fromIATA: sp.from!.toUpperCase(), toIATA: sp.to!.toUpperCase(), date: sp.date! }], ...common }).catch((e) => ({ error: e.message } as any)),
+        searchFlights({ legs: [{ fromIATA: sp.from!.toUpperCase(), toIATA: sp.to!.toUpperCase(), date: sp.date! }], ...common }).catch((e) => ({ error: e.userMessage ?? e.message, upstream: e.upstream ?? false } as any)),
         isRoundTrip
-          ? searchFlights({ legs: [{ fromIATA: sp.to!.toUpperCase(), toIATA: sp.from!.toUpperCase(), date: sp.rdate! }], ...common }).catch((e) => ({ error: e.message } as any))
+          ? searchFlights({ legs: [{ fromIATA: sp.to!.toUpperCase(), toIATA: sp.from!.toUpperCase(), date: sp.rdate! }], ...common }).catch((e) => ({ error: e.userMessage ?? e.message, upstream: e.upstream ?? false } as any))
           : Promise.resolve(null),
       ])
     : [null, null];
@@ -61,12 +61,20 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       <FlightSearchForm defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
 
       {results && 'error' in results && (
-        <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm space-y-1">
-          <div>Search failed: {results.error}</div>
-          {String(results.error).includes('429') && (
+        <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm space-y-2">
+          <div className="font-medium">{results.error}</div>
+          {String(results.error).includes('rate-limited') && (
             <div className="text-xs text-danger-500/80">
-              Tripjack rate-limited the API key. Wait ~60–120 seconds and try again. Cache will deduplicate further identical searches for 90s.
+              Cache will deduplicate further identical searches for 90s, so a quick retry won't add load.
             </div>
+          )}
+          {(results as any).upstream && (
+            <Link
+              href={`/flights?${new URLSearchParams({ from: sp.from ?? '', to: sp.to ?? '', date: sp.date ?? '', adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', ...(sp.directOnly ? { directOnly: sp.directOnly } : {}), ...(sp.rdate ? { rdate: sp.rdate } : {}), ...(sp.returnTo ? { returnTo: sp.returnTo } : {}), ...(sp.leg ? { leg: sp.leg } : {}) }).toString()}` as any}
+              className="inline-flex items-center gap-1.5 rounded-md border border-danger-500/40 bg-surface px-3 h-8 text-xs font-semibold text-danger-500 hover:bg-danger-100 transition-colors"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />Try again
+            </Link>
           )}
         </div>
       )}
