@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { inventoryStatus } from '@/lib/inventory-status';
 import { Plane, Hotel, Car, MapPin, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { InventoryProbe } from '@/components/admin/inventory-probe';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export default async function AdminInventoryPage() {
       <PageHeader
         eyebrow="Platform"
         title="Inventory APIs"
-        description="Live status of every supplier API powering the itinerary builder. 'Live' means the credentials are present in this environment."
+        description="Every supplier API powering the itinerary builder. The badge shows whether credentials are configured; click 'Check now' on a card for a real-time round-trip to the supplier."
         actions={<Pill variant={allLive ? 'success' : 'warning'}>{liveCount}/{apis.length} live</Pill>}
       />
 
@@ -53,6 +54,7 @@ export default async function AdminInventoryPage() {
                   <Pill variant={a.live ? 'success' : 'warning'}>{a.live ? 'LIVE' : 'MOCK'}</Pill>
                 </div>
                 <p className="text-sm text-[rgb(var(--text-secondary))] mt-3">{a.note}</p>
+                <InventoryProbe apiKey={a.key} live={a.live} />
               </CardContent>
             </Card>
           );
@@ -62,7 +64,7 @@ export default async function AdminInventoryPage() {
       <Card>
         <CardContent className="pt-6 text-xs text-[rgb(var(--text-secondary))] space-y-2">
           <p className="text-navy-900 font-semibold text-sm">How status is determined</p>
-          <p>Each API is "live" when its credentials are present in this deployment's environment variables. This page reads them server-side — it does not make a test call, so a "LIVE" badge means "keys are configured", not "supplier is currently responding". For a real round-trip check, run a search on the relevant page (Flights, Hotels) and look for the LIVE pill on the results.</p>
+          <p>Each API is "live" when its credentials are present in this deployment's environment variables. A "LIVE" badge means "keys are configured", not "supplier is currently responding". For an actual round-trip check, click "Check now" on any card above — it makes a live call to that supplier's gateway and reports whether it's reachable, with the result cached ~5 minutes (so it won't hammer rate-limited suppliers like Tripjack).</p>
           <p className="pt-2">Env vars: <span className="font-mono">TRIPJACK_PROXY_TOKEN</span> (flights), <span className="font-mono">HOTELBEDS_HOTELS_API_KEY</span>, <span className="font-mono">HOTELBEDS_TRANSFERS_API_KEY</span>, <span className="font-mono">HOTELBEDS_ACTIVITIES_API_KEY</span> — each with its matching <span className="font-mono">_SECRET</span>.</p>
         </CardContent>
       </Card>

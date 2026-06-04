@@ -3,7 +3,8 @@ export { searchActivities } from './activities';
 export { searchTransfers } from './transfers';
 export { fetchHotelImages, getHotelDetail } from './content';
 export type { HotelDetail } from './content';
-export { isLive } from './client';
+export { isLive, probeHotelbeds } from './client';
+export type { HotelbedsProbeResult } from './client';
 export { toHotelbedsDestination, IATA_TO_HOTELBEDS_DESTINATION } from './destinations';
 
 export type {

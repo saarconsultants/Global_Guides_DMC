@@ -44,6 +44,50 @@ export function isLive(product: Product = 'hotels'): boolean {
   return !!(key && secret);
 }
 
+export interface HotelbedsProbeResult {
+  reachable: boolean;
+  status: number | null;
+  ms: number;
+  detail: string;
+}
+
+const PRODUCT_STATUS_PATH: Record<Product, string> = {
+  hotels: '/hotel-api/1.0/status',
+  activities: '/activity-api/3.0/status',
+  transfers: '/transfer-api/1.0/status',
+};
+
+// On-demand reachability probe. Hits the product's lightweight /status endpoint.
+// "Reachable" = gateway answered with a non-5xx, non-HTML response (even a 401/404
+// proves the gateway is up). 5xx / HTML error page / timeout = supplier down.
+export async function probeHotelbeds(product: Product): Promise<HotelbedsProbeResult> {
+  const started = Date.now();
+  const { key, secret } = credsFor(product);
+  if (!key || !secret) return { reachable: false, status: null, ms: 0, detail: 'No credentials configured.' };
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 8_000);
+  try {
+    const res = await fetch(`${baseUrl()}${PRODUCT_STATUS_PATH[product]}`, {
+      method: 'GET',
+      headers: { 'Api-key': key, 'X-Signature': signature(key, secret), Accept: 'application/json' },
+      signal: ctl.signal,
+      cache: 'no-store',
+    });
+    const ms = Date.now() - started;
+    const text = await res.text();
+    const html = /^\s*<(?:!doctype|html)/i.test(text.trimStart());
+    if (res.status >= 500 || html) return { reachable: false, status: res.status, ms, detail: `Gateway error ${res.status}.` };
+    if (res.ok) return { reachable: true, status: res.status, ms, detail: 'Responding (200 OK).' };
+    return { reachable: true, status: res.status, ms, detail: `Gateway answered (HTTP ${res.status}).` };
+  } catch (e: any) {
+    const ms = Date.now() - started;
+    if (e?.name === 'AbortError') return { reachable: false, status: 504, ms, detail: 'Timed out after 8s.' };
+    return { reachable: false, status: null, ms, detail: String(e?.message ?? e) };
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 function signature(key: string, secret: string): string {
   const epoch = Math.floor(Date.now() / 1000);
   return createHash('sha256').update(key + secret + epoch).digest('hex');
