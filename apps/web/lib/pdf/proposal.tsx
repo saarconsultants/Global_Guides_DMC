@@ -12,6 +12,12 @@ import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/render
 import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
 
+// Hotel star rating is always gold (independent of the agency accent colour).
+const STAR_GOLD = '#F5B301';
+// Transfer marker — the brand "exchange arrows" icon, rasterised white from SVG
+// (@react-pdf can't render SVG) and embedded as a data URL so it needs no network.
+const TRANSFER_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAFxGAABcRgEUlENBAAACVUlEQVR4nO3by4vNYRzH8ce1WEiDkhkGpZDLQslaLiE2CGXBQmyIhdtCNpSslYiycCmJ/0EKxQ7JvSa5RlGu8dLTzClp5vzOb5rRzPd33vX9Az7v5/L7Pud5TkqDEKzHHXzHK5zE+FQFsFf3PEV7igza8UPPPMOUFBXsqBM+vgTsa0BAbTnEk4ClDQqIKQFDcaukhMkpEpiERyUkPIkoYSIelJDwAlNTJDQlpP8nAcMwH0v6qJZ1tbN9UbsLmqN/eYy2MuE3dvXbkcgSWhsJvxa/xeQuhhcJyJ+QyKyrF75VfI4XNRzROVy0BB6KzcIiAavwS0xO1w3/l4Q1eC4Wl3JvkxoFQzADC3pZszG9H6oFW0vO0nLhBzJdS/RbifCXC7/9g4VmeNUd+ZUlDz+h1vxYfKhk+Aw2VzZ8BgcqGz6DDZUNn8FovKxk+BpYhPfdhD8bPnwNTMBBXMAJLE7/E6zATfzEJ1wMfzVdA7t6+J3wDaalioavcSVVOHzma8iNSGPha4xKFQ5/P1U4fGZTqnD4IykK2F4yfM8XDIMNzfAqO/I7S077/ABpfz/UsT6obRjXn+EHAx+xvNG3d7/E5HPhW0FcF5ujRQK+iM21IgHvxOZMkYBzYlN/I0QbXovJqbrha2AO3hoYfO+6/elt5cG8gS35Wj81CuaWlHAvX1WlSGBmyUeR+a1dS4qEpoSUJcxqzgTmldwTbuerqxRQwrtKHo97KeFNiojO/wo0KmFkqrCEjhQZxRIOpejo3BM6ugl/FSNSFcAY7MH5fODA6lJ994wDiD3wK7yeXd5f4AAAAAElFTkSuQmCC';
+
 interface AgencyBrand {
   name: string;
   tagline?: string | null;
@@ -94,6 +100,8 @@ const styles = (primary: string, accent: string) =>
     slotThumb: { width: 44, height: 33, borderRadius: 4, marginRight: 8, objectFit: 'cover', border: '1 solid #E2E8F0' },
     slotTile: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: '#EEF2F6', alignItems: 'center', justifyContent: 'center' },
     slotTileDot: { width: 6, height: 6, borderRadius: 3 },
+    slotTileXfer: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: primary, alignItems: 'center', justifyContent: 'center' },
+    slotIcon: { width: 18, height: 18, objectFit: 'contain' },
     priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
@@ -232,7 +240,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                         {d.stay.hotel.stars > 0 ? (
                           <View style={{ flexDirection: 'row', marginRight: 6 }}>
                             {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
-                              <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 2 }} />
+                              <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STAR_GOLD, marginRight: 2 }} />
                             ))}
                           </View>
                         ) : null}
@@ -279,7 +287,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                     })}
                     {transfers.map((i, idx) => i.kind === 'transfer' ? (
                       <View key={`t${idx}`} style={s.slotRow}>
-                        <View style={s.slotTile}><View style={[s.slotTileDot, { backgroundColor: primary }]} /></View>
+                        <View style={s.slotTileXfer}><Image src={TRANSFER_ICON} style={s.slotIcon} /></View>
                         <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
                       </View>
                     ) : null)}
