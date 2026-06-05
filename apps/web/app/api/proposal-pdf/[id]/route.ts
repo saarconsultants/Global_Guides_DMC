@@ -9,6 +9,7 @@ import { requireAgency } from '@/lib/auth/ctx';
 import { getProposal, proposalToItinerary } from '@/lib/db/proposals';
 import { getDisplayRate } from '@/lib/fx-display';
 import { pdfLogoUrl } from '@/lib/pdf/logo';
+import { embedItineraryImages } from '@/lib/pdf/embed-images';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const currency = agency.currency ?? 'INR';
   const rate = await getDisplayRate(currency);
 
+  // Pre-fetch + inline hotel/activity photos as data URLs (failures dropped) so the
+  // render is reliable and fetch-free — no empty boxes, no live-fetch flakiness.
+  const itineraryForPdf = await embedItineraryImages(itinerary, { perImageMs: 3000, max: 12 });
+
   const base = {
     agency: {
       name: agency.name,
@@ -49,7 +54,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     customerName: p.lead?.customerName ?? null,
     currency,
     rate,
-    itinerary,
+    itinerary: itineraryForPdf,
   };
 
   // Render with remote hotel/activity photos, but never let a slow or broken image
