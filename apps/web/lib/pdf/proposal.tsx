@@ -200,7 +200,16 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
               {it.destinations.map((d) => d.stay && (
                 <View key={d.cityCode} style={s.card}>
                   <View style={s.row}>
-                    <Text style={s.bold}>{'★'.repeat(d.stay.hotel.stars)} {d.stay.hotel.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                      {d.stay.hotel.stars > 0 ? (
+                        <View style={{ flexDirection: 'row', marginRight: 6 }}>
+                          {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
+                            <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 2 }} />
+                          ))}
+                        </View>
+                      ) : null}
+                      <Text style={s.bold}>{d.stay.hotel.name}</Text>
+                    </View>
                     <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
                   </View>
                   <Text style={s.muted}>{d.stay.hotel.address}</Text>
