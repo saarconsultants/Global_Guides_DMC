@@ -50,11 +50,13 @@ function pdfImg(url?: string | null): string | null {
 
 const styles = (primary: string, accent: string) =>
   StyleSheet.create({
-    page: { paddingTop: 0, paddingBottom: 56, paddingHorizontal: 0, fontFamily: 'Helvetica', color: '#0F172A', fontSize: 10 },
+    // paddingTop gives continuation pages (2+) a top gap. Page 1's hero cancels it
+    // with a matching negative marginTop so the hero still bleeds to the very top.
+    page: { paddingTop: 36, paddingBottom: 56, paddingHorizontal: 0, fontFamily: 'Helvetica', color: '#0F172A', fontSize: 10 },
     body: { paddingHorizontal: 36 },
 
     // Hero
-    hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28 },
+    hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28, marginTop: -36 },
     // Height-only so the logo renders at its natural aspect ratio, left-aligned.
     // (A fixed width + objectFit:'contain' letterboxes narrow logos, leaving a gap on the left.)
     logo: { height: 34, marginBottom: 16 },
