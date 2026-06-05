@@ -88,8 +88,13 @@ const styles = (primary: string, accent: string) =>
 
     card: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 12, marginBottom: 8, border: '1 solid #EEF2F6' },
     hotelCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F8FAFC', borderRadius: 6, padding: 10, marginBottom: 8, border: '1 solid #EEF2F6' },
-    hotelThumb: { width: 86, height: 66, borderRadius: 5, marginRight: 12, objectFit: 'cover' },
-    slotThumb: { width: 44, height: 33, borderRadius: 4, marginRight: 8, marginTop: 1, objectFit: 'cover' },
+    hotelThumb: { width: 86, height: 66, borderRadius: 5, marginRight: 12, objectFit: 'cover', border: '1 solid #E2E8F0' },
+    // Every day-by-day slot uses a 44×33 marker (photo, or a tile placeholder for
+    // transfers / image-less activities) so the text after it always left-aligns.
+    slotThumb: { width: 44, height: 33, borderRadius: 4, marginRight: 8, objectFit: 'cover', border: '1 solid #E2E8F0' },
+    slotTile: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: '#EEF2F6', alignItems: 'center', justifyContent: 'center' },
+    slotTileDot: { width: 6, height: 6, borderRadius: 3 },
+    priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
 
@@ -103,8 +108,7 @@ const styles = (primary: string, accent: string) =>
     dayDate: { fontSize: 8, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 },
     dayHeader: { fontSize: 12, fontFamily: 'Helvetica-Bold', color: primary, marginTop: 1 },
     dayNarr: { fontSize: 9.5, lineHeight: 1.5, marginTop: 3, color: '#475569' },
-    slotRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 5 },
-    slotDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 7, marginTop: 3.5 },
+    slotRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
     slotText: { fontSize: 9.5, color: '#334155', flex: 1, lineHeight: 1.4 },
     slotWhen: { fontFamily: 'Helvetica-Bold', color: '#1F2937' },
 
@@ -217,20 +221,23 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                   <View key={d.cityCode} style={s.hotelCard}>
                     {hThumb ? <Image src={hThumb} style={s.hotelThumb} /> : null}
                     <View style={{ flex: 1 }}>
-                      <View style={s.row}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-                          {d.stay.hotel.stars > 0 ? (
-                            <View style={{ flexDirection: 'row', marginRight: 6 }}>
-                              {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
-                                <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 2 }} />
-                              ))}
-                            </View>
-                          ) : null}
-                          <Text style={s.bold}>{d.stay.hotel.name}</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Text style={[s.bold, { flex: 1, marginRight: 8 }]}>{d.stay.hotel.name}</Text>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
+                          <Text style={s.priceSub}>total stay</Text>
                         </View>
-                        <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
                       </View>
-                      <Text style={s.muted}>{d.stay.hotel.address}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                        {d.stay.hotel.stars > 0 ? (
+                          <View style={{ flexDirection: 'row', marginRight: 6 }}>
+                            {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
+                              <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 2 }} />
+                            ))}
+                          </View>
+                        ) : null}
+                        <Text style={s.muted}>{d.stay.hotel.address}</Text>
+                      </View>
                       <Text style={s.muted}>{d.nights} night{d.nights !== 1 ? 's' : ''} · {d.stay.hotel.room.name} · {d.stay.hotel.mealPlan}{d.stay.hotel.refundable ? ' · Refundable' : ''}</Text>
                     </View>
                   </View>
@@ -263,14 +270,16 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                       const aThumb = images ? pdfImg(a!.thumb) : null;
                       return (
                         <View key={slot} style={s.slotRow}>
-                          {aThumb ? <Image src={aThumb} style={s.slotThumb} /> : <View style={[s.slotDot, { backgroundColor: accent }]} />}
+                          {aThumb
+                            ? <Image src={aThumb} style={s.slotThumb} />
+                            : <View style={s.slotTile}><View style={[s.slotTileDot, { backgroundColor: accent }]} /></View>}
                           <Text style={s.slotText}><Text style={s.slotWhen}>{slot[0]!.toUpperCase() + slot.slice(1)}</Text>  {a!.name}</Text>
                         </View>
                       );
                     })}
                     {transfers.map((i, idx) => i.kind === 'transfer' ? (
                       <View key={`t${idx}`} style={s.slotRow}>
-                        <View style={[s.slotDot, { backgroundColor: primary }]} />
+                        <View style={s.slotTile}><View style={[s.slotTileDot, { backgroundColor: primary }]} /></View>
                         <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
                       </View>
                     ) : null)}
