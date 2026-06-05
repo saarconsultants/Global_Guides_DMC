@@ -57,9 +57,10 @@ const styles = (primary: string, accent: string) =>
 
     // Hero
     hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28, marginTop: -36 },
-    // Height-only so the logo renders at its natural aspect ratio, left-aligned.
-    // (A fixed width + objectFit:'contain' letterboxes narrow logos, leaving a gap on the left.)
-    logo: { height: 34, marginBottom: 16 },
+    // Fixed height + alignSelf:'flex-start' so the logo keeps its aspect ratio and sits
+    // left. Without alignSelf the hero (a stretch column) pulls the image to full width
+    // and distorts it; objectFit:'contain' + maxWidth guard keeps very wide logos sane.
+    logo: { height: 38, maxWidth: 260, objectFit: 'contain', alignSelf: 'flex-start', marginBottom: 16 },
     wordmark: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', marginBottom: 2 },
     wordmarkTag: { fontSize: 8.5, color: accent, marginBottom: 14 },
     eyebrow: { color: accent, fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold' },
