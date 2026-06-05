@@ -2,7 +2,7 @@
 // Agency-scoped (an agent can only export their own agency's proposals).
 
 import { NextResponse } from 'next/server';
-import { renderToStream } from '@react-pdf/renderer';
+import { renderToBuffer } from '@react-pdf/renderer';
 import { buildProposalPdf } from '@/lib/pdf/proposal';
 import { db } from '@/lib/db/client';
 import { requireAgency } from '@/lib/auth/ctx';
@@ -33,7 +33,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const currency = agency.currency ?? 'INR';
   const rate = await getDisplayRate(currency);
 
-  const stream = await renderToStream(buildProposalPdf({
+  const base = {
     agency: {
       name: agency.name,
       tagline: agency.tagline,
@@ -50,9 +50,23 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     currency,
     rate,
     itinerary,
-  }));
+  };
 
-  return new NextResponse(stream as any, {
+  // Render with remote hotel/activity photos, but never let a slow or broken image
+  // fail (or hang past Vercel's 10s cap) the customer's PDF: race against a 6s
+  // budget and, on timeout OR error, re-render the fast image-less version.
+  const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
+    Promise.race([promise, new Promise<never>((_, rej) => setTimeout(() => rej(new Error('pdf-image-timeout')), ms))]);
+
+  let buffer: Buffer;
+  try {
+    buffer = await withTimeout(renderToBuffer(buildProposalPdf({ ...base, images: true })), 6_000);
+  } catch (e) {
+    console.error('[proposal-pdf] image render failed/timed out — falling back to image-less:', (e as any)?.message ?? e);
+    buffer = await renderToBuffer(buildProposalPdf({ ...base, images: false }));
+  }
+
+  return new NextResponse(buffer as any, {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="${p.code}-itinerary.pdf"`,

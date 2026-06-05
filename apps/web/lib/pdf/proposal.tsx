@@ -30,6 +30,7 @@ export interface ProposalPdfInput {
   customerName?: string | null;
   currency?: string;   // agency display currency (default INR)
   rate?: number;       // INR→currency multiplier
+  images?: boolean;    // render remote hotel/activity photos (default true; route disables on fallback)
   itinerary: Itinerary;
 }
 
@@ -39,6 +40,12 @@ function fmtDate(s: string) {
 function isRasterLogo(url?: string | null): boolean {
   if (!url) return false;
   return /\.(png|jpe?g|gif|webp)(\?|$)/i.test(url) || url.startsWith('data:image/');
+}
+// Only absolute http(s) or data URLs are fetchable by @react-pdf server-side.
+function pdfImg(url?: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith('data:image/')) return url;
+  return /^https?:\/\//i.test(url) ? url : null;
 }
 
 const styles = (primary: string, accent: string) =>
@@ -77,6 +84,9 @@ const styles = (primary: string, accent: string) =>
     incMuted: { fontSize: 9.5, color: '#CBD5E1' },
 
     card: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 12, marginBottom: 8, border: '1 solid #EEF2F6' },
+    hotelCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F8FAFC', borderRadius: 6, padding: 10, marginBottom: 8, border: '1 solid #EEF2F6' },
+    hotelThumb: { width: 86, height: 66, borderRadius: 5, marginRight: 12, objectFit: 'cover' },
+    slotThumb: { width: 44, height: 33, borderRadius: 4, marginRight: 8, marginTop: 1, objectFit: 'cover' },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
 
@@ -109,7 +119,7 @@ export function buildProposalPdf(input: ProposalPdfInput) {
   return <ProposalPdf {...input} />;
 }
 
-function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, itinerary: it }: ProposalPdfInput) {
+function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, images = true, itinerary: it }: ProposalPdfInput) {
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
   const money = (paise: number | bigint) => formatMoneyCode(paise, currency, rate);
@@ -197,30 +207,38 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {hotelCount > 0 && (
             <View style={s.section}>
               <Text style={s.sectionLabel}>Where you'll stay</Text>
-              {it.destinations.map((d) => d.stay && (
-                <View key={d.cityCode} style={s.card}>
-                  <View style={s.row}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-                      {d.stay.hotel.stars > 0 ? (
-                        <View style={{ flexDirection: 'row', marginRight: 6 }}>
-                          {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
-                            <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 2 }} />
-                          ))}
+              {it.destinations.map((d) => {
+                if (!d.stay) return null;
+                const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
+                return (
+                  <View key={d.cityCode} style={s.hotelCard}>
+                    {hThumb ? <Image src={hThumb} style={s.hotelThumb} /> : null}
+                    <View style={{ flex: 1 }}>
+                      <View style={s.row}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                          {d.stay.hotel.stars > 0 ? (
+                            <View style={{ flexDirection: 'row', marginRight: 6 }}>
+                              {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
+                                <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 2 }} />
+                              ))}
+                            </View>
+                          ) : null}
+                          <Text style={s.bold}>{d.stay.hotel.name}</Text>
                         </View>
-                      ) : null}
-                      <Text style={s.bold}>{d.stay.hotel.name}</Text>
+                        <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
+                      </View>
+                      <Text style={s.muted}>{d.stay.hotel.address}</Text>
+                      <Text style={s.muted}>{d.nights} night{d.nights !== 1 ? 's' : ''} · {d.stay.hotel.room.name} · {d.stay.hotel.mealPlan}{d.stay.hotel.refundable ? ' · Refundable' : ''}</Text>
                     </View>
-                    <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
                   </View>
-                  <Text style={s.muted}>{d.stay.hotel.address}</Text>
-                  <Text style={s.muted}>{d.nights} night{d.nights !== 1 ? 's' : ''} · {d.stay.hotel.room.name} · {d.stay.hotel.mealPlan}{d.stay.hotel.refundable ? ' · Refundable' : ''}</Text>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
 
-          {/* Day by day */}
-          <View style={s.section} break>
+          {/* Day by day — flows after hotels (no forced page break, so page 1 isn't left half-empty).
+              minPresenceAhead keeps the section heading from being stranded at the very bottom. */}
+          <View style={[s.section, { marginTop: 14 }]} minPresenceAhead={120}>
             <Text style={s.sectionLabel}>Day by day</Text>
             {it.days.map((day, di) => {
               const slots = (['morning', 'afternoon', 'evening'] as const)
@@ -238,12 +256,15 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                     <Text style={s.dayDate}>{fmtDate(day.date)}</Text>
                     <Text style={s.dayHeader}>{dayHeading(day)}</Text>
                     {day.narrative ? <Text style={s.dayNarr}>{day.narrative}</Text> : null}
-                    {slots.map(({ slot, a }) => (
-                      <View key={slot} style={s.slotRow}>
-                        <View style={[s.slotDot, { backgroundColor: accent }]} />
-                        <Text style={s.slotText}><Text style={s.slotWhen}>{slot[0]!.toUpperCase() + slot.slice(1)}</Text>  {a!.name}</Text>
-                      </View>
-                    ))}
+                    {slots.map(({ slot, a }) => {
+                      const aThumb = images ? pdfImg(a!.thumb) : null;
+                      return (
+                        <View key={slot} style={s.slotRow}>
+                          {aThumb ? <Image src={aThumb} style={s.slotThumb} /> : <View style={[s.slotDot, { backgroundColor: accent }]} />}
+                          <Text style={s.slotText}><Text style={s.slotWhen}>{slot[0]!.toUpperCase() + slot.slice(1)}</Text>  {a!.name}</Text>
+                        </View>
+                      );
+                    })}
                     {transfers.map((i, idx) => i.kind === 'transfer' ? (
                       <View key={`t${idx}`} style={s.slotRow}>
                         <View style={[s.slotDot, { backgroundColor: primary }]} />
