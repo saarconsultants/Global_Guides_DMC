@@ -107,10 +107,10 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
               <Text style={s.sectionLabel}>Flights</Text>
               <View style={s.card}>
                 {it.flights.segments.map((seg, i) => (
-                  <Text key={i} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} → {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
+                  <Text key={i} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} – {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
                 ))}
                 {it.flights.return?.segments.map((seg, i) => (
-                  <Text key={`r${i}`} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} → {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
+                  <Text key={`r${i}`} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} – {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
                 ))}
               </View>
             </View>

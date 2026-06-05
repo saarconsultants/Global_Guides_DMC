@@ -48,7 +48,9 @@ const styles = (primary: string, accent: string) =>
 
     // Hero
     hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28 },
-    logo: { height: 30, width: 160, objectFit: 'contain', marginBottom: 14 },
+    // Height-only so the logo renders at its natural aspect ratio, left-aligned.
+    // (A fixed width + objectFit:'contain' letterboxes narrow logos, leaving a gap on the left.)
+    logo: { height: 34, marginBottom: 16 },
     wordmark: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', marginBottom: 2 },
     wordmarkTag: { fontSize: 8.5, color: accent, marginBottom: 14 },
     eyebrow: { color: accent, fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold' },
@@ -78,11 +80,20 @@ const styles = (primary: string, accent: string) =>
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
 
-    dayHeader: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: primary },
-    dayDate: { fontSize: 8, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1 },
-    dayNarr: { fontSize: 9.5, lineHeight: 1.5, marginTop: 3, color: '#1F2937' },
-    bullet: { fontSize: 9, marginTop: 2.5, color: '#334155' },
-    daySep: { borderBottom: '1 solid #EEF2F6', marginTop: 9, marginBottom: 9 },
+    // Day-by-day timeline
+    dayItem: { flexDirection: 'row', marginBottom: 10 },
+    dayRail: { width: 30, alignItems: 'center' },
+    dayBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: primary, alignItems: 'center', justifyContent: 'center' },
+    dayBadgeNum: { color: '#FFFFFF', fontSize: 10, fontFamily: 'Helvetica-Bold' },
+    dayConnector: { width: 2, flexGrow: 1, backgroundColor: '#E5E9F0', marginTop: 4, borderRadius: 1 },
+    dayContent: { flex: 1, paddingLeft: 10, paddingBottom: 6 },
+    dayDate: { fontSize: 8, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 },
+    dayHeader: { fontSize: 12, fontFamily: 'Helvetica-Bold', color: primary, marginTop: 1 },
+    dayNarr: { fontSize: 9.5, lineHeight: 1.5, marginTop: 3, color: '#475569' },
+    slotRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 5 },
+    slotDot: { width: 5, height: 5, borderRadius: 2.5, marginRight: 7, marginTop: 3.5 },
+    slotText: { fontSize: 9.5, color: '#334155', flex: 1, lineHeight: 1.4 },
+    slotWhen: { fontFamily: 'Helvetica-Bold', color: '#1F2937' },
 
     priceBox: { backgroundColor: primary, color: '#FFFFFF', borderRadius: 8, padding: 18, marginTop: 8 },
     priceTotal: { fontSize: 26, fontFamily: 'Helvetica-Bold', marginTop: 2 },
@@ -202,21 +213,38 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {/* Day by day */}
           <View style={s.section} break>
             <Text style={s.sectionLabel}>Day by day</Text>
-            {it.days.map((day, di) => (
-              <View key={day.dayNo} wrap={false}>
-                <Text style={s.dayDate}>Day {day.dayNo} · {fmtDate(day.date)}</Text>
-                <Text style={s.dayHeader}>{dayHeading(day)}</Text>
-                {day.narrative && <Text style={s.dayNarr}>{day.narrative}</Text>}
-                {(['morning', 'afternoon', 'evening'] as const).map((slot) => {
-                  const a = day[slot]; if (!a) return null;
-                  return <Text key={slot} style={s.bullet}>• {slot[0]!.toUpperCase() + slot.slice(1)}: {a.name}</Text>;
-                })}
-                {day.inclusions.filter((i) => i.kind === 'transfer').map((i, idx) => i.kind === 'transfer' ? (
-                  <Text key={idx} style={s.bullet}>• Transfer: {i.transfer.fromName} → {i.transfer.toName}</Text>
-                ) : null)}
-                {di < it.days.length - 1 && <View style={s.daySep} />}
-              </View>
-            ))}
+            {it.days.map((day, di) => {
+              const slots = (['morning', 'afternoon', 'evening'] as const)
+                .map((slot) => ({ slot, a: day[slot] }))
+                .filter((x) => x.a);
+              const transfers = day.inclusions.filter((i) => i.kind === 'transfer');
+              const isLast = di === it.days.length - 1;
+              return (
+                <View key={day.dayNo} style={s.dayItem} wrap={false}>
+                  <View style={s.dayRail}>
+                    <View style={s.dayBadge}><Text style={s.dayBadgeNum}>{day.dayNo}</Text></View>
+                    {!isLast && <View style={s.dayConnector} />}
+                  </View>
+                  <View style={s.dayContent}>
+                    <Text style={s.dayDate}>{fmtDate(day.date)}</Text>
+                    <Text style={s.dayHeader}>{dayHeading(day)}</Text>
+                    {day.narrative ? <Text style={s.dayNarr}>{day.narrative}</Text> : null}
+                    {slots.map(({ slot, a }) => (
+                      <View key={slot} style={s.slotRow}>
+                        <View style={[s.slotDot, { backgroundColor: accent }]} />
+                        <Text style={s.slotText}><Text style={s.slotWhen}>{slot[0]!.toUpperCase() + slot.slice(1)}</Text>  {a!.name}</Text>
+                      </View>
+                    ))}
+                    {transfers.map((i, idx) => i.kind === 'transfer' ? (
+                      <View key={`t${idx}`} style={s.slotRow}>
+                        <View style={[s.slotDot, { backgroundColor: primary }]} />
+                        <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
+                      </View>
+                    ) : null)}
+                  </View>
+                </View>
+              );
+            })}
           </View>
 
           {/* Docs & cover */}
@@ -263,7 +291,7 @@ function FlightLegPdf({ s, label, leg, money }: { s: any; label: string; leg: { 
         <Text style={s.bold}>{money(leg.totalPaise)}</Text>
       </View>
       {leg.segments.map((seg, i) => (
-        <Text key={i} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} → {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
+        <Text key={i} style={s.muted}>{seg.airlineCode} {seg.flightNumber} · {seg.fromIATA} {seg.departureAt.slice(11, 16)} – {seg.toIATA} {seg.arrivalAt.slice(11, 16)}</Text>
       ))}
     </View>
   );
@@ -272,6 +300,6 @@ function FlightLegPdf({ s, label, leg, money }: { s: any; label: string; leg: { 
 function dayHeading(d: any) {
   if (d.type === 'arrival') return `Arrival in ${d.cityName}`;
   if (d.type === 'departure') return `Departure from ${d.cityName}`;
-  if (d.type === 'transit') return `${d.fromCityName ?? ''} → ${d.cityName}`;
+  if (d.type === 'transit') return `${d.fromCityName ?? ''} – ${d.cityName}`;
   return `Day in ${d.cityName}`;
 }
