@@ -24,13 +24,10 @@ async function main() {
   // 2. Default agency for Bipin's own travel ops
   const agency = await db.agency.upsert({
     where: { code: 'GGN000001' },
-    update: {
-      // Refresh brand on every seed run
-      logoUrl: '/brand/ggdmc-logo.svg',
-      primaryColor: '#630909',
-      accentColor: '#FFBA06',
-      tagline: 'One World. One DMC.',
-    },
+    // NEVER overwrite branding on re-seed. The seed runs on every deploy, and the
+    // agency edits logo/colors/tagline in Settings (saved to the DB). An update block
+    // here would clobber those edits back to defaults on each deploy. Create-only.
+    update: {},
     create: {
       code: 'GGN000001',
       slug: 'global-guides',
