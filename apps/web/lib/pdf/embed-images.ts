@@ -33,7 +33,7 @@ export async function embedItineraryImages(
   const urls = new Set<string>();
   const add = (t?: string) => { if (t && /^https?:\/\//i.test(t)) urls.add(t); };
   for (const d of it.destinations) add(d.stay?.hotel.thumb);
-  for (const day of it.days) for (const slot of ['morning', 'afternoon', 'evening'] as const) add((day as any)[slot]?.thumb);
+  // Activities render emoji markers (not photos), so only hotel images need embedding.
 
   const list = Array.from(urls).slice(0, max);
   const fetched = await Promise.all(list.map(async (u) => [u, await toDataUrl(u, perImageMs)] as const));
@@ -46,12 +46,5 @@ export async function embedItineraryImages(
     destinations: it.destinations.map((d) =>
       d.stay ? { ...d, stay: { ...d.stay, hotel: { ...d.stay.hotel, thumb: repl(d.stay.hotel.thumb) } } } : d,
     ),
-    days: it.days.map((day) => {
-      const nd: any = { ...day };
-      for (const slot of ['morning', 'afternoon', 'evening'] as const) {
-        if (nd[slot]?.thumb) nd[slot] = { ...nd[slot], thumb: repl(nd[slot].thumb) };
-      }
-      return nd;
-    }),
   };
 }

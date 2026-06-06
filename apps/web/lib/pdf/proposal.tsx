@@ -54,6 +54,15 @@ function pdfImg(url?: string | null): string | null {
   if (url.startsWith('data:image/')) return url;
   return /^https?:\/\//i.test(url) ? url : null;
 }
+// Emoji marker per activity category (rendered via the registered twemoji source).
+function activityEmoji(category?: string): string {
+  switch (category) {
+    case 'museum': return '🏛️';      // 🏛️
+    case 'tour': return '🧭';                 // 🧭
+    case 'experience': return '🎟️';   // 🎟️
+    default: return '📸';                      // 📸 sightseeing
+  }
+}
 
 const styles = (primary: string, accent: string) =>
   StyleSheet.create({
@@ -96,13 +105,10 @@ const styles = (primary: string, accent: string) =>
     card: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 12, marginBottom: 8, border: '1 solid #EEF2F6' },
     hotelCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F8FAFC', borderRadius: 6, padding: 10, marginBottom: 8, border: '1 solid #EEF2F6' },
     hotelThumb: { width: 86, height: 66, borderRadius: 5, marginRight: 12, objectFit: 'cover', border: '1 solid #E2E8F0' },
-    // Every day-by-day slot uses a 44×33 marker (photo, or a tile placeholder for
-    // transfers / image-less activities) so the text after it always left-aligns.
-    slotThumb: { width: 44, height: 33, borderRadius: 4, marginRight: 8, objectFit: 'cover', border: '1 solid #E2E8F0' },
-    slotTile: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: '#EEF2F6', alignItems: 'center', justifyContent: 'center' },
-    slotTileDot: { width: 6, height: 6, borderRadius: 3 },
-    slotXfer: { width: 44, height: 33, marginRight: 8, alignItems: 'center', justifyContent: 'center' },
-    xferEmoji: { fontSize: 15 },
+    // Every day-by-day slot uses one fixed-width emoji marker so the text after it
+    // always left-aligns (activities by category, 🚗 for transfers).
+    slotMarker: { width: 44, marginRight: 8, alignItems: 'center', justifyContent: 'center' },
+    markerEmoji: { fontSize: 15 },
     priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
@@ -275,20 +281,15 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                     <Text style={s.dayDate}>{fmtDate(day.date)}</Text>
                     <Text style={s.dayHeader}>{dayHeading(day)}</Text>
                     {day.narrative ? <Text style={s.dayNarr}>{day.narrative}</Text> : null}
-                    {slots.map(({ slot, a }) => {
-                      const aThumb = images ? pdfImg(a!.thumb) : null;
-                      return (
-                        <View key={slot} style={s.slotRow}>
-                          {aThumb
-                            ? <Image src={aThumb} style={s.slotThumb} />
-                            : <View style={s.slotTile}><View style={[s.slotTileDot, { backgroundColor: accent }]} /></View>}
-                          <Text style={s.slotText}><Text style={s.slotWhen}>{slot[0]!.toUpperCase() + slot.slice(1)}</Text>  {a!.name}</Text>
-                        </View>
-                      );
-                    })}
+                    {slots.map(({ slot, a }) => (
+                      <View key={slot} style={s.slotRow}>
+                        <View style={s.slotMarker}><Text style={s.markerEmoji}>{activityEmoji(a!.category)}</Text></View>
+                        <Text style={s.slotText}><Text style={s.slotWhen}>{slot[0]!.toUpperCase() + slot.slice(1)}</Text>  {a!.name}</Text>
+                      </View>
+                    ))}
                     {transfers.map((i, idx) => i.kind === 'transfer' ? (
                       <View key={`t${idx}`} style={s.slotRow}>
-                        <View style={s.slotXfer}><Text style={s.xferEmoji}>🚗</Text></View>
+                        <View style={s.slotMarker}><Text style={s.markerEmoji}>🚗</Text></View>
                         <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
                       </View>
                     ) : null)}
