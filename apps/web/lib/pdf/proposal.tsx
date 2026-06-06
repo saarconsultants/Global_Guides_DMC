@@ -14,9 +14,6 @@ import type { Itinerary } from '@/lib/itinerary/types';
 
 // Hotel star rating is always gold (independent of the agency accent colour).
 const STAR_GOLD = '#F5B301';
-// Transfer marker — the brand "exchange arrows" icon, rasterised white from SVG
-// (@react-pdf can't render SVG) and embedded as a data URL so it needs no network.
-const TRANSFER_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAFxGAABcRgEUlENBAAACVUlEQVR4nO3by4vNYRzH8ce1WEiDkhkGpZDLQslaLiE2CGXBQmyIhdtCNpSslYiycCmJ/0EKxQ7JvSa5RlGu8dLTzClp5vzOb5rRzPd33vX9Az7v5/L7Pud5TkqDEKzHHXzHK5zE+FQFsFf3PEV7igza8UPPPMOUFBXsqBM+vgTsa0BAbTnEk4ClDQqIKQFDcaukhMkpEpiERyUkPIkoYSIelJDwAlNTJDQlpP8nAcMwH0v6qJZ1tbN9UbsLmqN/eYy2MuE3dvXbkcgSWhsJvxa/xeQuhhcJyJ+QyKyrF75VfI4XNRzROVy0BB6KzcIiAavwS0xO1w3/l4Q1eC4Wl3JvkxoFQzADC3pZszG9H6oFW0vO0nLhBzJdS/RbifCXC7/9g4VmeNUd+ZUlDz+h1vxYfKhk+Aw2VzZ8BgcqGz6DDZUNn8FovKxk+BpYhPfdhD8bPnwNTMBBXMAJLE7/E6zATfzEJ1wMfzVdA7t6+J3wDaalioavcSVVOHzma8iNSGPha4xKFQ5/P1U4fGZTqnD4IykK2F4yfM8XDIMNzfAqO/I7S077/ABpfz/UsT6obRjXn+EHAx+xvNG3d7/E5HPhW0FcF5ujRQK+iM21IgHvxOZMkYBzYlN/I0QbXovJqbrha2AO3hoYfO+6/elt5cG8gS35Wj81CuaWlHAvX1WlSGBmyUeR+a1dS4qEpoSUJcxqzgTmldwTbuerqxRQwrtKHo97KeFNiojO/wo0KmFkqrCEjhQZxRIOpejo3BM6ugl/FSNSFcAY7MH5fODA6lJ99wDiD3wK7yeXd5f4AAAAAElFTkSuQmCC';
 
 interface AgencyBrand {
   name: string;
@@ -101,7 +98,9 @@ const styles = (primary: string, accent: string) =>
     slotTile: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: '#EEF2F6', alignItems: 'center', justifyContent: 'center' },
     slotTileDot: { width: 6, height: 6, borderRadius: 3 },
     slotTileXfer: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: primary, alignItems: 'center', justifyContent: 'center' },
-    slotIcon: { width: 18, height: 18, objectFit: 'contain' },
+    xferBar: { width: 12, height: 2, backgroundColor: '#FFFFFF' },
+    xferTriLeft: { width: 0, height: 0, borderTopWidth: 3, borderBottomWidth: 3, borderRightWidth: 4, borderStyle: 'solid', borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: '#FFFFFF' },
+    xferTriRight: { width: 0, height: 0, borderTopWidth: 3, borderBottomWidth: 3, borderLeftWidth: 4, borderStyle: 'solid', borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#FFFFFF' },
     priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
@@ -287,7 +286,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                     })}
                     {transfers.map((i, idx) => i.kind === 'transfer' ? (
                       <View key={`t${idx}`} style={s.slotRow}>
-                        <View style={s.slotTileXfer}><Image src={TRANSFER_ICON} style={s.slotIcon} /></View>
+                        <View style={s.slotTileXfer}><View style={{ alignItems: 'center' }}><View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}><View style={s.xferTriLeft} /><View style={s.xferBar} /></View><View style={{ flexDirection: 'row', alignItems: 'center' }}><View style={s.xferBar} /><View style={s.xferTriRight} /></View></View></View>
                         <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
                       </View>
                     ) : null)}
