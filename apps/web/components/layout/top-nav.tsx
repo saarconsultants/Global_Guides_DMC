@@ -53,12 +53,6 @@ export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
         <div className="h-16 px-4 lg:px-6 flex items-center gap-4 lg:gap-6">
           <Link href="/dashboard" className="flex items-center gap-3" aria-label="Global Guides — home">
             <img src="/brand/ggdmc-logo-white.svg" alt="Global Guides DMC" className="h-9 w-auto" />
-            {actor.agencyName !== 'Global Guides DMC LLP' && (
-              <span className="hidden sm:flex items-center gap-2 pl-3 border-l border-white/15 text-xs text-white/70 truncate max-w-[180px]">
-                <span className="text-white/40 uppercase tracking-widest text-[10px] font-bold">on behalf of</span>
-                <span className="font-medium text-white truncate">{actor.agencyName}</span>
-              </span>
-            )}
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1 text-sm ml-2">
