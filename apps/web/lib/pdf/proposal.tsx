@@ -107,7 +107,7 @@ const styles = (primary: string, accent: string) =>
     hotelThumb: { width: 86, height: 66, borderRadius: 5, marginRight: 12, objectFit: 'cover', border: '1 solid #E2E8F0' },
     // Every day-by-day slot uses one fixed-width emoji marker so the text after it
     // always left-aligns (activities by category, 🚗 for transfers).
-    slotMarker: { width: 44, marginRight: 8, alignItems: 'center', justifyContent: 'center' },
+    slotMarker: { width: 22, marginRight: 6, alignItems: 'center', justifyContent: 'center' },
     markerEmoji: { fontSize: 15 },
     priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
