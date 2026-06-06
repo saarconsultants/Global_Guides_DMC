@@ -8,9 +8,13 @@
 //  - <Image> cannot render SVG. Agency logos that aren't PNG/JPG fall back to a
 //    styled text wordmark so the brand always shows.
 
-import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Page, View, Text, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
+
+// Emoji in @react-pdf are rendered as images fetched from a CDN (Helvetica has no
+// emoji glyphs). Used for the small transfer marker.
+Font.registerEmojiSource({ format: 'png', url: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/' });
 
 // Hotel star rating is always gold (independent of the agency accent colour).
 const STAR_GOLD = '#F5B301';
@@ -97,10 +101,8 @@ const styles = (primary: string, accent: string) =>
     slotThumb: { width: 44, height: 33, borderRadius: 4, marginRight: 8, objectFit: 'cover', border: '1 solid #E2E8F0' },
     slotTile: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: '#EEF2F6', alignItems: 'center', justifyContent: 'center' },
     slotTileDot: { width: 6, height: 6, borderRadius: 3 },
-    slotTileXfer: { width: 44, height: 33, borderRadius: 4, marginRight: 8, backgroundColor: primary, alignItems: 'center', justifyContent: 'center' },
-    xferBar: { width: 12, height: 2, backgroundColor: '#FFFFFF' },
-    xferTriLeft: { width: 0, height: 0, borderTopWidth: 3, borderBottomWidth: 3, borderRightWidth: 4, borderStyle: 'solid', borderTopColor: 'transparent', borderBottomColor: 'transparent', borderRightColor: '#FFFFFF' },
-    xferTriRight: { width: 0, height: 0, borderTopWidth: 3, borderBottomWidth: 3, borderLeftWidth: 4, borderStyle: 'solid', borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#FFFFFF' },
+    slotXfer: { width: 44, height: 33, marginRight: 8, alignItems: 'center', justifyContent: 'center' },
+    xferEmoji: { fontSize: 15 },
     priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
@@ -286,7 +288,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                     })}
                     {transfers.map((i, idx) => i.kind === 'transfer' ? (
                       <View key={`t${idx}`} style={s.slotRow}>
-                        <View style={s.slotTileXfer}><View style={{ alignItems: 'center' }}><View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}><View style={s.xferTriLeft} /><View style={s.xferBar} /></View><View style={{ flexDirection: 'row', alignItems: 'center' }}><View style={s.xferBar} /><View style={s.xferTriRight} /></View></View></View>
+                        <View style={s.slotXfer}><Text style={s.xferEmoji}>🚗</Text></View>
                         <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
                       </View>
                     ) : null)}
