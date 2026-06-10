@@ -9,7 +9,8 @@ import { requireAgency } from '@/lib/auth/ctx';
 import { getProposal, proposalToItinerary } from '@/lib/db/proposals';
 import { getDisplayRate } from '@/lib/fx-display';
 import { pdfLogoUrl } from '@/lib/pdf/logo';
-import { embedItineraryImages } from '@/lib/pdf/embed-images';
+import { embedItineraryImages, embedHeroPhotos } from '@/lib/pdf/embed-images';
+import { registerPdfDisplayFont } from '@/lib/pdf/fonts';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,11 +35,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const currency = agency.currency ?? 'INR';
   const rate = await getDisplayRate(currency);
 
-  // Pre-fetch + inline hotel/activity photos as data URLs (failures dropped) so the
-  // render is reliable and fetch-free — no empty boxes, no live-fetch flakiness.
-  const itineraryForPdf = await embedItineraryImages(itinerary, { perImageMs: 3000, max: 12 });
+  // Display font (Fraunces) — registered once per instance; fetched at render.
+  registerPdfDisplayFont();
+
+  // Pre-fetch + inline photos as data URLs (failures dropped) so the render is
+  // reliable and fetch-free — card images and the hero collage in parallel.
+  const [itineraryForPdf, heroPhotos] = await Promise.all([
+    embedItineraryImages(itinerary, { perImageMs: 3000, max: 12 }),
+    embedHeroPhotos(itinerary, { perImageMs: 3000, max: 3 }),
+  ]);
 
   const base = {
+    heroPhotos,
     agency: {
       name: agency.name,
       tagline: agency.tagline,
@@ -65,10 +73,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   let buffer: Buffer;
   try {
-    buffer = await withTimeout(renderToBuffer(buildProposalPdf({ ...base, images: true })), 6_000);
+    buffer = await withTimeout(renderToBuffer(buildProposalPdf({ ...base, images: true, fonts: true })), 6_000);
   } catch (e) {
-    console.error('[proposal-pdf] image render failed/timed out — falling back to image-less:', (e as any)?.message ?? e);
-    buffer = await renderToBuffer(buildProposalPdf({ ...base, images: false }));
+    console.error('[proposal-pdf] rich render failed/timed out — falling back to plain:', (e as any)?.message ?? e);
+    // Plain fallback: no remote photos, no remote display font — cannot fail on a fetch.
+    buffer = await renderToBuffer(buildProposalPdf({ ...base, heroPhotos: [], images: false, fonts: false }));
   }
 
   return new NextResponse(buffer as any, {

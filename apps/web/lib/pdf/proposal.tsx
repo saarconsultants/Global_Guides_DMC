@@ -38,6 +38,8 @@ export interface ProposalPdfInput {
   currency?: string;   // agency display currency (default INR)
   rate?: number;       // INR→currency multiplier
   images?: boolean;    // render remote hotel/activity photos (default true; route disables on fallback)
+  heroPhotos?: string[]; // pre-embedded data URLs for the hero collage (>=2 to render)
+  fonts?: boolean;       // use the Fraunces display font (route falls back to built-ins)
   itinerary: Itinerary;
 }
 
@@ -64,8 +66,12 @@ function activityEmoji(category?: string): string {
   }
 }
 
-const styles = (primary: string, accent: string) =>
-  StyleSheet.create({
+const styles = (primary: string, accent: string, fonts: boolean) => {
+  const display = fonts ? 'Fraunces' : 'Helvetica-Bold';
+  const italicProps = fonts
+    ? ({ fontFamily: 'Fraunces', fontStyle: 'italic' as const, fontWeight: 500 as const })
+    : ({ fontFamily: 'Helvetica-Oblique' });
+  return StyleSheet.create({
     // paddingTop gives continuation pages (2+) a top gap. Page 1's hero cancels it
     // with a matching negative marginTop so the hero still bleeds to the very top.
     page: { paddingTop: 36, paddingBottom: 56, paddingHorizontal: 0, fontFamily: 'Helvetica', color: '#0F172A', fontSize: 10 },
@@ -80,7 +86,12 @@ const styles = (primary: string, accent: string) =>
     wordmark: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', marginBottom: 2 },
     wordmarkTag: { fontSize: 8.5, color: accent, marginBottom: 14 },
     eyebrow: { color: accent, fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold' },
-    title: { fontSize: 28, fontFamily: 'Helvetica-Bold', marginTop: 8, lineHeight: 1.1 },
+    title: { fontSize: 30, fontFamily: display, marginTop: 8, lineHeight: 1.1 },
+    heroTag: { ...italicProps, fontSize: 12.5, color: accent, marginTop: 5 },
+    collage: { flexDirection: 'row', gap: 10, marginTop: 18 },
+    collageFrame: { flex: 1, padding: 3, backgroundColor: '#FFFFFF', borderRadius: 12 },
+    collageInner: { borderRadius: 9, overflow: 'hidden', height: 84 },
+    collageImg: { width: '100%', height: '100%', objectFit: 'cover' },
     heroMeta: { fontSize: 10, color: '#E5E9F0', marginTop: 10 },
 
     // At-a-glance stat strip (overlaps hero bottom)
@@ -92,7 +103,7 @@ const styles = (primary: string, accent: string) =>
     statSub: { fontSize: 7.5, color: '#94A3B8', marginTop: 1 },
 
     section: { marginBottom: 16, marginTop: 6 },
-    sectionLabel: { color: primary, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold', marginBottom: 8, borderBottom: `1 solid ${accent}`, paddingBottom: 4 },
+    sectionLabel: { fontFamily: display, fontSize: 14, color: '#0B1F3A' },
     row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
 
     // Included checklist
@@ -121,14 +132,14 @@ const styles = (primary: string, accent: string) =>
     dayConnector: { width: 2, flexGrow: 1, backgroundColor: '#E5E9F0', marginTop: 4, borderRadius: 1 },
     dayContent: { flex: 1, paddingLeft: 10, paddingBottom: 6 },
     dayDate: { fontSize: 8, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 },
-    dayHeader: { fontSize: 12, fontFamily: 'Helvetica-Bold', color: primary, marginTop: 1 },
+    dayHeader: { fontSize: 12.5, fontFamily: display, color: primary, marginTop: 1 },
     dayNarr: { fontSize: 9.5, lineHeight: 1.5, marginTop: 3, color: '#475569' },
     slotRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
     slotText: { fontSize: 9.5, color: '#334155', flex: 1, lineHeight: 1.4 },
     slotWhen: { fontFamily: 'Helvetica-Bold', color: '#1F2937' },
 
     priceBox: { backgroundColor: primary, color: '#FFFFFF', borderRadius: 8, padding: 18, marginTop: 8 },
-    priceTotal: { fontSize: 26, fontFamily: 'Helvetica-Bold', marginTop: 2 },
+    priceTotal: { fontSize: 26, fontFamily: display, marginTop: 2 },
 
     contact: { marginTop: 14, borderRadius: 6, border: `1 solid ${accent}`, padding: 12 },
     contactTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: primary },
@@ -136,16 +147,17 @@ const styles = (primary: string, accent: string) =>
 
     footer: { position: 'absolute', bottom: 18, left: 36, right: 36, fontSize: 8, color: '#94A3B8', borderTop: '1 solid #E2E8F0', paddingTop: 6, flexDirection: 'row', justifyContent: 'space-between' },
   });
+};
 
 export function buildProposalPdf(input: ProposalPdfInput) {
   return <ProposalPdf {...input} />;
 }
 
-function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, images = true, itinerary: it }: ProposalPdfInput) {
+function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, images = true, heroPhotos = [], fonts = true, itinerary: it }: ProposalPdfInput) {
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
   const money = (paise: number | bigint) => formatMoneyCode(paise, currency, rate);
-  const s = styles(primary, accent);
+  const s = styles(primary, accent, fonts);
   const cities = it.destinations.map((d) => d.cityName);
   const nights = it.destinations.reduce((sum, d) => sum + d.nights, 0);
   const title = cities.length === 1 ? cities[0]! : `${cities.slice(0, -1).join(', ')} & ${cities.at(-1)}`;
@@ -189,9 +201,19 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           )}
           <Text style={s.eyebrow}>Trip Proposal · {code}{version && version > 1 ? ` · v${version}` : ''}</Text>
           <Text style={s.title}>{title}</Text>
+          <Text style={s.heroTag}>A journey we built for you.</Text>
           <Text style={s.heroMeta}>
             {customerName ? `Prepared for ${customerName}` : 'Your custom itinerary'}
           </Text>
+          {heroPhotos.length >= 2 && (
+            <View style={s.collage}>
+              {heroPhotos.map((src, i) => (
+                <View key={i} style={[s.collageFrame, { transform: i === 0 ? 'rotate(-2deg)' : i === 1 ? 'rotate(1.5deg) translateY(4)' : 'rotate(-1deg)' }]}>
+                  <View style={s.collageInner}><Image src={src} style={s.collageImg} /></View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* At-a-glance stat strip */}
@@ -205,7 +227,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
         <View style={s.body}>
           {/* What's included */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>What's included</Text>
+            <SectionTitle s={s} accent={accent}>What's included</SectionTitle>
             <View style={s.incWrap}>
               {included.map((inc, i) => (
                 <View key={i} style={s.incChip}>
@@ -219,7 +241,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {/* Flights */}
           {it.flights && (
             <View style={s.section}>
-              <Text style={s.sectionLabel}>Flights</Text>
+              <SectionTitle s={s} accent={accent}>Flights</SectionTitle>
               <FlightLegPdf s={s} label="Outbound" leg={it.flights} money={money} />
               {it.flights.return && <FlightLegPdf s={s} label="Return" leg={it.flights.return} money={money} />}
             </View>
@@ -228,7 +250,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {/* Hotels */}
           {hotelCount > 0 && (
             <View style={s.section}>
-              <Text style={s.sectionLabel}>Where you'll stay</Text>
+              <SectionTitle s={s} accent={accent}>Where you'll stay</SectionTitle>
               {it.destinations.map((d) => {
                 if (!d.stay) return null;
                 const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
@@ -264,7 +286,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {/* Day by day — flows after hotels (no forced page break, so page 1 isn't left half-empty).
               minPresenceAhead keeps the section heading from being stranded at the very bottom. */}
           <View style={[s.section, { marginTop: 14 }]} minPresenceAhead={120}>
-            <Text style={s.sectionLabel}>Day by day</Text>
+            <SectionTitle s={s} accent={accent}>Day by day</SectionTitle>
             {it.days.map((day, di) => {
               const slots = (['morning', 'afternoon', 'evening'] as const)
                 .map((slot) => ({ slot, a: day[slot] }))
@@ -302,7 +324,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {/* Docs & cover */}
           {(it.visa.length > 0 || it.insurance) && (
             <View style={s.section} wrap={false}>
-              <Text style={s.sectionLabel}>Documents &amp; cover</Text>
+              <SectionTitle s={s} accent={accent}>Documents &amp; cover</SectionTitle>
               {it.visa.map((v) => (
                 <View key={v.countryCode} style={s.row}><Text>{v.description}</Text><Text style={s.muted}>{v.included ? 'Included' : 'Not included'}</Text></View>
               ))}
@@ -354,4 +376,18 @@ function dayHeading(d: any) {
   if (d.type === 'departure') return `Departure from ${d.cityName}`;
   if (d.type === 'transit') return `${d.fromCityName ?? ''} – ${d.cityName}`;
   return `Day in ${d.cityName}`;
+}
+
+// Serif section heading with a short accent bar bleeding into a hairline rule —
+// mirrors the section treatment on the customer share page.
+function SectionTitle({ s, accent, children }: { s: any; accent: string; children: React.ReactNode }) {
+  return (
+    <View style={{ marginBottom: 9 }}>
+      <Text style={s.sectionLabel}>{children}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+        <View style={{ width: 28, height: 2.5, backgroundColor: accent }} />
+        <View style={{ flex: 1, height: 1, backgroundColor: '#EEF2F6' }} />
+      </View>
+    </View>
+  );
 }

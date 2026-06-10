@@ -23,6 +23,24 @@ async function toDataUrl(url: string, timeoutMs: number): Promise<string | null>
   }
 }
 
+/**
+ * Up to `max` destination photos for the PDF hero collage, as data URLs —
+ * hotel photos first, then activity photos. Failures are dropped; the caller
+ * skips the collage when fewer than 2 survive (mirrors the web hero rule).
+ */
+export async function embedHeroPhotos(it: Itinerary, opts?: { perImageMs?: number; max?: number }): Promise<string[]> {
+  const perImageMs = opts?.perImageMs ?? 3000;
+  const max = opts?.max ?? 3;
+  const urls = Array.from(new Set(
+    [
+      ...it.destinations.map((d) => d.stay?.hotel.thumb),
+      ...it.days.flatMap((day) => [day.morning?.thumb, day.afternoon?.thumb, day.evening?.thumb]),
+    ].filter((u): u is string => !!u && /^https?:\/\//i.test(u)),
+  )).slice(0, max);
+  const fetched = await Promise.all(urls.map((u) => toDataUrl(u, perImageMs)));
+  return fetched.filter((d): d is string => !!d);
+}
+
 export async function embedItineraryImages(
   it: Itinerary,
   opts?: { perImageMs?: number; max?: number },
