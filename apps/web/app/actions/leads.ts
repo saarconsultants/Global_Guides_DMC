@@ -20,14 +20,14 @@ export async function setLeadStatusAction(leadId: string, formData: FormData) {
 
 export async function updateLeadAction(leadId: string, formData: FormData) {
   const actor = await requireAgency();
-  const lead = await db.lead.findFirst({ where: { id: leadId, agencyId: actor.agencyId }, select: { id: true } });
-  if (!lead) return;
   const customerName = String(formData.get('customerName') ?? '').trim();
   const customerEmail = String(formData.get('customerEmail') ?? '').trim();
   const customerPhone = String(formData.get('customerPhone') ?? '').trim();
   const status = String(formData.get('status') ?? '').trim();
-  await db.lead.update({
-    where: { id: leadId },
+  // Tenant scoping enforced in the WHERE itself (updateMany), not via a separate
+  // pre-check — a check-then-update by bare id leaves a cross-tenant window.
+  await db.lead.updateMany({
+    where: { id: leadId, agencyId: actor.agencyId },
     data: {
       ...(customerName ? { customerName } : {}),
       customerEmail: customerEmail || null,
@@ -56,12 +56,12 @@ export async function addLeadNoteAction(leadId: string, formData: FormData) {
 
 export async function deleteLeadNoteAction(noteId: string, leadId: string) {
   const actor = await requireAgency();
-  // Only own author or AGENCY_OWNER can delete
-  const note = await db.leadNote.findUnique({ where: { id: noteId } });
+  // Only own author or AGENCY_OWNER can delete (policy pre-check), and the DELETE
+  // itself is tenant-scoped through the lead relation so a stale/forged id can
+  // never remove another agency's note.
+  const note = await db.leadNote.findUnique({ where: { id: noteId }, select: { authorId: true } });
   if (!note) return;
-  const lead = await db.lead.findFirst({ where: { id: note.leadId, agencyId: actor.agencyId }, select: { id: true } });
-  if (!lead) return;
   if (note.authorId !== actor.userId && actor.role !== 'AGENCY_OWNER') return;
-  await db.leadNote.delete({ where: { id: noteId } });
+  await db.leadNote.deleteMany({ where: { id: noteId, lead: { agencyId: actor.agencyId } } });
   revalidatePath(`/leads/${leadId}`);
 }

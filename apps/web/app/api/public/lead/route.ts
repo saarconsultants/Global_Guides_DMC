@@ -15,7 +15,25 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }
 
+// Best-effort per-IP throttle (in-memory per serverless instance). Not a strict
+// global limit, but it blunts naive widget spam with zero infra dependency.
+const RL_WINDOW_MS = 5 * 60_000;
+const RL_MAX = 8;
+const rl = new Map<string, { at: number; n: number }>();
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const e = rl.get(ip);
+  if (!e || now - e.at > RL_WINDOW_MS) { rl.set(ip, { at: now, n: 1 }); return false; }
+  e.n += 1;
+  return e.n > RL_MAX;
+}
+const clip = (s: string, max: number) => (s.length > max ? s.slice(0, max) : s);
+
 export async function POST(req: Request) {
+  const ip = (req.headers.get('x-forwarded-for') ?? 'unknown').split(',')[0]!.trim();
+  if (rateLimited(ip)) {
+    return NextResponse.json({ ok: false, error: 'Too many requests — try again shortly.' }, { status: 429, headers: CORS_HEADERS });
+  }
   let body: any = {};
   try {
     const ct = req.headers.get('content-type') ?? '';
@@ -31,12 +49,12 @@ export async function POST(req: Request) {
   // Honeypot: bots fill _hp; humans don't.
   if (body._hp) return NextResponse.json({ ok: true }, { headers: CORS_HEADERS });
 
-  const slug = String(body.slug ?? '').trim();
-  const customerName = String(body.customerName ?? '').trim();
-  const customerEmail = String(body.customerEmail ?? '').trim() || null;
-  const customerPhone = String(body.customerPhone ?? '').trim() || null;
-  const destinations = String(body.destinations ?? '').trim() || 'Unspecified';
-  const originCity = String(body.originCity ?? '').trim() || null;
+  const slug = clip(String(body.slug ?? '').trim(), 64);
+  const customerName = clip(String(body.customerName ?? '').trim(), 120);
+  const customerEmail = clip(String(body.customerEmail ?? '').trim(), 254) || null;
+  const customerPhone = clip(String(body.customerPhone ?? '').trim(), 32) || null;
+  const destinations = clip(String(body.destinations ?? '').trim(), 300) || 'Unspecified';
+  const originCity = clip(String(body.originCity ?? '').trim(), 80) || null;
   const nightsRaw = parseInt(String(body.nights ?? ''), 10);
   const nights = Number.isFinite(nightsRaw) && nightsRaw > 0 ? nightsRaw : null;
   const travelDateStr = String(body.travelDate ?? '').trim();
