@@ -11,6 +11,7 @@ import { formatDateShort } from '@/lib/utils';
 import { Users as UsersIcon, MailPlus, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { InviteLinkCopyButton } from '@/components/settings/invite-link-copy';
+import { ActionForm } from '@/components/ui/action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +45,7 @@ export default async function TeamSettingsPage() {
         <Card>
           <CardContent className="pt-6 space-y-3">
             <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><MailPlus className="w-4 h-4 text-crimson-700" />Invite a team member</h2>
-            <form action={createInviteAction} className="grid sm:grid-cols-[1fr_180px_120px] gap-2">
+            <ActionForm action={createInviteAction} success="Invite created" resetOnSuccess className="grid sm:grid-cols-[1fr_180px_120px] gap-2">
               <div><Label>Email</Label><Input name="email" type="email" required placeholder="counsellor@youragency.com" /></div>
               <div><Label>Role</Label>
                 <select name="role" defaultValue="COUNSELLOR" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
@@ -54,7 +55,7 @@ export default async function TeamSettingsPage() {
                 </select>
               </div>
               <div className="flex items-end"><Button type="submit" className="w-full">Create invite</Button></div>
-            </form>
+            </ActionForm>
             <p className="text-xs text-[rgb(var(--text-secondary))]">An invite is good for 7 days. We'll add automatic email delivery once Resend is wired &mdash; for now, copy the link below and send it manually.</p>
           </CardContent>
         </Card>
@@ -80,9 +81,9 @@ export default async function TeamSettingsPage() {
                       </td>
                       <td className="py-3 pr-4 text-right">
                         {isOwner && (
-                          <form action={revokeInviteAction.bind(null, inv.id)} className="inline">
+                          <ActionForm action={revokeInviteAction.bind(null, inv.id)} confirm="Revoke this invite?" success="Invite revoked" className="inline">
                             <button className="text-danger-500 hover:underline text-xs font-medium">Revoke</button>
-                          </form>
+                          </ActionForm>
                         )}
                       </td>
                     </tr>
@@ -110,9 +111,9 @@ export default async function TeamSettingsPage() {
                     <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs">{formatDateShort(u.createdAt)}</td>
                     <td className="py-3 pr-4 text-right">
                       {isOwner && u.id !== actor.userId && (
-                        <form action={removeTeamMemberAction.bind(null, u.id)} className="inline" onSubmit={(e) => { /* server confirms via uniqueness */ }}>
+                        <ActionForm action={removeTeamMemberAction.bind(null, u.id)} confirm="Remove this team member? They lose access immediately." success="Member removed" className="inline">
                           <button className="text-danger-500 hover:underline text-xs font-medium">Remove</button>
-                        </form>
+                        </ActionForm>
                       )}
                     </td>
                   </tr>

@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
 import { addLeadNoteAction, deleteLeadNoteAction } from '@/app/actions/leads';
 import { Phone, Mail, MessageCircle, Pencil, Cog, Trash2 } from 'lucide-react';
+import { ActionForm } from '@/components/ui/action-form';
 
 type NoteKind = 'NOTE' | 'CALL' | 'EMAIL' | 'WHATSAPP' | 'SYSTEM';
 
@@ -105,11 +106,11 @@ export function LeadNotesPanel({ leadId, notes, currentUserId, isOwner }: Props)
                   <p className="text-sm text-[rgb(var(--text-primary))] mt-1 whitespace-pre-wrap leading-relaxed">{n.body}</p>
                 </div>
                 {n.kind !== 'SYSTEM' && canDelete && (
-                  <form action={deleteLeadNoteAction.bind(null, n.id, leadId)} className="self-start">
-                    <button type="submit" aria-label="Delete note" className="opacity-0 group-hover:opacity-100 transition-opacity text-[rgb(var(--text-tertiary))] hover:text-danger-500 p-1 cursor-pointer">
+                  <ActionForm action={deleteLeadNoteAction.bind(null, n.id, leadId)} confirm="Delete this note?" success="Note deleted" className="self-start">
+                    <button type="submit" aria-label="Delete note" className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity text-[rgb(var(--text-tertiary))] hover:text-danger-500 p-1 cursor-pointer">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                  </form>
+                  </ActionForm>
                 )}
               </div>
             );

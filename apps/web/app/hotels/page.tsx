@@ -5,6 +5,7 @@ import { Pill } from '@/components/ui/pill';
 import { searchHotels, isLive } from '@gg/hotelbeds';
 import { captureException } from '@/lib/observability';
 import type { Hotel } from '@/lib/itinerary/types';
+import { PageHeader } from '@/components/ui/page-header';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,15 +96,11 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-navy-900 tracking-tight">Hotels</h1>
-          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">
-            {isLive() ? 'Live inventory via Hotelbeds (HBX Group) — 250k+ properties globally.' : 'Mock inventory. Add HOTELBEDS_API_KEY + HOTELBEDS_API_SECRET to go live.'}
-          </p>
-        </div>
-        {hasQuery && !dateInvalid && <Pill variant={badge.variant}>{badge.label}</Pill>}
-      </div>
+      <PageHeader
+        title="Hotels"
+        description={isLive() ? 'Live inventory via Hotelbeds (HBX Group) — 250k+ properties globally.' : 'Mock inventory. Add HOTELBEDS_API_KEY + HOTELBEDS_API_SECRET to go live.'}
+        actions={hasQuery && !dateInvalid ? <Pill variant={badge.variant}>{badge.label}</Pill> : undefined}
+      />
 
       <HotelSearchForm defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 

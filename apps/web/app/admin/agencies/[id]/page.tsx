@@ -12,6 +12,7 @@ import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletActi
 import { viewAsAgencyAction } from '@/app/actions/impersonation';
 import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
+import { ActionForm } from '@/components/ui/action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,36 +71,36 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
         <Card>
           <CardContent className="pt-5">
             <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><UsersIcon className="w-4 h-4 text-crimson-700" />Account status</h3>
-            <form action={setAgencyStatusAction.bind(null, agency.id)} className="space-y-2">
+            <ActionForm action={setAgencyStatusAction.bind(null, agency.id)} success="Status updated" className="space-y-2">
               <select name="status" defaultValue={agency.status} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
                 <option value="ACTIVE">ACTIVE — full access</option>
                 <option value="PENDING">PENDING — onboarding</option>
                 <option value="SUSPENDED">SUSPENDED — login blocked</option>
               </select>
               <Button size="sm" variant="secondary" className="w-full">Update status</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-5">
             <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h3>
-            <form action={updateAgencyMarkupAction.bind(null, agency.id)} className="space-y-2">
+            <ActionForm action={updateAgencyMarkupAction.bind(null, agency.id)} success="Markup saved" className="space-y-2">
               <div className="flex items-center gap-2">
                 <Input type="number" name="markupPct" defaultValue={agency.markupPct} step={0.5} min={0} max={100} className="flex-1" />
                 <span className="text-sm text-[rgb(var(--text-secondary))]">%</span>
               </div>
               <Button size="sm" variant="secondary" className="w-full">Save markup</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-5">
             <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><Wallet className="w-4 h-4 text-crimson-700" />Wallet credit</h3>
-            <form action={creditAgencyWalletAction.bind(null, agency.id)} className="space-y-2">
+            <ActionForm action={creditAgencyWalletAction.bind(null, agency.id)} confirm="Credit this agency's wallet?" success="Wallet credited" className="space-y-2">
               <Input type="number" name="rupees" placeholder="₹ amount" min={1} step={500} />
               <Input type="text" name="note" placeholder="Note (optional)" />
               <Button size="sm" className="w-full">Credit wallet</Button>
-            </form>
+            </ActionForm>
             <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">Adds a CREDIT WalletTxn row.</p>
           </CardContent>
         </Card>
@@ -123,9 +124,9 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
                       <td className="py-2 pr-4"><Pill variant={r.active ? 'success' : 'neutral'}>{r.active ? 'Active' : 'Inactive'}</Pill></td>
                       <td className="py-2 pr-4 text-[rgb(var(--text-secondary))] text-xs">{r.note ?? '—'}</td>
                       <td className="py-2 text-right">
-                        <form action={deleteCommissionRuleAction.bind(null, r.id)}>
+                        <ActionForm action={deleteCommissionRuleAction.bind(null, r.id)} confirm="Delete this commission override?" success="Override removed">
                           <button className="w-8 h-8 inline-flex items-center justify-center rounded-md text-danger-500 hover:bg-danger-100" aria-label="Delete rule"><Trash2 className="w-4 h-4" /></button>
-                        </form>
+                        </ActionForm>
                       </td>
                     </tr>
                   ))}

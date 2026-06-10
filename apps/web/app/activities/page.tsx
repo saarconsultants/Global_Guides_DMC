@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ActivitiesBrowser } from '@/components/activities/activities-browser';
 import { Sparkles } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
+import { PageHeader } from '@/components/ui/page-header';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,15 +60,11 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-navy-900 tracking-tight">Activities &amp; experiences</h1>
-          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">
-            {isLive('activities') ? 'Live tours & tickets via Hotelbeds. Browse to quote — add inside an itinerary to attach to a customer trip.' : 'Mock inventory. Add HOTELBEDS_ACTIVITIES_API_KEY to go live.'}
-          </p>
-        </div>
-        {hasQuery && <Pill variant={badge.variant}>{badge.label}</Pill>}
-      </div>
+      <PageHeader
+        title="Activities &amp; experiences"
+        description={isLive('activities') ? 'Live tours & tickets via Hotelbeds. Browse to quote — add inside an itinerary to attach to a customer trip.' : 'Mock inventory. Add HOTELBEDS_ACTIVITIES_API_KEY to go live.'}
+        actions={hasQuery ? <Pill variant={badge.variant}>{badge.label}</Pill> : undefined}
+      />
 
       <ActivitySearchForm defaults={{ city, from, to, adults }} />
 

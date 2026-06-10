@@ -4,6 +4,7 @@ import { searchFlights } from '@gg/tripjack';
 import { Pill } from '@/components/ui/pill';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 
 interface PageProps {
   searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
@@ -46,17 +47,15 @@ export default async function FlightsPage({ searchParams }: PageProps) {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-navy-900 tracking-tight">Flights</h1>
-          <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Live fares via Tripjack. Mock data shown only if the API key is unset.</p>
-        </div>
-        {results && !('error' in results) && (
+      <PageHeader
+        title="Flights"
+        description="Live fares via Tripjack. Mock data shown only if the API key is unset."
+        actions={results && !('error' in results) ? (
           <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
             {results.source === 'live' ? 'LIVE' : 'MOCK · set TRIPJACK_API_KEY to go live'}
           </Pill>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       <FlightSearchForm defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
 

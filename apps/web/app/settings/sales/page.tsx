@@ -12,6 +12,7 @@ import { MarkupRulesEditor } from '@/components/settings/markup-rules-editor';
 import { parseMarkupRules } from '@/lib/markup';
 import { SUPPORTED_CURRENCIES } from '@/lib/money';
 import { CalendarRange, Globe } from 'lucide-react';
+import { ActionForm } from '@/components/ui/action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +45,7 @@ export default async function SalesSettingsPage() {
         description="Set how much you add over net supplier cost. The default applies to every product type, then specific overrides win for that product."
       />
 
-      <form action={saveSalesSettingsAction} className="space-y-6">
+      <ActionForm action={saveSalesSettingsAction} success="Sales settings saved" className="space-y-6">
         <Card>
           <CardContent className="pt-6 space-y-4">
             <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><Globe className="w-4 h-4 text-crimson-700" />Display currency</h2>
@@ -115,7 +116,7 @@ export default async function SalesSettingsPage() {
           <Link href="/settings"><Button type="button" variant="ghost">Cancel</Button></Link>
           <Button type="submit">Save sales settings</Button>
         </div>
-      </form>
+      </ActionForm>
     </div>
   );
 }

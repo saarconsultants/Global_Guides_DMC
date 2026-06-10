@@ -12,6 +12,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Mail, Phone, FileText, ExternalLink, MessageCircle, Sparkles } from 'lucide-react';
 import { LeadNotesPanel } from '@/components/leads/notes-panel';
+import { ActionForm } from '@/components/ui/action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,12 +71,12 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         description={`${lead.customerEmail ?? '—'} · ${lead.customerPhone ?? '—'} · Created ${formatDateShort(lead.createdAt)} via ${lead.source}`}
         actions={
           <>
-            <form action={setLeadStatusAction.bind(null, lead.id)} className="inline-flex items-center gap-2">
+            <ActionForm action={setLeadStatusAction.bind(null, lead.id)} success="Lead status updated" className="inline-flex items-center gap-2">
               <select name="status" defaultValue={lead.status} className="h-10 rounded-md border border-border bg-surface px-3 text-sm">
                 {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
               </select>
               <Button size="sm" variant="secondary" type="submit">Update</Button>
-            </form>
+            </ActionForm>
             <Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New proposal</Button></Link>
           </>
         }
@@ -134,7 +135,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                           <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
                           <td className="py-3 pr-4"><Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
                           <td className="py-3 pr-4 text-right">
-                            <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1">Open <ExternalLink className="w-3 h-3" /></a>
+                            <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity inline-flex items-center gap-1">Open <ExternalLink className="w-3 h-3" /></a>
                           </td>
                         </tr>
                       ))}

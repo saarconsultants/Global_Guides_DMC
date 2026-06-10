@@ -54,6 +54,8 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
     <div ref={wrapRef} className={cn('relative', className)}>
       <button
         type="button"
+        aria-label="Open city search"
+        aria-expanded={open}
         onClick={() => setOpen(true)}
         className="h-10 w-full inline-flex items-center gap-2 rounded-sm border border-border bg-surface px-3 text-sm text-left hover:border-navy-300 focus:border-crimson-500 focus:outline-none focus:ring-2 focus:ring-crimson-100 transition-colors cursor-text"
       >
