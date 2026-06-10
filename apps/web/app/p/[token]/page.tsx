@@ -5,6 +5,7 @@ import { formatDateShort } from '@/lib/utils';
 import { displayMoneyFor } from '@/lib/money-server';
 import { Check, Bed, ShieldCheck, FileText, MapPin, Sparkles, Plane } from 'lucide-react';
 import { ResponseButtons } from './response-buttons';
+import { ImageWithFallback } from '@/components/common/image-with-fallback';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,15 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
 
   const cities = it.destinations.map((d) => d.cityName);
   const nights = it.destinations.reduce((s, d) => s + d.nights, 0);
+  // Destination photo collage for the hero — hotel photos first, then activity
+  // photos. Rendered only when we have at least 2 (a lone photo looks sparse);
+  // with 0–1 the hero stays the pure brand gradient.
+  const heroPhotos = Array.from(new Set(
+    [
+      ...it.destinations.map((d) => d.stay?.hotel.thumb),
+      ...it.days.flatMap((day) => [day.morning?.thumb, day.afternoon?.thumb, day.evening?.thumb]),
+    ].filter((u): u is string => !!u && /^https?:\/\//i.test(u)),
+  )).slice(0, 3);
   // White-label brand
   const primary = p.agency.primaryColor ?? '#0369A1';
   const accent  = p.agency.accentColor  ?? '#C9A24A';
@@ -72,6 +82,21 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
             <span className="inline-flex items-center gap-1.5 text-white/80"><Bed className="w-4 h-4" /> {nights} night{nights !== 1 ? 's' : ''}</span>
             <span className="inline-flex items-center gap-1.5 text-white/80">Departs {formatDateShort(p.travelDate)}</span>
           </div>
+
+          {heroPhotos.length >= 2 && (
+            <div className="relative mt-8 flex gap-3 sm:gap-4">
+              {heroPhotos.map((src, i) => (
+                <div
+                  key={src}
+                  className={`flex-1 h-24 sm:h-28 lg:h-36 rounded-xl overflow-hidden shadow-[0_0_0_2px_rgba(255,255,255,0.28),0_18px_40px_-12px_rgba(0,0,0,0.55)] ${
+                    i === 0 ? '-rotate-[1.8deg]' : i === 1 ? 'rotate-[1.2deg] translate-y-1.5' : '-rotate-[0.8deg]'
+                  }`}
+                >
+                  <ImageWithFallback src={src} alt="" className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -81,7 +106,12 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
           <h2 className="font-display text-2xl font-semibold text-navy-900 mb-4">At a glance</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {it.destinations.map((d) => d.stay && (
-              <div key={d.cityCode} className="rounded-lg bg-surface border border-border-subtle p-4 lift">
+              <div key={d.cityCode} className="rounded-lg bg-surface border border-border-subtle p-4 lift overflow-hidden">
+                {d.stay.hotel.thumb && /^https?:\/\//i.test(d.stay.hotel.thumb) && (
+                  <div className="h-20 -mx-4 -mt-4 mb-3 overflow-hidden">
+                    <ImageWithFallback src={d.stay.hotel.thumb} alt={d.stay.hotel.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{d.nights} night{d.nights !== 1 ? 's' : ''} in</p>
                 <p className="text-lg font-bold text-navy-900">{d.cityName}</p>
                 <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">{d.stay.hotel.stars}★ {d.stay.hotel.name}</p>
