@@ -47,10 +47,18 @@ export async function getInrRates(): Promise<Record<string, number>> {
 export async function getDisplayRate(currency: string): Promise<number> {
   const code = (currency ?? 'INR').toUpperCase();
   if (code === 'INR') return 1;
+  let rate: number | undefined;
   try {
     const rates = await getInrRates();
-    return rates[code] ?? FALLBACK[code] ?? 1;
+    rate = rates[code] ?? FALLBACK[code];
   } catch {
-    return FALLBACK[code] ?? 1;
+    rate = FALLBACK[code];
   }
+  if (rate === undefined) {
+    // Should be unreachable (currency is validated as supported before save) —
+    // but rate=1 silently mislabels INR amounts as another currency, so shout.
+    console.error(`[fx-display] No rate for currency "${code}" — displaying INR amounts unconverted.`);
+    return 1;
+  }
+  return rate;
 }

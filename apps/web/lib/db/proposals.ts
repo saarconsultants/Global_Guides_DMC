@@ -61,7 +61,10 @@ export async function saveProposal(args: SaveProposalArgs): Promise<{ id: string
     markupReason = resolved.reason;
   }
   void markupReason;
-  const total = BigInt(Math.round(Number(net) * (1 + markupPct / 100)));
+  // Integer basis-point math (handles fractional % like 12.5) — exact at any
+  // magnitude, no float round-trip on money.
+  const markupBp = BigInt(Math.round(markupPct * 100));
+  const total = net + (net * markupBp) / 10000n;
   const netCost = net;
   const markup = total - net;
   const adults = it.intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
