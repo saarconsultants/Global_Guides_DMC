@@ -148,7 +148,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs max-w-xs truncate">{r.note ?? '—'}</td>
                       <td className="py-3 pr-4 text-right">
                         <form action={deleteCommissionRuleAction.bind(null, r.id)} className="inline">
-                          <button className="text-danger-500 hover:underline text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">Delete</button>
+                          <button className="text-danger-500 hover:underline text-xs font-medium opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Delete</button>
                         </form>
                       </td>
                     </tr>

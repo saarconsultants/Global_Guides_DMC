@@ -70,7 +70,7 @@ export default async function AdminTemplatesPage() {
                         </form>
                       </td>
                       <td className="py-3 pr-4 text-right">
-                        <div className="inline-flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="inline-flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">
                           <Link href={`/admin/templates/${t.id}` as any} className="text-xs text-crimson-700 hover:underline inline-flex items-center gap-1"><Edit className="w-3 h-3" />Edit</Link>
                           {t.published && (
                             <Link href={`/suggested?region=${t.region}` as any} target="_blank" className="text-xs text-[rgb(var(--text-secondary))] hover:text-navy-700 inline-flex items-center gap-1"><Eye className="w-3 h-3" />Preview</Link>

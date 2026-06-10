@@ -84,3 +84,11 @@
   .stagger > *:nth-child(n+9){ animation-delay: 360ms; }
   @keyframes stagger { to { opacity: 1; transform: translateY(0); } }
 }
+
+/* Respect reduced-motion: kill decorative animation/transition layers. */
+@media (prefers-reduced-motion: reduce) {
+  .lift, .elevate, .stagger > *, dialog, dialog::backdrop, .animate-in {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -274,7 +274,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         </div>
 
         {/* Sticky rails */}
-        <aside id="section-price" className="space-y-4 lg:sticky lg:top-[170px] self-start">
+        <aside id="section-price" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[170px] self-start">
           <PriceRail itinerary={itinerary} onSave={() => setSaveOpen(true)} />
           <TripSummaryRail itinerary={itinerary} />
         </aside>

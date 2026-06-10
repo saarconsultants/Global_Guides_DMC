@@ -110,7 +110,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                           {p.status === 'BOOKED' && (
                             <a href={`/api/booking-voucher/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-success-600 hover:underline" title="Download booking voucher"><FileCheck className="w-3 h-3" />Voucher</a>
                           )}
-                          <div className="inline-flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="inline-flex items-center gap-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">
                             <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline" title="Open customer link">
                               Open <ExternalLink className="w-3 h-3" />
                             </a>

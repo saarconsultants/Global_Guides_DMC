@@ -15,7 +15,7 @@ const NAV_AGENCY = [
   { href: '/activities', label: 'Activities', icon: MapPin },
   { href: '/holidays', label: 'Holidays', icon: Users },
   { href: '/marketing', label: 'Marketing', icon: Megaphone },
-  { href: '/leads', label: 'My Leads', icon: ClipboardList },
+  { href: '/leads', label: 'Leads', icon: ClipboardList },
   { href: '/proposals', label: 'Proposals', icon: FileText },
   { href: '/bookings', label: 'Bookings', icon: Briefcase },
   { href: '/team', label: 'Team', icon: BarChart3 },
@@ -78,7 +78,7 @@ export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
 
           {notif && <div className="ml-auto lg:ml-0"><NotificationBell initialUnread={notif.unread} initialItems={notif.items} /></div>}
 
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-10 h-10 inline-flex items-center justify-center rounded-md text-white hover:bg-white/10" aria-label={mobileOpen ? 'Close menu' : 'Open menu'}>
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-11 h-11 inline-flex items-center justify-center rounded-md text-white hover:bg-white/10" aria-label={mobileOpen ? 'Close menu' : 'Open menu'}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -103,6 +103,10 @@ export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
                 );
               })}
             </nav>
+            {/* Utility actions (Contact / Recharge / account) — desktop strip is hidden below lg */}
+            <div className="px-3 py-3 border-t border-white/10 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+              <NavUtilityStrip actor={actor} walletLabel={walletLabel} />
+            </div>
             <div className="px-3 py-3 border-t border-white/10 flex items-center justify-between text-xs">
               <Link href="/statement" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1.5 text-white/70"><Wallet className="w-3.5 h-3.5" /> Wallet {walletLabel}</Link>
               {actor.role === 'SUPER_ADMIN' && <Link href="/admin" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white text-crimson-900 font-semibold"><ShieldCheck className="w-3 h-3" /> Admin</Link>}

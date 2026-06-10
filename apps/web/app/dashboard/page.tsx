@@ -142,7 +142,7 @@ export default async function DashboardPage() {
                           </div>
                           <p className="text-xs text-[rgb(var(--text-secondary))] truncate">New lead · {l.destinations} {l.source !== 'manual' && <span className="text-[rgb(var(--text-tertiary))]">· via {l.source}</span>}</p>
                         </div>
-                        <span className="text-xs text-crimson-700 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Send quote →</span>
+                        <span className="text-xs text-crimson-700 font-semibold opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Send quote →</span>
                       </Link>
                     </li>
                   ))}
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
                           </div>
                           <p className="text-xs text-[rgb(var(--text-secondary))] truncate">Viewed <span className="font-mono">{p.code}</span> · no response yet — time to nudge</p>
                         </div>
-                        <span className="text-xs text-crimson-700 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Follow up →</span>
+                        <span className="text-xs text-crimson-700 font-semibold opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Follow up →</span>
                       </Link>
                     </li>
                   ))}
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
                           </div>
                           <p className="text-xs text-[rgb(var(--text-secondary))] truncate">Sent <span className="font-mono">{p.code}</span> · never opened — re-share the link</p>
                         </div>
-                        <span className="text-xs text-crimson-700 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Reshare →</span>
+                        <span className="text-xs text-crimson-700 font-semibold opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Reshare →</span>
                       </Link>
                     </li>
                   ))}

@@ -113,7 +113,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
                   <button
                     key={s}
                     onClick={() => setSlotOpen(s)}
-                    className={`text-left rounded-lg border px-2.5 py-2 transition-colors cursor-pointer min-h-[3.75rem] ${act ? 'border-border-subtle bg-surface hover:border-crimson-300' : 'border-dashed border-border bg-surface-2/40 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
+                    className={`text-left rounded-lg border px-3 py-2.5 transition-colors cursor-pointer min-h-[3.75rem] ${act ? 'border-border-subtle bg-surface hover:border-crimson-300' : 'border-dashed border-border bg-surface-2/40 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
                   >
                     <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-0.5">{s}</p>
                     {act ? (
