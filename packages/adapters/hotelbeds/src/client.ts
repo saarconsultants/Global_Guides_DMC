@@ -15,10 +15,30 @@
 
 import { createHash } from 'node:crypto';
 
+/** Body is an HTML page, not JSON — i.e. a gateway/CDN error page, not a Hotelbeds API response. */
+function looksLikeHtml(s: string): boolean {
+  const head = s.trimStart().slice(0, 200).toLowerCase();
+  return head.startsWith('<!doctype html') || head.startsWith('<html') || head.includes('<head');
+}
+
 export class HotelbedsHttpError extends Error {
+  /** Supplier-side / transient failure (5xx, 429, or an HTML gateway page) — our request was fine, retry later. */
+  public readonly upstream: boolean;
+  /** Clean, user-safe sentence. Never contains raw HTML or response bodies. */
+  public readonly userMessage: string;
   constructor(public status: number, public body: string) {
-    super(`Hotelbeds HTTP ${status}: ${body.slice(0, 300)}`);
+    const upstream = status >= 500 || status === 429 || looksLikeHtml(body);
+    const userMessage =
+      status === 429 ? 'Hotelbeds rate-limited the request. Wait a minute and try again.'
+      : status === 504 ? 'Hotelbeds took too long to respond. Please try again in a moment.'
+      : upstream ? `Hotelbeds is temporarily unavailable (gateway error ${status}). This is a supplier-side issue — please retry shortly.`
+      : `Hotelbeds rejected the request (HTTP ${status}).`;
+    // Keep .message clean so it is safe to surface to users (search warnings render
+    // it directly). Raw body stays on .body for server logs only.
+    super(userMessage);
     this.name = 'HotelbedsHttpError';
+    this.upstream = upstream;
+    this.userMessage = userMessage;
   }
 }
 
@@ -97,6 +117,8 @@ interface HbCallInit {
   method?: 'GET' | 'POST';
   timeoutMs?: number;
   product?: Product;
+  /** Retries for FAST transient upstream blips (5xx/HTML). Only set on idempotent searches. */
+  retries?: number;
 }
 
 export async function hbCall<T = unknown>(path: string, body?: unknown, init?: HbCallInit): Promise<T> {
@@ -106,32 +128,58 @@ export async function hbCall<T = unknown>(path: string, body?: unknown, init?: H
     throw new Error(`HOTELBEDS_${product.toUpperCase()}_API_KEY / SECRET (or fallback HOTELBEDS_API_KEY/SECRET) not set — adapter is in mock-only mode for ${product}.`);
   }
 
-  const headers: Record<string, string> = {
-    'Api-key': key,
-    'X-Signature': signature(key, secret),
-    'Accept': 'application/json',
-    'Accept-Encoding': 'gzip',
-  };
-
   const method = init?.method ?? (body ? 'POST' : 'GET');
-  if (method === 'POST') headers['Content-Type'] = 'application/json';
-
   // Vercel Hobby has a 10s function timeout — we MUST come back under it
   // even on slow upstream calls. Default 8s budget per Hotelbeds call.
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), init?.timeoutMs ?? 8_000);
-  try {
-    const res = await fetch(`${baseUrl()}${path}`, {
-      method,
-      headers,
-      body: method === 'POST' ? JSON.stringify(body ?? {}) : undefined,
-      signal: ctl.signal,
-      cache: 'no-store',
-    });
-    const text = await res.text();
-    if (!res.ok) throw new HotelbedsHttpError(res.status, text);
-    return text ? (JSON.parse(text) as T) : ({} as T);
-  } finally {
-    clearTimeout(t);
+  const timeoutMs = init?.timeoutMs ?? 8_000;
+  const maxRetries = init?.retries ?? 0;
+  const overallStart = Date.now();
+
+  for (let attempt = 0; ; attempt++) {
+    const headers: Record<string, string> = {
+      'Api-key': key,
+      'X-Signature': signature(key, secret), // time-based — must be fresh per attempt
+      'Accept': 'application/json',
+      'Accept-Encoding': 'gzip',
+    };
+    if (method === 'POST') headers['Content-Type'] = 'application/json';
+
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${baseUrl()}${path}`, {
+        method,
+        headers,
+        body: method === 'POST' ? JSON.stringify(body ?? {}) : undefined,
+        signal: ctl.signal,
+        cache: 'no-store',
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        // Full upstream body (often an HTML gateway page) → server logs only, never the client.
+        console.error(`[Hotelbeds] HTTP ${res.status} on ${path}:\n`, text.slice(0, 1000));
+        throw new HotelbedsHttpError(res.status, text);
+      }
+      try {
+        return text ? (JSON.parse(text) as T) : ({} as T);
+      } catch {
+        console.error(`[Hotelbeds] 200 but non-JSON body on ${path}:\n`, text.slice(0, 1000));
+        throw new HotelbedsHttpError(502, text);
+      }
+    } catch (e: any) {
+      if (e?.name === 'AbortError') e = new HotelbedsHttpError(504, `Request aborted after ${timeoutMs}ms timeout.`);
+      // Retry once on a FAST transient blip (5xx/HTML) — never on 429 (makes it
+      // worse) or 504 (budget already spent), and only with time budget left.
+      const transient = e instanceof HotelbedsHttpError && e.upstream && e.status !== 429 && e.status !== 504;
+      if (transient && attempt < maxRetries && Date.now() - overallStart < 3_000) {
+        console.warn(`[Hotelbeds] transient ${e.status} on ${path} — retry ${attempt + 1}/${maxRetries}`);
+        clearTimeout(t);
+        await new Promise((r) => setTimeout(r, 400));
+        continue;
+      }
+      throw e;
+    } finally {
+      clearTimeout(t);
+    }
   }
 }

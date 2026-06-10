@@ -78,7 +78,7 @@ export async function fetchHotelImages(codes: number[]): Promise<Map<number, Hot
     chunks.map(async (chunk) => {
       try {
         const path = `/hotel-content-api/1.0/hotels?codes=${chunk.join(',')}&fields=name,images&language=ENG&from=1&to=200&useSecondaryLanguage=false`;
-        const res = await hbCall<HbContentResponse>(path, undefined, { method: 'GET', timeoutMs: 20_000 });
+        const res = await hbCall<HbContentResponse>(path, undefined, { method: 'GET', timeoutMs: 7_000 });
         const hotels = res.hotels ?? [];
 
         // Build a code → data map; default empty for any not returned

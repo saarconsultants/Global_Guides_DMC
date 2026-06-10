@@ -78,7 +78,7 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
     };
 
     const [res, rates] = await Promise.all([
-      hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body, { product: 'activities' }),
+      hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body, { product: 'activities', retries: 1 }),
       getRates(),
     ]);
     return { activities: normalize(res, input.cityCode, rates), source: 'live' };

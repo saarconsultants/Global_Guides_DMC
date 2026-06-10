@@ -58,7 +58,7 @@ export async function searchTransfers(input: TransferSearchInput): Promise<Trans
     const path = `/transfer-api/1.0/availability/en/from/${input.fromType}/${input.fromCode}/to/${input.toType}/${input.toCode}/${input.pickupDate}/${input.pickupDate}/${input.adults}/${input.children ?? 0}/${input.infants ?? 0}`;
     try {
       const [res, rates] = await Promise.all([
-        hbCall<HbTransfersResponse>(path, undefined, { method: 'GET', timeoutMs: 20_000, product: 'transfers' }),
+        hbCall<HbTransfersResponse>(path, undefined, { method: 'GET', timeoutMs: 7_000, product: 'transfers', retries: 1 }),
         getRates(),
       ]);
       return { transfers: normalize(res, rates), source: 'live' };

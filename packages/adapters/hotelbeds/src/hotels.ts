@@ -65,7 +65,7 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
     };
 
     const [res, rates] = await Promise.all([
-      hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body),
+      hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body, { retries: 1 }),
       getRates(),
     ]);
     const nights = Math.max(1, Math.round((new Date(input.checkOut).getTime() - new Date(input.checkIn).getTime()) / 86_400_000));

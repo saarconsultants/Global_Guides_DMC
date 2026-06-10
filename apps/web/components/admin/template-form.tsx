@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -202,7 +203,7 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
                 </form>
               )}
               <Link href="/admin/templates"><Button type="button" variant="ghost">Cancel</Button></Link>
-              <Button type="submit" className="gap-1.5"><Save className="w-4 h-4" />{isEdit ? 'Save changes' : 'Publish template'}</Button>
+              <SubmitButton isEdit={isEdit} />
             </div>
           </CardContent>
         </Card>
@@ -238,5 +239,16 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
         <p className="text-xs text-[rgb(var(--text-secondary))] inline-flex items-center gap-1"><Eye className="w-3 h-3" />Live preview &mdash; updates as you type.</p>
       </aside>
     </form>
+  );
+}
+
+// Disables itself while the server action runs — prevents double-publish on slow saves.
+function SubmitButton({ isEdit }: { isEdit: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="gap-1.5">
+      <Save className="w-4 h-4" />
+      {pending ? 'Saving…' : isEdit ? 'Save changes' : 'Publish template'}
+    </Button>
   );
 }
