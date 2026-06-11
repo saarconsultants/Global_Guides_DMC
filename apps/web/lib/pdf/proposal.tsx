@@ -285,7 +285,8 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
 
           {/* Day by day — flows after hotels (no forced page break, so page 1 isn't left half-empty).
               minPresenceAhead keeps the section heading from being stranded at the very bottom. */}
-          <View style={[s.section, { marginTop: 14 }]} minPresenceAhead={120}>
+          {/* 200pt ≈ heading + one full day item — never strand the heading alone. */}
+          <View style={[s.section, { marginTop: 14 }]} minPresenceAhead={200}>
             <SectionTitle s={s} accent={accent}>Day by day</SectionTitle>
             {it.days.map((day, di) => {
               const slots = (['morning', 'afternoon', 'evening'] as const)
