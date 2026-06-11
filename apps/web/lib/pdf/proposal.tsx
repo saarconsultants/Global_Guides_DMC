@@ -1,19 +1,22 @@
-// Full branded itinerary PDF for a saved proposal. Multi-page:
-// hero → at-a-glance → what's included → flights → hotels → day-by-day →
-// docs & cover → price → contact. Rendered server-side via @react-pdf/renderer.
+// Branded itinerary PDF for a saved proposal — editorial "travel magazine" design.
+//
+// Structure: full-bleed brand cover (title, tagline, meta grid) → content pages
+// (numbered serif sections, ghost day numerals, white Investment treatment) with
+// a fixed accent stripe, rotated spine wordmark and footer on every content page.
 //
 // Notes on @react-pdf limitations we work around here:
 //  - Helvetica lacks many currency glyphs (₹, €, ฿…), so money is printed with
 //    the 3-letter ISO code (formatMoneyCode) instead of the symbol.
 //  - <Image> cannot render SVG. Agency logos that aren't PNG/JPG fall back to a
 //    styled text wordmark so the brand always shows.
+//  - No gradients — layered low-opacity circles ("orbs") stand in for depth.
 
 import { Document, Page, View, Text, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
 
 // Emoji in @react-pdf are rendered as images fetched from a CDN (Helvetica has no
-// emoji glyphs). Used for the small transfer marker.
+// emoji glyphs). Used for the small activity/transfer markers.
 Font.registerEmojiSource({ format: 'png', url: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/' });
 
 // Hotel star rating is always gold (independent of the agency accent colour).
@@ -37,8 +40,8 @@ export interface ProposalPdfInput {
   customerName?: string | null;
   currency?: string;   // agency display currency (default INR)
   rate?: number;       // INR→currency multiplier
-  images?: boolean;    // render remote hotel/activity photos (default true; route disables on fallback)
-  fonts?: boolean;       // use the Fraunces display font (route falls back to built-ins)
+  images?: boolean;    // render remote hotel photos (default true; route disables on fallback)
+  fonts?: boolean;     // use the Fraunces display font (route falls back to built-ins)
   itinerary: Itinerary;
 }
 
@@ -58,12 +61,13 @@ function pdfImg(url?: string | null): string | null {
 // Emoji marker per activity category (rendered via the registered twemoji source).
 function activityEmoji(category?: string): string {
   switch (category) {
-    case 'museum': return '🏛️';      // 🏛️
-    case 'tour': return '🧭';                 // 🧭
-    case 'experience': return '🎟️';   // 🎟️
-    default: return '📸';                      // 📸 sightseeing
+    case 'museum': return '🏛️';
+    case 'tour': return '🧭';
+    case 'experience': return '🎟️';
+    default: return '📸'; // sightseeing
   }
 }
+const pad2 = (n: number) => String(n).padStart(2, '0');
 
 const styles = (primary: string, accent: string, fonts: boolean) => {
   const display = fonts ? 'Fraunces' : 'Helvetica-Bold';
@@ -71,86 +75,91 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     ? ({ fontFamily: 'Fraunces', fontStyle: 'italic' as const, fontWeight: 500 as const })
     : ({ fontFamily: 'Helvetica-Oblique' });
   return StyleSheet.create({
-    // paddingTop gives continuation pages (2+) a top gap. Page 1's hero cancels it
-    // with a matching negative marginTop so the hero still bleeds to the very top.
-    page: { paddingTop: 36, paddingBottom: 56, paddingHorizontal: 0, fontFamily: 'Helvetica', color: '#0F172A', fontSize: 10 },
-    body: { paddingHorizontal: 36 },
+    // ── Cover ──
+    coverPage: { padding: 0 },
+    cover: { backgroundColor: primary, width: '100%', height: '100%', padding: 48, color: '#FFFFFF', position: 'relative', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between' },
+    orb1: { position: 'absolute', top: -120, right: -80, width: 340, height: 340, borderRadius: 170, backgroundColor: '#FFFFFF', opacity: 0.05 },
+    orb2: { position: 'absolute', top: 60, right: 40, width: 150, height: 150, borderRadius: 75, backgroundColor: accent, opacity: 0.09 },
+    orb3: { position: 'absolute', bottom: -90, left: -70, width: 260, height: 260, borderRadius: 130, backgroundColor: '#FFFFFF', opacity: 0.04 },
+    logoChip: { backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 6, padding: 7, alignSelf: 'flex-start' },
+    logoImg: { height: 30, maxWidth: 200, objectFit: 'contain' },
+    wordmark: { color: primary, fontFamily: 'Helvetica-Bold', fontSize: 12 },
+    eyebrowChip: { alignSelf: 'flex-start', border: `1 solid ${accent}66`, borderRadius: 10, paddingVertical: 3, paddingHorizontal: 9, marginBottom: 14 },
+    eyebrow: { fontSize: 8, letterSpacing: 2, color: accent, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
+    coverTitle: { fontFamily: display, fontSize: 40, lineHeight: 1.08 },
+    coverTag: { ...italicProps, fontSize: 14, color: accent, marginTop: 10 },
+    coverFor: { fontSize: 10.5, color: 'rgba(255,255,255,0.85)', marginTop: 8 },
+    coverRule: { height: 1, backgroundColor: 'rgba(255,255,255,0.22)', marginBottom: 14 },
+    metaRow: { flexDirection: 'row' },
+    metaCol: { flex: 1, paddingRight: 8 },
+    metaKicker: { fontSize: 7, letterSpacing: 1.5, color: 'rgba(255,255,255,0.55)', fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
+    metaValue: { fontFamily: display, fontSize: 14, marginTop: 4, lineHeight: 1 },
+    metaSub: { fontSize: 7.5, color: 'rgba(255,255,255,0.45)', marginTop: 3 },
+    coverFootRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
+    coverFootText: { fontSize: 8, color: 'rgba(255,255,255,0.5)' },
 
-    // Hero
-    hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28, marginTop: -36, position: 'relative', overflow: 'hidden' },
-    orbLg: { position: 'absolute', top: -70, right: -50, width: 220, height: 220, borderRadius: 110, backgroundColor: '#FFFFFF', opacity: 0.05 },
-    orbSm: { position: 'absolute', top: 20, right: 60, width: 120, height: 120, borderRadius: 60, backgroundColor: accent, opacity: 0.1 },
+    // ── Content pages ──
+    page: { paddingTop: 46, paddingBottom: 56, paddingHorizontal: 48, fontFamily: 'Helvetica', color: '#0F172A', fontSize: 10 },
     pageStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: accent },
-    // Fixed height + alignSelf:'flex-start' so the logo keeps its aspect ratio and sits
-    // left. Without alignSelf the hero (a stretch column) pulls the image to full width
-    // and distorts it; objectFit:'contain' + maxWidth guard keeps very wide logos sane.
-    logo: { height: 38, maxWidth: 260, objectFit: 'contain', alignSelf: 'flex-start', marginBottom: 16 },
-    wordmark: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', marginBottom: 2 },
-    wordmarkTag: { fontSize: 8.5, color: accent, marginBottom: 14 },
-    eyebrowChip: { alignSelf: 'flex-start', border: `1 solid ${accent}66`, borderRadius: 10, paddingVertical: 3, paddingHorizontal: 9 },
-    eyebrow: { color: accent, fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold' },
-    title: { fontSize: 30, fontFamily: display, marginTop: 8, lineHeight: 1.1 },
-    heroTag: { ...italicProps, fontSize: 12.5, color: accent, marginTop: 5 },
-    heroMeta: { fontSize: 10, color: '#E5E9F0', marginTop: 10 },
+    spineWrap: { position: 'absolute', left: -116, top: 370, width: 260, height: 10, transform: 'rotate(-90deg)' },
+    spineText: { fontSize: 6.5, letterSpacing: 2.5, color: '#C5CCD6', fontFamily: 'Helvetica-Bold', textAlign: 'center' },
 
-    // At-a-glance stat strip (overlaps hero bottom)
-    statRow: { flexDirection: 'row', marginTop: 18, marginHorizontal: 36, marginBottom: 4 },
-    stat: { flex: 1, backgroundColor: '#FCFCFD', borderRadius: 6, padding: 10, marginRight: 8, border: '1 solid #E8EDF2', borderTop: `2.5 solid ${accent}` },
-    statLast: { marginRight: 0 },
-    statLabel: { fontSize: 7, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, fontFamily: 'Helvetica-Bold' },
-    statValue: { fontSize: 14, fontFamily: display, color: primary, marginTop: 3, lineHeight: 1 },
-    statSub: { fontSize: 7.5, color: '#94A3B8', marginTop: 2 },
-
-    section: { marginBottom: 16, marginTop: 6 },
-    sectionLabel: { fontFamily: display, fontSize: 14, color: '#0B1F3A' },
-    row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+    section: { marginBottom: 18 },
+    secNum: { ...italicProps, fontSize: 11, color: accent },
+    secTitle: { fontFamily: display, fontSize: 16, color: '#0B1F3A' },
 
     // Included checklist
-    incWrap: { flexDirection: 'row', flexWrap: 'wrap' },
-    incChip: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 5 },
-    incDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: accent, marginRight: 6 },
+    incWrap: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 2 },
+    incChip: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 6 },
+    incSq: { width: 4.5, height: 4.5, backgroundColor: accent, marginRight: 7 },
+    incSqOff: { width: 4.5, height: 4.5, border: '1 solid #D8DEE7', backgroundColor: 'transparent', marginRight: 7 },
     incText: { fontSize: 9.5, color: '#1F2937' },
-    incMuted: { fontSize: 9.5, color: '#CBD5E1' },
+    incMuted: { fontSize: 9.5, color: '#C3CBD6' },
 
-    card: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 12, marginBottom: 8, border: '1 solid #EEF2F6' },
-    hotelCard: { flexDirection: 'row', backgroundColor: '#F8FAFC', borderRadius: 6, marginBottom: 8, border: '1 solid #EEF2F6', overflow: 'hidden' },
-    hotelPhotoCol: { width: 96, height: 76 },
-    hotelBody: { flex: 1, padding: 10, justifyContent: 'center' },
-    hotelThumb: { width: '100%', height: '100%', objectFit: 'cover' },
-    // Every day-by-day slot uses one fixed-width emoji marker so the text after it
-    // always left-aligns (activities by category, 🚗 for transfers).
-    slotMarker: { width: 22, marginRight: 6, alignItems: 'center', justifyContent: 'center' },
-    markerEmoji: { fontSize: 15 },
-    priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
+    card: { backgroundColor: '#FBFCFD', borderRadius: 6, padding: 12, marginBottom: 8, border: '1 solid #E8EDF2' },
+    row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
+
+    // Stays
+    hotelCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 6, marginBottom: 8, border: '1 solid #E8EDF2', overflow: 'hidden' },
+    hotelPhotoCol: { width: 110, height: 84 },
+    hotelThumb: { width: '100%', height: '100%', objectFit: 'cover' },
+    hotelBody: { flex: 1, padding: 11, justifyContent: 'center' },
+    hotelName: { fontFamily: display, fontSize: 11.5, color: '#0B1F3A' },
+    hotelPrice: { fontFamily: display, fontSize: 12, color: primary },
+    priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1, textAlign: 'right' },
+
+    // Day by day — ghost numerals
+    dayItem: { flexDirection: 'row', marginBottom: 15 },
+    dayNumCol: { width: 40 },
+    dayNum: { fontFamily: display, fontSize: 24, color: primary, opacity: 0.25, lineHeight: 1 },
+    dayContent: { flex: 1 },
+    dayDate: { fontSize: 7.5, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, fontFamily: 'Helvetica-Bold' },
+    dayHeader: { fontFamily: display, fontSize: 13, color: primary, marginTop: 2 },
+    dayNarr: { fontSize: 9.5, lineHeight: 1.5, marginTop: 3, color: '#475569' },
+    slotRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+    slotMarker: { width: 20, marginRight: 6, alignItems: 'center', justifyContent: 'center' },
+    markerEmoji: { fontSize: 13 },
+    slotText: { fontSize: 9.5, color: '#334155', flex: 1, lineHeight: 1.4 },
+    slotWhen: { fontFamily: 'Helvetica-Bold', color: '#1F2937' },
+
+    // Documents pills
     pillOn: { borderRadius: 8, backgroundColor: `${accent}2E`, paddingVertical: 2.5, paddingHorizontal: 8 },
     pillOnText: { fontSize: 7, color: '#1F2937', fontFamily: 'Helvetica-Bold', letterSpacing: 0.5 },
     pillOff: { borderRadius: 8, backgroundColor: '#F1F5F9', paddingVertical: 2.5, paddingHorizontal: 8 },
     pillOffText: { fontSize: 7, color: '#64748B', fontFamily: 'Helvetica-Bold', letterSpacing: 0.5 },
 
-    // Day-by-day timeline
-    dayItem: { flexDirection: 'row', marginBottom: 10 },
-    dayRail: { width: 30, alignItems: 'center' },
-    dayBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: primary, alignItems: 'center', justifyContent: 'center' },
-    dayBadgeNum: { color: '#FFFFFF', fontSize: 10, fontFamily: 'Helvetica-Bold' },
-    dayConnector: { width: 2, flexGrow: 1, backgroundColor: '#E5E9F0', marginTop: 4, borderRadius: 1 },
-    dayContent: { flex: 1, paddingLeft: 10, paddingBottom: 6 },
-    dayDate: { fontSize: 8, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 },
-    dayHeader: { fontSize: 12.5, fontFamily: display, color: primary, marginTop: 1 },
-    dayNarr: { fontSize: 9.5, lineHeight: 1.5, marginTop: 3, color: '#475569' },
-    slotRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-    slotText: { fontSize: 9.5, color: '#334155', flex: 1, lineHeight: 1.4 },
-    slotWhen: { fontFamily: 'Helvetica-Bold', color: '#1F2937' },
+    // Investment
+    invBar: { height: 3, backgroundColor: accent, width: 28, marginBottom: 10 },
+    invKicker: { fontSize: 7.5, letterSpacing: 1.5, color: primary, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
+    invTotal: { fontFamily: display, fontSize: 34, color: primary, marginTop: 4, lineHeight: 1 },
+    invSub: { fontSize: 9, color: '#64748B', marginTop: 5 },
+    invRule: { height: 1, backgroundColor: '#EEF2F6', marginTop: 14, marginBottom: 10 },
+    invContactTitle: { fontFamily: display, fontSize: 12, color: '#0B1F3A' },
+    invContactLine: { fontSize: 9, color: '#475569', marginTop: 3 },
 
-    priceBox: { backgroundColor: primary, color: '#FFFFFF', borderRadius: 8, borderTop: `3 solid ${accent}`, padding: 18, marginTop: 8 },
-    priceTotal: { fontSize: 26, fontFamily: display, marginTop: 2 },
-
-    contact: { marginTop: 14, borderRadius: 6, border: `1 solid ${accent}`, padding: 12 },
-    contactTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: primary },
-    contactLine: { fontSize: 9, color: '#475569', marginTop: 3 },
-
-    footer: { position: 'absolute', bottom: 18, left: 36, right: 36, fontSize: 8, color: '#94A3B8', borderTop: '1 solid #E2E8F0', paddingTop: 6, flexDirection: 'row', justifyContent: 'space-between' },
+    footer: { position: 'absolute', bottom: 18, left: 48, right: 48, fontSize: 8, color: '#94A3B8', borderTop: '1 solid #E2E8F0', paddingTop: 6, flexDirection: 'row', justifyContent: 'space-between' },
   });
 };
 
@@ -174,6 +183,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
   const transferCount = it.days.reduce((n, d) => n + d.inclusions.filter((i) => i.kind === 'transfer').length, 0);
   const hotelCount = it.destinations.filter((d) => d.stay).length;
   const visaIncluded = it.visa.some((v) => v.included);
+  const hasDocs = it.visa.length > 0 || !!it.insurance;
 
   const included: Array<{ label: string; on: boolean }> = [
     { label: it.flights ? `Flights — ${it.flights.return ? 'round-trip' : 'one-way'}` : 'Flights', on: !!it.flights },
@@ -184,123 +194,134 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
     { label: 'Travel insurance', on: !!it.insurance?.included },
   ];
 
-  const footer = (
-    <View style={s.footer} fixed>
-      <Text>{agency.name} · {code}{version && version > 1 ? ` · v${version}` : ''}</Text>
-      <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
-    </View>
-  );
+  // Sequential section numbers (sections render conditionally).
+  let n = 0;
+  const sec = {
+    included: pad2(++n),
+    flights: it.flights ? pad2(++n) : '',
+    stays: hotelCount > 0 ? pad2(++n) : '',
+    days: pad2(++n),
+    docs: hasDocs ? pad2(++n) : '',
+    invest: pad2(++n),
+  };
+
+  const departLong = new Date(it.intake.departureDate);
 
   return (
     <Document author={agency.name} title={`${title} · ${code}`}>
-      <Page size="A4" style={s.page}>
-        {/* Brand accent stripe on every page top (page 1's hero covers it). */}
-        <View fixed style={s.pageStripe} />
-        {/* Hero */}
-        <View style={s.hero}>
-          <View style={s.orbLg} />
-          <View style={s.orbSm} />
-          {isRasterLogo(agency.logoUrl) ? (
-            <Image src={agency.logoUrl!} style={s.logo} />
-          ) : (
-            <>
-              <Text style={s.wordmark}>{agency.name}</Text>
-              {agency.tagline ? <Text style={s.wordmarkTag}>{agency.tagline}</Text> : null}
-            </>
-          )}
-          <View style={s.eyebrowChip}><Text style={s.eyebrow}>Trip Proposal · {code}{version && version > 1 ? ` · v${version}` : ''}</Text></View>
-          <Text style={s.title}>{title}</Text>
-          <Text style={s.heroTag}>A journey we built for you.</Text>
-          <Text style={s.heroMeta}>
-            {customerName ? `Prepared for ${customerName}` : 'Your custom itinerary'}
-          </Text>
-        </View>
+      {/* ── COVER ── */}
+      <Page size="A4" style={s.coverPage}>
+        <View style={s.cover}>
+          <View style={s.orb1} />
+          <View style={s.orb2} />
+          <View style={s.orb3} />
 
-        {/* At-a-glance stat strip */}
-        <View style={s.statRow}>
-          <View style={s.stat}><Text style={s.statLabel}>Destinations</Text><Text style={s.statValue}>{cities.length}</Text><Text style={s.statSub}>{cities.join(', ')}</Text></View>
-          <View style={s.stat}><Text style={s.statLabel}>Duration</Text><Text style={s.statValue}>{nights} nights</Text><Text style={s.statSub}>{it.days.length} days</Text></View>
-          <View style={s.stat}><Text style={s.statLabel}>Travellers</Text><Text style={s.statValue}>{adults + children} pax</Text><Text style={s.statSub}>{travellers}</Text></View>
-          <View style={[s.stat, s.statLast]}><Text style={s.statLabel}>Departs</Text><Text style={s.statValue}>{new Date(it.intake.departureDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</Text><Text style={s.statSub}>{new Date(it.intake.departureDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric' })}</Text></View>
-        </View>
-
-        <View style={s.body}>
-          {/* What's included */}
-          <View style={s.section}>
-            <SectionTitle s={s} accent={accent}>What's included</SectionTitle>
-            <View style={s.incWrap}>
-              {included.map((inc, i) => (
-                <View key={i} style={s.incChip}>
-                  <View style={[s.incDot, !inc.on ? { backgroundColor: '#E2E8F0' } : {}]} />
-                  <Text style={inc.on ? s.incText : s.incMuted}>{inc.label}{inc.on ? '' : ' — not included'}</Text>
-                </View>
-              ))}
-            </View>
+          <View style={s.logoChip}>
+            {isRasterLogo(agency.logoUrl)
+              ? <Image src={agency.logoUrl!} style={s.logoImg} />
+              : <Text style={s.wordmark}>{agency.name}</Text>}
           </View>
 
-          {/* Flights */}
-          {it.flights && (
-            <View style={s.section}>
-              <SectionTitle s={s} accent={accent}>Flights</SectionTitle>
-              <FlightLegPdf s={s} label="Outbound" leg={it.flights} money={money} />
-              {it.flights.return && <FlightLegPdf s={s} label="Return" leg={it.flights.return} money={money} />}
-            </View>
-          )}
+          <View>
+            <View style={s.eyebrowChip}><Text style={s.eyebrow}>Trip Proposal · {code}{version && version > 1 ? ` · v${version}` : ''}</Text></View>
+            <Text style={s.coverTitle}>{title}</Text>
+            <Text style={s.coverTag}>A journey we built for you.</Text>
+            <Text style={s.coverFor}>{customerName ? `Prepared exclusively for ${customerName}` : 'Your custom itinerary'}</Text>
+          </View>
 
-          {/* Hotels */}
-          {hotelCount > 0 && (
-            <View style={s.section}>
-              <SectionTitle s={s} accent={accent}>Where you'll stay</SectionTitle>
-              {it.destinations.map((d) => {
-                if (!d.stay) return null;
-                const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
-                return (
-                  <View key={d.cityCode} style={s.hotelCard}>
-                    {hThumb ? <View style={s.hotelPhotoCol}><Image src={hThumb} style={s.hotelThumb} /></View> : null}
-                    <View style={s.hotelBody}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <Text style={[s.bold, { flex: 1, marginRight: 8 }]}>{d.stay.hotel.name}</Text>
-                        <View style={{ alignItems: 'flex-end' }}>
-                          <Text style={s.bold}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
-                          <Text style={s.priceSub}>total stay</Text>
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
-                        {d.stay.hotel.stars > 0 ? (
-                          <View style={{ flexDirection: 'row', marginRight: 6 }}>
-                            {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
-                              <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STAR_GOLD, marginRight: 2 }} />
-                            ))}
-                          </View>
-                        ) : null}
-                        <Text style={s.muted}>{d.stay.hotel.address}</Text>
-                      </View>
-                      <Text style={s.muted}>{d.nights} night{d.nights !== 1 ? 's' : ''} · {d.stay.hotel.room.name} · {d.stay.hotel.mealPlan}{d.stay.hotel.refundable ? ' · Refundable' : ''}</Text>
-                    </View>
-                  </View>
-                );
-              })}
+          <View>
+            <View style={s.coverRule} />
+            <View style={s.metaRow}>
+              <View style={s.metaCol}><Text style={s.metaKicker}>Destinations</Text><Text style={s.metaValue}>{cities.length}</Text><Text style={s.metaSub}>{cities.join(', ')}</Text></View>
+              <View style={s.metaCol}><Text style={s.metaKicker}>Duration</Text><Text style={s.metaValue}>{nights} nights</Text><Text style={s.metaSub}>{it.days.length} days</Text></View>
+              <View style={s.metaCol}><Text style={s.metaKicker}>Travellers</Text><Text style={s.metaValue}>{adults + children} pax</Text><Text style={s.metaSub}>{travellers}</Text></View>
+              <View style={s.metaCol}><Text style={s.metaKicker}>Departs</Text><Text style={s.metaValue}>{departLong.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</Text><Text style={s.metaSub}>{departLong.toLocaleDateString('en-GB', { weekday: 'long' })}</Text></View>
             </View>
-          )}
+            <View style={s.coverFootRow}>
+              <Text style={s.coverFootText}>Crafted by {agency.name}</Text>
+              <Text style={s.coverFootText}>{agency.supportEmail ?? agency.supportPhone ?? ''}</Text>
+            </View>
+          </View>
+        </View>
+      </Page>
 
-          {/* Day by day — flows after hotels (no forced page break, so page 1 isn't left half-empty).
-              minPresenceAhead keeps the section heading from being stranded at the very bottom. */}
-          {/* 200pt ≈ heading + one full day item — never strand the heading alone. */}
-          <View style={[s.section, { marginTop: 14 }]}>
-            {it.days.map((day, di) => {
-              const slots = (['morning', 'afternoon', 'evening'] as const)
-                .map((slot) => ({ slot, a: day[slot] }))
-                .filter((x) => x.a);
-              const transfers = day.inclusions.filter((i) => i.kind === 'transfer');
-              const isLast = di === it.days.length - 1;
+      {/* ── CONTENT ── */}
+      <Page size="A4" style={s.page}>
+        <View fixed style={s.pageStripe} />
+        <View fixed style={s.spineWrap}>
+          <Text style={s.spineText}>{agency.name.toUpperCase()} — TRIP {code}</Text>
+        </View>
+
+        {/* What's included */}
+        <View style={s.section}>
+          <SectionTitle s={s} accent={accent} num={sec.included}>What's included</SectionTitle>
+          <View style={s.incWrap}>
+            {included.map((inc, i) => (
+              <View key={i} style={s.incChip}>
+                <View style={inc.on ? s.incSq : s.incSqOff} />
+                <Text style={inc.on ? s.incText : s.incMuted}>{inc.label}{inc.on ? '' : ' — not included'}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Flights */}
+        {it.flights && (
+          <View style={s.section}>
+            <SectionTitle s={s} accent={accent} num={sec.flights}>Flights</SectionTitle>
+            <FlightLegPdf s={s} label="Outbound" leg={it.flights} money={money} />
+            {it.flights.return && <FlightLegPdf s={s} label="Return" leg={it.flights.return} money={money} />}
+          </View>
+        )}
+
+        {/* Stays */}
+        {hotelCount > 0 && (
+          <View style={s.section}>
+            <SectionTitle s={s} accent={accent} num={sec.stays}>Where you'll stay</SectionTitle>
+            {it.destinations.map((d) => {
+              if (!d.stay) return null;
+              const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
               return (
-                <View key={day.dayNo} wrap={false}>
-                  {di === 0 && <SectionTitle s={s} accent={accent}>Day by day</SectionTitle>}
-                  <View style={s.dayItem}>
-                  <View style={s.dayRail}>
-                    <View style={s.dayBadge}><Text style={s.dayBadgeNum}>{day.dayNo}</Text></View>
-                    {!isLast && <View style={s.dayConnector} />}
+                <View key={d.cityCode} style={s.hotelCard} wrap={false}>
+                  {hThumb ? <View style={s.hotelPhotoCol}><Image src={hThumb} style={s.hotelThumb} /></View> : null}
+                  <View style={s.hotelBody}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Text style={[s.hotelName, { flex: 1, marginRight: 8 }]}>{d.stay.hotel.name}</Text>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={s.hotelPrice}>{money(d.stay.hotel.pricePerNightPaise * d.nights)}</Text>
+                        <Text style={s.priceSub}>total stay</Text>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+                      {d.stay.hotel.stars > 0 ? (
+                        <View style={{ flexDirection: 'row', marginRight: 6 }}>
+                          {Array.from({ length: d.stay.hotel.stars }).map((_, k) => (
+                            <View key={k} style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: STAR_GOLD, marginRight: 2 }} />
+                          ))}
+                        </View>
+                      ) : null}
+                      <Text style={s.muted}>{d.stay.hotel.address}</Text>
+                    </View>
+                    <Text style={s.muted}>{d.nights} night{d.nights !== 1 ? 's' : ''} · {d.stay.hotel.room.name} · {d.stay.hotel.mealPlan}{d.stay.hotel.refundable ? ' · Refundable' : ''}</Text>
                   </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Day by day — heading rides inside Day 1's unbreakable block */}
+        <View style={s.section}>
+          {it.days.map((day, di) => {
+            const slots = (['morning', 'afternoon', 'evening'] as const)
+              .map((slot) => ({ slot, a: day[slot] }))
+              .filter((x) => x.a);
+            const transfers = day.inclusions.filter((i) => i.kind === 'transfer');
+            return (
+              <View key={day.dayNo} wrap={false}>
+                {di === 0 && <SectionTitle s={s} accent={accent} num={sec.days}>Day by day</SectionTitle>}
+                <View style={s.dayItem}>
+                  <View style={s.dayNumCol}><Text style={s.dayNum}>{pad2(day.dayNo)}</Text></View>
                   <View style={s.dayContent}>
                     <Text style={s.dayDate}>{fmtDate(day.date)}</Text>
                     <Text style={s.dayHeader}>{dayHeading(day)}</Text>
@@ -318,51 +339,52 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                       </View>
                     ) : null)}
                   </View>
-                  </View>
                 </View>
-              );
-            })}
-          </View>
-
-          {/* Docs & cover */}
-          {(it.visa.length > 0 || it.insurance) && (
-            <View style={s.section} wrap={false}>
-              <SectionTitle s={s} accent={accent}>Documents &amp; cover</SectionTitle>
-              {it.visa.map((v) => (
-                <View key={v.countryCode} style={[s.row, { alignItems: 'center' }]}>
-                  <Text style={{ flex: 1, marginRight: 8 }}>{v.description}</Text>
-                  <View style={v.included ? s.pillOn : s.pillOff}><Text style={v.included ? s.pillOnText : s.pillOffText}>{v.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
-                </View>
-              ))}
-              {it.insurance && (
-                <View style={[s.row, { alignItems: 'center' }]}>
-                  <Text style={{ flex: 1, marginRight: 8 }}>{it.insurance.description}</Text>
-                  <View style={it.insurance.included ? s.pillOn : s.pillOff}><Text style={it.insurance.included ? s.pillOnText : s.pillOffText}>{it.insurance.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Price */}
-          <View style={s.priceBox} wrap={false}>
-            <Text style={{ fontSize: 8, color: accent, textTransform: 'uppercase', letterSpacing: 1 }}>Your trip total</Text>
-            <Text style={s.priceTotal}>{money(it.pricePaise)}</Text>
-            <Text style={{ fontSize: 9, color: '#E5E9F0', marginTop: 3 }}>Per adult: {money(it.pricePerAdultPaise)}  ·  {travellers}  ·  All taxes included</Text>
-          </View>
-
-          {/* Contact */}
-          <View style={s.contact} wrap={false}>
-            <Text style={s.contactTitle}>Ready to book, or want changes?</Text>
-            <Text style={s.contactLine}>
-              Contact {agency.name}
-              {agency.supportEmail ? `  ·  ${agency.supportEmail}` : ''}
-              {agency.supportPhone ? `  ·  ${agency.supportPhone}` : ''}
-            </Text>
-            {agency.footerText ? <Text style={[s.contactLine, { color: '#94A3B8', marginTop: 4 }]}>{agency.footerText}</Text> : null}
-          </View>
+              </View>
+            );
+          })}
         </View>
 
-        {footer}
+        {/* Documents & cover */}
+        {hasDocs && (
+          <View style={s.section} wrap={false}>
+            <SectionTitle s={s} accent={accent} num={sec.docs}>Documents &amp; cover</SectionTitle>
+            {it.visa.map((v) => (
+              <View key={v.countryCode} style={[s.row, { alignItems: 'center' }]}>
+                <Text style={{ flex: 1, marginRight: 8 }}>{v.description}</Text>
+                <View style={v.included ? s.pillOn : s.pillOff}><Text style={v.included ? s.pillOnText : s.pillOffText}>{v.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
+              </View>
+            ))}
+            {it.insurance && (
+              <View style={[s.row, { alignItems: 'center' }]}>
+                <Text style={{ flex: 1, marginRight: 8 }}>{it.insurance.description}</Text>
+                <View style={it.insurance.included ? s.pillOn : s.pillOff}><Text style={it.insurance.included ? s.pillOnText : s.pillOffText}>{it.insurance.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Investment */}
+        <View wrap={false} style={{ marginTop: 6 }}>
+          <View style={s.invBar} />
+          <Text style={s.invKicker}>Your trip total</Text>
+          <Text style={s.invTotal}>{money(it.pricePaise)}</Text>
+          <Text style={s.invSub}>Per adult: {money(it.pricePerAdultPaise)}  ·  {travellers}  ·  All taxes included</Text>
+          <View style={s.invRule} />
+          <Text style={s.invContactTitle}>Ready to book, or want changes?</Text>
+          <Text style={s.invContactLine}>
+            Contact {agency.name}
+            {agency.supportEmail ? `  ·  ${agency.supportEmail}` : ''}
+            {agency.supportPhone ? `  ·  ${agency.supportPhone}` : ''}
+          </Text>
+          {agency.footerText ? <Text style={[s.invContactLine, { color: '#94A3B8', marginTop: 4 }]}>{agency.footerText}</Text> : null}
+        </View>
+
+        <View style={s.footer} fixed>
+          <Text>{agency.name} · {code}{version && version > 1 ? ` · v${version}` : ''}</Text>
+          {/* Cover is uncounted — content pages read 1 / N. */}
+          <Text render={({ pageNumber, totalPages }) => `${pageNumber - 1} / ${totalPages - 1}`} />
+        </View>
       </Page>
     </Document>
   );
@@ -389,13 +411,16 @@ function dayHeading(d: any) {
   return `Day in ${d.cityName}`;
 }
 
-// Serif section heading with a short accent bar bleeding into a hairline rule —
-// mirrors the section treatment on the customer share page.
-function SectionTitle({ s, accent, children }: { s: any; accent: string; children: React.ReactNode }) {
+// Numbered editorial section heading: italic accent numeral + serif title over a
+// short accent bar bleeding into a hairline rule.
+function SectionTitle({ s, accent, num, children }: { s: any; accent: string; num: string; children: React.ReactNode }) {
   return (
-    <View style={{ marginBottom: 9 }}>
-      <Text style={s.sectionLabel}>{children}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3 }}>
+    <View style={{ marginBottom: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+        {num ? <Text style={s.secNum}>{num}</Text> : null}
+        <Text style={s.secTitle}>{children}</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
         <View style={{ width: 28, height: 2.5, backgroundColor: accent }} />
         <View style={{ flex: 1, height: 1, backgroundColor: '#EEF2F6' }} />
       </View>
