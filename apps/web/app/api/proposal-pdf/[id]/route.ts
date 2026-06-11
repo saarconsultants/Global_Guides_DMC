@@ -58,6 +58,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     customerName: p.lead?.customerName ?? null,
     currency,
     rate,
+    shareUrl: (p as any).shareToken ? `${origin}/p/${(p as any).shareToken}` : undefined,
     itinerary: itineraryForPdf,
   };
 
