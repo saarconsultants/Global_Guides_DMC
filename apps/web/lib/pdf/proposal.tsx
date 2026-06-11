@@ -16,6 +16,8 @@ import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary, Day } from '@/lib/itinerary/types';
 
 Font.registerEmojiSource({ format: 'png', url: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/' });
+// Never hyphenate (the cover title was rendering 'AM-STERDAM').
+Font.registerHyphenationCallback((word) => [word]);
 
 // Hotel star rating is always gold (independent of the agency accent colour).
 const STAR_GOLD = '#F5B301';
@@ -116,7 +118,7 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
   return StyleSheet.create({
     // ── Cover ──
     coverPage: { padding: 0, fontFamily: 'Helvetica' },
-    cover: { backgroundColor: `${primary}0F`, width: '100%', height: '100%', paddingTop: 46, paddingBottom: 60, paddingHorizontal: 44, alignItems: 'center' },
+    cover: { backgroundColor: `${primary}1A`, width: '100%', height: '100%', paddingTop: 46, paddingBottom: 60, paddingHorizontal: 44, alignItems: 'center' },
     logoImg: { height: 34, maxWidth: 220, objectFit: 'contain' },
     wordmark: { ...heavy, color: primary, fontSize: 15 },
     coverTagline: { fontSize: 8, color: MUTE, marginTop: 4 },
@@ -139,19 +141,19 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     priceSub: { fontSize: 8, color: MUTE, marginTop: 8 },
     curatedBy: { alignItems: 'flex-end' },
     curatedLabel: { fontSize: 9.5, color: BODY },
-    curatedName: { ...heavy, fontSize: 12, color: INK, marginTop: 4 },
+    curatedName: { ...heavy, fontSize: 12, color: primary, marginTop: 4 },
     curatedLine: { fontSize: 9.5, color: '#334155', marginTop: 4 },
 
     // ── Content ──
     page: { paddingTop: 44, paddingBottom: 60, paddingHorizontal: 48, fontFamily: 'Helvetica', fontSize: 10, color: INK },
-    h1: { ...heavy, fontSize: 17, color: INK, marginBottom: 6 },
+    h1: { ...heavy, fontSize: 17, color: primary, marginBottom: 6 },
     cityHead: { ...heavy, fontSize: 12.5, color: INK, marginTop: 14 },
     section: { marginBottom: 24 },
 
     // itinerary timeline
     dayRow: { flexDirection: 'row', marginTop: 10 },
     pillCol: { width: 56, alignItems: 'flex-start' },
-    datePill: { backgroundColor: `${primary}14`, borderRadius: 10, paddingVertical: 3.5, paddingHorizontal: 8 },
+    datePill: { backgroundColor: `${primary}1F`, borderRadius: 10, paddingVertical: 3.5, paddingHorizontal: 8 },
     datePillText: { ...semi, fontSize: 8, color: primary },
     connector: { width: 1, flexGrow: 1, backgroundColor: '#E5E9F0', marginLeft: 23, marginTop: 4 },
     dayLines: { flex: 1, paddingLeft: 8 },
@@ -159,7 +161,7 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     lineWhen: { ...semi, color: primary },
     lineBody: { color: BODY },
     bridgeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-    bridgePill: { backgroundColor: `${primary}14`, borderRadius: 10, paddingVertical: 3.5, paddingHorizontal: 9, marginRight: 10 },
+    bridgePill: { backgroundColor: `${primary}1F`, borderRadius: 10, paddingVertical: 3.5, paddingHorizontal: 9, marginRight: 10 },
     bridgeText: { ...semi, fontSize: 9.5, color: INK },
 
     // hotels
@@ -178,7 +180,7 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     // transfers
     xferBlock: { marginTop: 14, paddingBottom: 14, borderBottom: '1 solid #EEF2F6' },
     xferHead: { flexDirection: 'row', alignItems: 'center' },
-    xferIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: `${primary}12`, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+    xferIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: `${primary}1A`, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
     xferEmoji: { fontSize: 13 },
     xferTitle: { ...heavy, fontSize: 11.5, color: INK },
     xferSub: { fontSize: 9, color: BODY, marginTop: 3 },
@@ -213,11 +215,11 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     note: { fontSize: 8.5, color: MUTE, marginTop: 16, lineHeight: 1.5 },
 
     // dark trust footer (fixed, every page)
-    footerBar: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, backgroundColor: '#0B0F1A', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24 },
-    footerCenter: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, backgroundColor: '#0B0F1A', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-    footerText: { fontSize: 8, color: '#FFFFFF' },
-    footerDim: { fontSize: 8, color: '#5B6478', marginHorizontal: 9 },
-    footerBold: { fontSize: 8, color: '#FFFFFF', fontFamily: 'Helvetica-Bold' },
+    footerBar: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, backgroundColor: primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24 },
+    footerCenter: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 28, backgroundColor: primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+    footerText: { fontSize: 8, color: onColor(primary) },
+    footerDim: { fontSize: 8, color: onColor(primary), opacity: 0.55, marginHorizontal: 9 },
+    footerBold: { fontSize: 8, color: onColor(primary), fontFamily: 'Helvetica-Bold' },
   });
 };
 
@@ -349,7 +351,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
 
         {/* Hotels — own page, open rows, no per-hotel prices (price lives on cover + booking page) */}
         {hotelCount > 0 && (
-          <View style={s.section} break>
+          <View style={s.section}>
             {it.destinations.map((d, i) => {
               if (!d.stay) return null;
               const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
@@ -390,7 +392,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
 
         {/* Transfers — own page: flights (if attached) + ground transfers */}
         {(it.flights || transfers.length > 0) && (
-          <View style={s.section} break>
+          <View style={s.section}>
             <Text style={s.h1}>Transfers</Text>
             {it.flights && <FlightBlock s={s} leg={it.flights} money={money} label="Outbound flight" />}
             {it.flights?.return && <FlightBlock s={s} leg={it.flights.return} money={money} label="Return flight" />}
@@ -410,7 +412,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
 
         {/* Others — visa + insurance */}
         {hasDocs && (
-          <View style={s.section} break>
+          <View style={s.section}>
             <Text style={s.h1}>Others</Text>
             {it.visa.map((v) => (
               <View key={v.countryCode} wrap={false}>
@@ -430,7 +432,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
         )}
 
         {/* How to Book */}
-        <View style={s.section} break>
+        <View style={s.section}>
           <Text style={s.h1}>How to Book</Text>
           <View style={s.payRow}><Text style={s.payLabel}>Trip cost ({adults} adult{adults !== 1 ? 's' : ''}{children ? ` + ${children} child${children !== 1 ? 'ren' : ''}` : ''})</Text><Text style={s.payValue}>{money(it.pricePaise)}</Text></View>
           <View style={s.payRow}><Text style={s.payLabel}>Per adult</Text><Text style={s.payValue}>{money(it.pricePerAdultPaise)}</Text></View>
@@ -447,7 +449,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
         </View>
 
         <View style={s.footerBar} fixed>
-          <Text style={{ fontSize: 8, color: 'rgba(255,255,255,0.85)' }}>{footerLeftText}</Text>
+          <Text style={[s.footerText, { opacity: 0.9 }]}>{footerLeftText}</Text>
           {/* Cover is uncounted — content pages read Page 1..N. */}
           <Text style={s.footerBold} render={({ pageNumber }) => `Page ${pageNumber - 1}`} />
         </View>
