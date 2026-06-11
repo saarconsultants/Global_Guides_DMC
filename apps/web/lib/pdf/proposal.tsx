@@ -254,7 +254,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
 
         {/* What's included */}
         <View style={s.section}>
-          <SectionTitle s={s} accent={accent} num={sec.included}>What's included</SectionTitle>
+          <SectionTitle s={s} primary={primary} num={sec.included}>What's included</SectionTitle>
           <View style={s.incWrap}>
             {included.map((inc, i) => (
               <View key={i} style={s.incChip}>
@@ -268,7 +268,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
         {/* Flights */}
         {it.flights && (
           <View style={s.section}>
-            <SectionTitle s={s} accent={accent} num={sec.flights}>Flights</SectionTitle>
+            <SectionTitle s={s} primary={primary} num={sec.flights}>Flights</SectionTitle>
             <FlightLegPdf s={s} label="Outbound" leg={it.flights} money={money} />
             {it.flights.return && <FlightLegPdf s={s} label="Return" leg={it.flights.return} money={money} />}
           </View>
@@ -277,7 +277,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
         {/* Stays */}
         {hotelCount > 0 && (
           <View style={s.section}>
-            <SectionTitle s={s} accent={accent} num={sec.stays}>Where you'll stay</SectionTitle>
+            <SectionTitle s={s} primary={primary} num={sec.stays}>Where you'll stay</SectionTitle>
             {it.destinations.map((d) => {
               if (!d.stay) return null;
               const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
@@ -319,7 +319,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
             const transfers = day.inclusions.filter((i) => i.kind === 'transfer');
             return (
               <View key={day.dayNo} wrap={false}>
-                {di === 0 && <SectionTitle s={s} accent={accent} num={sec.days}>Day by day</SectionTitle>}
+                {di === 0 && <SectionTitle s={s} primary={primary} num={sec.days}>Day by day</SectionTitle>}
                 <View style={s.dayItem}>
                   <View style={s.dayNumCol}><Text style={s.dayNum}>{pad2(day.dayNo)}</Text></View>
                   <View style={s.dayContent}>
@@ -348,7 +348,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
         {/* Documents & cover */}
         {hasDocs && (
           <View style={s.section} wrap={false}>
-            <SectionTitle s={s} accent={accent} num={sec.docs}>Documents &amp; cover</SectionTitle>
+            <SectionTitle s={s} primary={primary} num={sec.docs}>Documents &amp; cover</SectionTitle>
             {it.visa.map((v) => (
               <View key={v.countryCode} style={[s.row, { alignItems: 'center' }]}>
                 <Text style={{ flex: 1, marginRight: 8 }}>{v.description}</Text>
@@ -413,7 +413,7 @@ function dayHeading(d: any) {
 
 // Numbered editorial section heading: italic accent numeral + serif title over a
 // short accent bar bleeding into a hairline rule.
-function SectionTitle({ s, accent, num, children }: { s: any; accent: string; num: string; children: React.ReactNode }) {
+function SectionTitle({ s, primary, num, children }: { s: any; primary: string; num: string; children: React.ReactNode }) {
   return (
     <View style={{ marginBottom: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
