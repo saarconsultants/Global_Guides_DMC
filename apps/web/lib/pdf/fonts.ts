@@ -1,7 +1,7 @@
-// Display font for branded PDFs — Fraunces, the same serif the web app uses,
-// so the customer PDF and the customer share page speak one visual language.
-// Static per-weight TTFs from the Google Fonts CDN (fetched at render time;
-// callers keep a fonts-off fallback render in case the CDN is unreachable).
+// Display font for branded PDFs — Archivo (semi/extra-bold), the heavy geometric
+// sans matching the owner's reference proposal design. Static per-weight TTFs
+// from the Google Fonts CDN (fetched at render time; callers keep a fonts-off
+// fallback render in case the CDN is unreachable).
 import { Font } from '@react-pdf/renderer';
 
 let registered = false;
@@ -10,12 +10,11 @@ export function registerPdfDisplayFont() {
   if (registered) return;
   registered = true;
   Font.register({
-    family: 'Fraunces',
+    family: 'Archivo',
     fonts: [
-      // 600 upright — headings. (Do not reorder: URL↔variant mapping is exact.)
-      { src: 'https://fonts.gstatic.com/s/fraunces/v38/6NUh8FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq8U_9v0c2Wa0K7iN7hzFUPJH58nib1603gg7S2nfgRYIcaRyjDg.ttf', fontWeight: 600 },
-      // 500 italic — the hero tagline accent.
-      { src: 'https://fonts.gstatic.com/s/fraunces/v38/6NVf8FyLNQOQZAnv9ZwNjucMHVn85Ni7emAe9lKqZTnbB-gzTK0K1ChJdt9vIVYX9G37lvd9sPEKsxx664UJf1h5Tf7W.ttf', fontWeight: 500, fontStyle: 'italic' },
+      // (Do not reorder: URL↔weight mapping is exact, fetched per-weight.)
+      { src: 'https://fonts.gstatic.com/s/archivo/v25/k3k6o8UDI-1M0wlSV9XAw6lQkqWY8Q82sJaRE-NWIDdgffTT6jRp8A.ttf', fontWeight: 600 },
+      { src: 'https://fonts.gstatic.com/s/archivo/v25/k3k6o8UDI-1M0wlSV9XAw6lQkqWY8Q82sJaRE-NWIDdgffTTtDRp8A.ttf', fontWeight: 800 },
     ],
   });
 }
