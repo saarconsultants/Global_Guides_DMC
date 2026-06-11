@@ -38,7 +38,6 @@ export interface ProposalPdfInput {
   currency?: string;   // agency display currency (default INR)
   rate?: number;       // INR→currency multiplier
   images?: boolean;    // render remote hotel/activity photos (default true; route disables on fallback)
-  heroPhotos?: string[]; // pre-embedded data URLs for the hero collage (>=2 to render)
   fonts?: boolean;       // use the Fraunces display font (route falls back to built-ins)
   itinerary: Itinerary;
 }
@@ -92,10 +91,6 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     eyebrow: { color: accent, fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold' },
     title: { fontSize: 30, fontFamily: display, marginTop: 8, lineHeight: 1.1 },
     heroTag: { ...italicProps, fontSize: 12.5, color: accent, marginTop: 5 },
-    collage: { flexDirection: 'row', gap: 10, marginTop: 18 },
-    collageFrame: { flex: 1, padding: 3, backgroundColor: '#FFFFFF', borderRadius: 12 },
-    collageInner: { borderRadius: 9, overflow: 'hidden', height: 84 },
-    collageImg: { width: '100%', height: '100%', objectFit: 'cover' },
     heroMeta: { fontSize: 10, color: '#E5E9F0', marginTop: 10 },
 
     // At-a-glance stat strip (overlaps hero bottom)
@@ -163,7 +158,7 @@ export function buildProposalPdf(input: ProposalPdfInput) {
   return <ProposalPdf {...input} />;
 }
 
-function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, images = true, heroPhotos = [], fonts = true, itinerary: it }: ProposalPdfInput) {
+function ProposalPdf({ agency, code, version, customerName, currency = 'INR', rate = 1, images = true, fonts = true, itinerary: it }: ProposalPdfInput) {
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
   const money = (paise: number | bigint) => formatMoneyCode(paise, currency, rate);
@@ -219,15 +214,6 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           <Text style={s.heroMeta}>
             {customerName ? `Prepared for ${customerName}` : 'Your custom itinerary'}
           </Text>
-          {heroPhotos.length >= 2 && (
-            <View style={s.collage}>
-              {heroPhotos.map((src, i) => (
-                <View key={i} style={[s.collageFrame, { transform: i === 0 ? 'rotate(-2deg)' : i === 1 ? 'rotate(1.5deg) translateY(4)' : 'rotate(-1deg)' }]}>
-                  <View style={s.collageInner}><Image src={src} style={s.collageImg} /></View>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
 
         {/* At-a-glance stat strip */}
@@ -300,8 +286,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
           {/* Day by day — flows after hotels (no forced page break, so page 1 isn't left half-empty).
               minPresenceAhead keeps the section heading from being stranded at the very bottom. */}
           {/* 200pt ≈ heading + one full day item — never strand the heading alone. */}
-          <View style={[s.section, { marginTop: 14 }]} minPresenceAhead={200}>
-            <SectionTitle s={s} accent={accent}>Day by day</SectionTitle>
+          <View style={[s.section, { marginTop: 14 }]}>
             {it.days.map((day, di) => {
               const slots = (['morning', 'afternoon', 'evening'] as const)
                 .map((slot) => ({ slot, a: day[slot] }))
@@ -309,7 +294,9 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
               const transfers = day.inclusions.filter((i) => i.kind === 'transfer');
               const isLast = di === it.days.length - 1;
               return (
-                <View key={day.dayNo} style={s.dayItem} wrap={false}>
+                <View key={day.dayNo} wrap={false}>
+                  {di === 0 && <SectionTitle s={s} accent={accent}>Day by day</SectionTitle>}
+                  <View style={s.dayItem}>
                   <View style={s.dayRail}>
                     <View style={s.dayBadge}><Text style={s.dayBadgeNum}>{day.dayNo}</Text></View>
                     {!isLast && <View style={s.dayConnector} />}
@@ -330,6 +317,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                         <Text style={s.slotText}><Text style={s.slotWhen}>Transfer</Text>  {i.transfer.fromName} – {i.transfer.toName}</Text>
                       </View>
                     ) : null)}
+                  </View>
                   </View>
                 </View>
               );

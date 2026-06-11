@@ -9,7 +9,7 @@ import { requireAgency } from '@/lib/auth/ctx';
 import { getProposal, proposalToItinerary } from '@/lib/db/proposals';
 import { getDisplayRate } from '@/lib/fx-display';
 import { pdfLogoUrl } from '@/lib/pdf/logo';
-import { embedItineraryImages, embedHeroPhotos } from '@/lib/pdf/embed-images';
+import { embedItineraryImages } from '@/lib/pdf/embed-images';
 import { registerPdfDisplayFont } from '@/lib/pdf/fonts';
 
 export const runtime = 'nodejs';
@@ -38,15 +38,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   // Display font (Fraunces) — registered once per instance; fetched at render.
   registerPdfDisplayFont();
 
-  // Pre-fetch + inline photos as data URLs (failures dropped) so the render is
-  // reliable and fetch-free — card images and the hero collage in parallel.
-  const [itineraryForPdf, heroPhotos] = await Promise.all([
-    embedItineraryImages(itinerary, { perImageMs: 3000, max: 12 }),
-    embedHeroPhotos(itinerary, { perImageMs: 3000, max: 3 }),
-  ]);
+  // Pre-fetch + inline hotel-card photos as data URLs (failures dropped) so the
+  // render is reliable and fetch-free.
+  const itineraryForPdf = await embedItineraryImages(itinerary, { perImageMs: 3000, max: 12 });
 
   const base = {
-    heroPhotos,
     agency: {
       name: agency.name,
       tagline: agency.tagline,
@@ -77,7 +73,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   } catch (e) {
     console.error('[proposal-pdf] rich render failed/timed out — falling back to plain:', (e as any)?.message ?? e);
     // Plain fallback: no remote photos, no remote display font — cannot fail on a fetch.
-    buffer = await renderToBuffer(buildProposalPdf({ ...base, heroPhotos: [], images: false, fonts: false }));
+    buffer = await renderToBuffer(buildProposalPdf({ ...base, images: false, fonts: false }));
   }
 
   return new NextResponse(buffer as any, {
