@@ -44,7 +44,7 @@ export function AiSuggestModal({ open, onClose, onApply }: Props) {
     <Dialog open={open} onClose={reset} title="Where would you like to wander?" size="lg" glass>
       {!result ? (
         <div className="space-y-4">
-          <p className="text-sm text-[rgb(var(--text-secondary))]">Enter your desired destinations. We'll order them, allocate nights, and load the plan into the builder. <span className="font-medium">Powered by Claude.</span></p>
+          <p className="text-sm text-[rgb(var(--text-secondary))]">Enter your desired destinations. We'll order them, allocate nights, and load the plan into the builder. <span className="font-medium">Powered by AI.</span></p>
           <div>
             <Label required>Destinations</Label>
             <Input value={destinationsText} onChange={(e) => setDestinationsText(e.target.value)} placeholder="e.g. Paris, Amsterdam, London" />

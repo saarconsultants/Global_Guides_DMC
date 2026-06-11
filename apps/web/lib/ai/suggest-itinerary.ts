@@ -1,7 +1,9 @@
 // AI Suggester — takes free-text destinations + total nights and returns an
-// ordered, optimised city plan using Claude tool-use for guaranteed JSON shape.
+// ordered, optimised city plan. Powered by OpenRouter (default model: NVIDIA
+// Nemotron). Free models don't reliably support tool-calling, so we ask for raw
+// JSON in the prompt and parse it defensively.
 
-import { anthropic, aiModel } from './anthropic';
+import { chat } from './openrouter';
 import { CITY_BANK } from '@/lib/itinerary/mock-inventory';
 import { IATA_TO_HOTELBEDS_DESTINATION } from '@gg/hotelbeds';
 import { findCity } from '@/lib/cities';
@@ -51,37 +53,31 @@ Hard rules:
 - For 7+ night trips with 3+ cities, allocate more nights to the marquee city (e.g. Paris gets 3 if it's in a 7N + 3-city plan).
 - Prefer popular routes. Refuse cities not on the list (don't translate; just drop them with a warning).
 
-Output via the suggest_itinerary tool. Always call the tool exactly once. Never reply with plain text.`;
+Respond with ONLY a single JSON object (no markdown code fences, no commentary before or after) of exactly this shape:
+{
+  "cities": [
+    { "cityCode": "PAR", "cityName": "Paris", "nights": 3, "rationale": "one short sentence" }
+  ],
+  "summary": "1-2 sentence overview for the agent",
+  "warnings": ["any dropped cities, visa caveats, or seasonality notes"]
+}
+Rules for the JSON: cityCode MUST be one of the exact 3-letter supported codes; nights is a positive integer; the sum of all nights MUST equal the requested total.`;
 
-const TOOL = {
-  name: 'suggest_itinerary',
-  description: 'Return the recommended multi-city itinerary as structured data.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      cities: {
-        type: 'array',
-        description: 'Cities in visit order. Sum of nights must equal totalNights.',
-        items: {
-          type: 'object',
-          properties: {
-            cityCode:  { type: 'string', enum: SUPPORTED_CITY_CODES, description: '3-letter city code' },
-            cityName:  { type: 'string', description: 'Human-readable city name' },
-            nights:    { type: 'integer', minimum: 1, description: 'Number of nights in this city' },
-            rationale: { type: 'string', description: 'One short sentence on why this allocation' },
-          },
-          required: ['cityCode', 'cityName', 'nights', 'rationale'],
-        },
-      },
-      summary:  { type: 'string', description: '1-2 sentence overview for the agent' },
-      warnings: { type: 'array', items: { type: 'string' }, description: 'Any dropped cities, visa caveats, or seasonality notes' },
-    },
-    required: ['cities', 'summary', 'warnings'],
-  },
-} as const;
+// Pull the JSON object out of a model reply that may be wrapped in markdown
+// fences, prefixed with prose, or preceded by a <think> reasoning block.
+function extractJson(text: string): any {
+  let t = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence?.[1]) t = fence[1].trim();
+  const start = t.indexOf('{');
+  const end = t.lastIndexOf('}');
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error('The AI response did not contain a JSON itinerary. Please try again.');
+  }
+  return JSON.parse(t.slice(start, end + 1));
+}
 
 export async function suggestItinerary(input: SuggestInput): Promise<SuggestResult> {
-  const client = anthropic();
   const userMsg = [
     `Destinations the customer wants to visit: ${input.destinationsText}`,
     `Total nights: ${input.totalNights}`,
@@ -89,24 +85,20 @@ export async function suggestItinerary(input: SuggestInput): Promise<SuggestResu
     input.budget ? `Budget tier: ${input.budget}` : '',
     input.notes ? `Notes: ${input.notes}` : '',
     '',
-    'Return your recommendation via the suggest_itinerary tool.',
+    'Return ONLY the JSON object described in the instructions.',
   ].filter(Boolean).join('\n');
 
-  const res = await client.messages.create({
-    model: aiModel(),
-    max_tokens: 2048,
-    system: SYSTEM,
-    tools: [TOOL as any],
-    tool_choice: { type: 'tool', name: TOOL.name } as any,
-    messages: [{ role: 'user', content: userMsg }],
-  });
+  const text = await chat({ system: SYSTEM, user: userMsg, maxTokens: 4000, temperature: 0.3 });
 
-  const toolUse = res.content.find((b) => b.type === 'tool_use') as any;
-  if (!toolUse) throw new Error('AI did not call the suggest_itinerary tool. Response: ' + JSON.stringify(res.content).slice(0, 200));
+  let raw: SuggestResult;
+  try {
+    raw = extractJson(text) as SuggestResult;
+  } catch (e: any) {
+    console.error('[suggestItinerary] JSON parse failed. Raw:', text.slice(0, 400));
+    throw new Error(e?.message ?? 'Could not read the AI itinerary. Please try again.');
+  }
 
-  const raw = toolUse.input as SuggestResult;
-
-  // Defensive validation — Claude usually obeys but never trust LLM output blindly.
+  // Defensive validation — never trust LLM output blindly.
   if (!Array.isArray(raw.cities) || raw.cities.length === 0) {
     throw new Error('AI returned no cities.');
   }
