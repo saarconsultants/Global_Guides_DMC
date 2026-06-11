@@ -105,13 +105,13 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     spineText: { fontSize: 6.5, letterSpacing: 2.5, color: '#C5CCD6', fontFamily: 'Helvetica-Bold', textAlign: 'center' },
 
     section: { marginBottom: 18 },
-    secNum: { ...italicProps, fontSize: 11, color: accent },
+    secNum: { ...italicProps, fontSize: 11, color: primary },
     secTitle: { fontFamily: display, fontSize: 16, color: '#0B1F3A' },
 
     // Included checklist
     incWrap: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 2 },
     incChip: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 6 },
-    incSq: { width: 4.5, height: 4.5, backgroundColor: accent, marginRight: 7 },
+    incSq: { width: 4.5, height: 4.5, backgroundColor: primary, marginRight: 7 },
     incSqOff: { width: 4.5, height: 4.5, border: '1 solid #D8DEE7', backgroundColor: 'transparent', marginRight: 7 },
     incText: { fontSize: 9.5, color: '#1F2937' },
     incMuted: { fontSize: 9.5, color: '#C3CBD6' },
@@ -151,7 +151,7 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     pillOffText: { fontSize: 7, color: '#64748B', fontFamily: 'Helvetica-Bold', letterSpacing: 0.5 },
 
     // Investment
-    invBar: { height: 3, backgroundColor: accent, width: 28, marginBottom: 10 },
+    invBar: { height: 3, backgroundColor: primary, width: 28, marginBottom: 10 },
     invKicker: { fontSize: 7.5, letterSpacing: 1.5, color: primary, fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
     invTotal: { fontFamily: display, fontSize: 34, color: primary, marginTop: 4, lineHeight: 1 },
     invSub: { fontSize: 9, color: '#64748B', marginTop: 5 },
@@ -421,7 +421,7 @@ function SectionTitle({ s, accent, num, children }: { s: any; accent: string; nu
         <Text style={s.secTitle}>{children}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-        <View style={{ width: 28, height: 2.5, backgroundColor: accent }} />
+        <View style={{ width: 28, height: 2.5, backgroundColor: primary }} />
         <View style={{ flex: 1, height: 1, backgroundColor: '#EEF2F6' }} />
       </View>
     </View>
