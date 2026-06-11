@@ -78,13 +78,17 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     body: { paddingHorizontal: 36 },
 
     // Hero
-    hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28, marginTop: -36 },
+    hero: { backgroundColor: primary, color: '#FFFFFF', padding: 36, paddingBottom: 28, marginTop: -36, position: 'relative', overflow: 'hidden' },
+    orbLg: { position: 'absolute', top: -70, right: -50, width: 220, height: 220, borderRadius: 110, backgroundColor: '#FFFFFF', opacity: 0.05 },
+    orbSm: { position: 'absolute', top: 20, right: 60, width: 120, height: 120, borderRadius: 60, backgroundColor: accent, opacity: 0.1 },
+    pageStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: accent },
     // Fixed height + alignSelf:'flex-start' so the logo keeps its aspect ratio and sits
     // left. Without alignSelf the hero (a stretch column) pulls the image to full width
     // and distorts it; objectFit:'contain' + maxWidth guard keeps very wide logos sane.
     logo: { height: 38, maxWidth: 260, objectFit: 'contain', alignSelf: 'flex-start', marginBottom: 16 },
     wordmark: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: '#FFFFFF', marginBottom: 2 },
     wordmarkTag: { fontSize: 8.5, color: accent, marginBottom: 14 },
+    eyebrowChip: { alignSelf: 'flex-start', border: `1 solid ${accent}66`, borderRadius: 10, paddingVertical: 3, paddingHorizontal: 9 },
     eyebrow: { color: accent, fontSize: 8, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'Helvetica-Bold' },
     title: { fontSize: 30, fontFamily: display, marginTop: 8, lineHeight: 1.1 },
     heroTag: { ...italicProps, fontSize: 12.5, color: accent, marginTop: 5 },
@@ -96,11 +100,11 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
 
     // At-a-glance stat strip (overlaps hero bottom)
     statRow: { flexDirection: 'row', marginTop: 18, marginHorizontal: 36, marginBottom: 4 },
-    stat: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 6, padding: 10, marginRight: 8, border: '1 solid #E2E8F0' },
+    stat: { flex: 1, backgroundColor: '#FCFCFD', borderRadius: 6, padding: 10, marginRight: 8, border: '1 solid #E8EDF2', borderTop: `2.5 solid ${accent}` },
     statLast: { marginRight: 0 },
     statLabel: { fontSize: 7, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, fontFamily: 'Helvetica-Bold' },
-    statValue: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: primary, marginTop: 3 },
-    statSub: { fontSize: 7.5, color: '#94A3B8', marginTop: 1 },
+    statValue: { fontSize: 14, fontFamily: display, color: primary, marginTop: 3, lineHeight: 1 },
+    statSub: { fontSize: 7.5, color: '#94A3B8', marginTop: 2 },
 
     section: { marginBottom: 16, marginTop: 6 },
     sectionLabel: { fontFamily: display, fontSize: 14, color: '#0B1F3A' },
@@ -114,8 +118,10 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     incMuted: { fontSize: 9.5, color: '#CBD5E1' },
 
     card: { backgroundColor: '#F8FAFC', borderRadius: 6, padding: 12, marginBottom: 8, border: '1 solid #EEF2F6' },
-    hotelCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#F8FAFC', borderRadius: 6, padding: 10, marginBottom: 8, border: '1 solid #EEF2F6' },
-    hotelThumb: { width: 86, height: 66, borderRadius: 5, marginRight: 12, objectFit: 'cover', border: '1 solid #E2E8F0' },
+    hotelCard: { flexDirection: 'row', backgroundColor: '#F8FAFC', borderRadius: 6, marginBottom: 8, border: '1 solid #EEF2F6', overflow: 'hidden' },
+    hotelPhotoCol: { width: 96, height: 76 },
+    hotelBody: { flex: 1, padding: 10, justifyContent: 'center' },
+    hotelThumb: { width: '100%', height: '100%', objectFit: 'cover' },
     // Every day-by-day slot uses one fixed-width emoji marker so the text after it
     // always left-aligns (activities by category, 🚗 for transfers).
     slotMarker: { width: 22, marginRight: 6, alignItems: 'center', justifyContent: 'center' },
@@ -123,6 +129,10 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     priceSub: { fontSize: 7, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 },
     bold: { fontFamily: 'Helvetica-Bold' },
     muted: { color: '#64748B', fontSize: 9, marginTop: 2 },
+    pillOn: { borderRadius: 8, backgroundColor: `${accent}2E`, paddingVertical: 2.5, paddingHorizontal: 8 },
+    pillOnText: { fontSize: 7, color: '#1F2937', fontFamily: 'Helvetica-Bold', letterSpacing: 0.5 },
+    pillOff: { borderRadius: 8, backgroundColor: '#F1F5F9', paddingVertical: 2.5, paddingHorizontal: 8 },
+    pillOffText: { fontSize: 7, color: '#64748B', fontFamily: 'Helvetica-Bold', letterSpacing: 0.5 },
 
     // Day-by-day timeline
     dayItem: { flexDirection: 'row', marginBottom: 10 },
@@ -138,7 +148,7 @@ const styles = (primary: string, accent: string, fonts: boolean) => {
     slotText: { fontSize: 9.5, color: '#334155', flex: 1, lineHeight: 1.4 },
     slotWhen: { fontFamily: 'Helvetica-Bold', color: '#1F2937' },
 
-    priceBox: { backgroundColor: primary, color: '#FFFFFF', borderRadius: 8, padding: 18, marginTop: 8 },
+    priceBox: { backgroundColor: primary, color: '#FFFFFF', borderRadius: 8, borderTop: `3 solid ${accent}`, padding: 18, marginTop: 8 },
     priceTotal: { fontSize: 26, fontFamily: display, marginTop: 2 },
 
     contact: { marginTop: 14, borderRadius: 6, border: `1 solid ${accent}`, padding: 12 },
@@ -189,8 +199,12 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
   return (
     <Document author={agency.name} title={`${title} · ${code}`}>
       <Page size="A4" style={s.page}>
+        {/* Brand accent stripe on every page top (page 1's hero covers it). */}
+        <View fixed style={s.pageStripe} />
         {/* Hero */}
         <View style={s.hero}>
+          <View style={s.orbLg} />
+          <View style={s.orbSm} />
           {isRasterLogo(agency.logoUrl) ? (
             <Image src={agency.logoUrl!} style={s.logo} />
           ) : (
@@ -199,7 +213,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
               {agency.tagline ? <Text style={s.wordmarkTag}>{agency.tagline}</Text> : null}
             </>
           )}
-          <Text style={s.eyebrow}>Trip Proposal · {code}{version && version > 1 ? ` · v${version}` : ''}</Text>
+          <View style={s.eyebrowChip}><Text style={s.eyebrow}>Trip Proposal · {code}{version && version > 1 ? ` · v${version}` : ''}</Text></View>
           <Text style={s.title}>{title}</Text>
           <Text style={s.heroTag}>A journey we built for you.</Text>
           <Text style={s.heroMeta}>
@@ -256,8 +270,8 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
                 const hThumb = images ? pdfImg(d.stay.hotel.thumb) : null;
                 return (
                   <View key={d.cityCode} style={s.hotelCard}>
-                    {hThumb ? <Image src={hThumb} style={s.hotelThumb} /> : null}
-                    <View style={{ flex: 1 }}>
+                    {hThumb ? <View style={s.hotelPhotoCol}><Image src={hThumb} style={s.hotelThumb} /></View> : null}
+                    <View style={s.hotelBody}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Text style={[s.bold, { flex: 1, marginRight: 8 }]}>{d.stay.hotel.name}</Text>
                         <View style={{ alignItems: 'flex-end' }}>
@@ -327,9 +341,17 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
             <View style={s.section} wrap={false}>
               <SectionTitle s={s} accent={accent}>Documents &amp; cover</SectionTitle>
               {it.visa.map((v) => (
-                <View key={v.countryCode} style={s.row}><Text>{v.description}</Text><Text style={s.muted}>{v.included ? 'Included' : 'Not included'}</Text></View>
+                <View key={v.countryCode} style={[s.row, { alignItems: 'center' }]}>
+                  <Text style={{ flex: 1, marginRight: 8 }}>{v.description}</Text>
+                  <View style={v.included ? s.pillOn : s.pillOff}><Text style={v.included ? s.pillOnText : s.pillOffText}>{v.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
+                </View>
               ))}
-              {it.insurance && <View style={s.row}><Text>{it.insurance.description}</Text><Text style={s.muted}>{it.insurance.included ? 'Included' : 'Not included'}</Text></View>}
+              {it.insurance && (
+                <View style={[s.row, { alignItems: 'center' }]}>
+                  <Text style={{ flex: 1, marginRight: 8 }}>{it.insurance.description}</Text>
+                  <View style={it.insurance.included ? s.pillOn : s.pillOff}><Text style={it.insurance.included ? s.pillOnText : s.pillOffText}>{it.insurance.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
+                </View>
+              )}
             </View>
           )}
 
