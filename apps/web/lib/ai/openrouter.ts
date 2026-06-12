@@ -49,14 +49,14 @@ export async function chat(opts: {
       { role: 'system', content: opts.system },
       { role: 'user', content: opts.user },
     ],
-    max_tokens: opts.maxTokens ?? 4000,
+    max_tokens: opts.maxTokens ?? 6000,
     temperature: opts.temperature ?? 0.3,
+    // Nemotron-3 (and most reasoning models) are reasoning-NATIVE: fully turning
+    // reasoning OFF returns an empty message. Keep it on but minimal ("low"
+    // effort) so the call stays fast and the final answer lands in `content`.
+    // max_tokens must leave room for the (hidden) reasoning tokens + the answer.
+    reasoning: { effort: process.env.OPENROUTER_REASONING_EFFORT || 'low' },
   };
-  // Reasoning models (e.g. Nemotron) emit hidden reasoning tokens by default,
-  // which is slow and can blow the token budget. Disable unless asked for.
-  if (process.env.OPENROUTER_REASONING !== '1') {
-    body.reasoning = { enabled: false };
-  }
 
   let res: Response;
   try {
@@ -96,13 +96,19 @@ export async function chat(opts: {
   }
 
   const json: any = await res.json().catch(() => null);
-  const message = json?.choices?.[0]?.message;
-  // Prefer the answer content; some reasoning models leave content empty and put
-  // everything in `reasoning` — fall back to it so the parser still gets the JSON.
-  const content: string = (typeof message?.content === 'string' && message.content) || (typeof message?.reasoning === 'string' && message.reasoning) || '';
+  const choice = json?.choices?.[0];
+  const message = choice?.message;
+  // Pull the answer from wherever the model put it: content first, then a
+  // `reasoning` string, then reasoning_details[].text — reasoning models vary.
+  let content = typeof message?.content === 'string' ? message.content : '';
+  if (!content.trim() && typeof message?.reasoning === 'string') content = message.reasoning;
+  if (!content.trim() && Array.isArray(message?.reasoning_details)) {
+    content = message.reasoning_details.map((r: any) => r?.text ?? '').join('\n');
+  }
   if (!content.trim()) {
-    console.error('[openrouter] empty completion:', JSON.stringify(json).slice(0, 500));
-    throw new Error('The AI model returned an empty response. Try again.');
+    console.error('[openrouter] empty completion. finish_reason=%s message=%s', choice?.finish_reason, JSON.stringify(message).slice(0, 400));
+    const hint = choice?.finish_reason === 'length' ? ' — it ran out of tokens before answering' : '';
+    throw new Error(`The AI model returned an empty response${hint}. Please try again.`);
   }
   return content;
 }
