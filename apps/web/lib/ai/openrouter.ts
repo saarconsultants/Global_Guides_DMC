@@ -49,14 +49,15 @@ export async function chat(opts: {
       { role: 'system', content: opts.system },
       { role: 'user', content: opts.user },
     ],
-    max_tokens: opts.maxTokens ?? 6000,
+    max_tokens: opts.maxTokens ?? 8000,
     temperature: opts.temperature ?? 0.3,
-    // Nemotron-3 (and most reasoning models) are reasoning-NATIVE: fully turning
-    // reasoning OFF returns an empty message. Keep it on but minimal ("low"
-    // effort) so the call stays fast and the final answer lands in `content`.
-    // max_tokens must leave room for the (hidden) reasoning tokens + the answer.
-    reasoning: { effort: process.env.OPENROUTER_REASONING_EFFORT || 'low' },
   };
+  // Nemotron-3 is reasoning-NATIVE. We let it reason in its default mode (the
+  // answer then lands in `content`) — do NOT disable reasoning, that returns an
+  // empty message. Only send an explicit reasoning effort if asked to, since a
+  // bad/unsupported param makes some free providers reply with a 200-body error.
+  const effort = process.env.OPENROUTER_REASONING_EFFORT;
+  if (effort) body.reasoning = { effort };
 
   let res: Response;
   try {
@@ -96,17 +97,29 @@ export async function chat(opts: {
   }
 
   const json: any = await res.json().catch(() => null);
-  const choice = json?.choices?.[0];
+  if (!json || typeof json !== 'object') {
+    throw new Error('OpenRouter returned an unreadable response. Please try again.');
+  }
+  // OpenRouter can return HTTP 200 with an error in the BODY (provider outage,
+  // unsupported param, free-tier limit) instead of a normal completion. Surface
+  // it rather than crashing downstream on a missing message.
+  if (json.error) {
+    const m = json.error?.message ?? JSON.stringify(json.error);
+    console.error('[openrouter] 200-with-error:', String(m).slice(0, 400));
+    throw new Error(`OpenRouter: ${String(m).slice(0, 300)}`);
+  }
+  const choice = json.choices?.[0];
   const message = choice?.message;
   // Pull the answer from wherever the model put it: content first, then a
   // `reasoning` string, then reasoning_details[].text — reasoning models vary.
   let content = typeof message?.content === 'string' ? message.content : '';
   if (!content.trim() && typeof message?.reasoning === 'string') content = message.reasoning;
   if (!content.trim() && Array.isArray(message?.reasoning_details)) {
-    content = message.reasoning_details.map((r: any) => r?.text ?? '').join('\n');
+    content = message.reasoning_details.map((r: any) => (typeof r?.text === 'string' ? r.text : '')).join('\n');
   }
   if (!content.trim()) {
-    console.error('[openrouter] empty completion. finish_reason=%s message=%s', choice?.finish_reason, JSON.stringify(message).slice(0, 400));
+    // Log the whole body (safe: json is a non-null object here) so we can see the shape.
+    console.error('[openrouter] empty completion. finish_reason=%s body=%s', choice?.finish_reason, JSON.stringify(json).slice(0, 600));
     const hint = choice?.finish_reason === 'length' ? ' — it ran out of tokens before answering' : '';
     throw new Error(`The AI model returned an empty response${hint}. Please try again.`);
   }

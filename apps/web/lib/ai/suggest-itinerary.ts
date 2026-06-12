@@ -88,8 +88,8 @@ export async function suggestItinerary(input: SuggestInput): Promise<SuggestResu
     'Return ONLY the JSON object described in the instructions.',
   ].filter(Boolean).join('\n');
 
-  // 6000 leaves room for the reasoning model's hidden thinking tokens + the JSON.
-  const text = await chat({ system: SYSTEM, user: userMsg, maxTokens: 6000, temperature: 0.3 });
+  // 8000 leaves room for the reasoning model's thinking tokens + the JSON answer.
+  const text = await chat({ system: SYSTEM, user: userMsg, maxTokens: 8000, temperature: 0.3 });
 
   let raw: SuggestResult;
   try {
