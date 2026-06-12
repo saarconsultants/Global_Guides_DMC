@@ -1,22 +1,33 @@
 // OpenRouter (OpenAI-compatible) chat client for the AI Suggester.
 //
-// Server-side only — the OPENROUTER_API_KEY never reaches the browser. We call
-// the plain HTTP /chat/completions endpoint with `fetch` (no SDK dependency) so
-// the agency can point OPENROUTER_MODEL at any model OpenRouter hosts.
+// Server-side only — OPENROUTER_API_KEY never reaches the browser. We call the
+// plain HTTP /chat/completions endpoint with `fetch` (no SDK dependency).
 //
-// Default model: meta-llama/llama-3.3-70b-instruct:free — a free, NON-reasoning
-// instruct model that's fast, accurate, and excellent at structured JSON +
-// instruction-following (ideal for the bounded "order cities, allocate nights"
-// task). It returns the answer directly in `content` with no reasoning delay,
-// avoiding the empty-content and slow-inference padding issues of the big
-// reasoning models. Override with OPENROUTER_MODEL to use any OpenRouter model.
-// Because most free models don't reliably support tool-calling / json_schema,
-// the Suggester asks for raw JSON in the prompt and parses it defensively.
+// Default model: meta-llama/llama-3.3-70b-instruct:free — free, fast, NON-
+// reasoning, strong at structured JSON. Free models are rate-limited and shared,
+// so on a 429 / transient failure we automatically fall back through other free
+// models (different upstream providers) before giving up. Override the primary
+// with OPENROUTER_MODEL. Structured output is prompt-based JSON, parsed
+// defensively in suggest-itinerary.ts.
 
 const BASE = process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1';
 
+// Free, non-reasoning instruct models in fallback order. All return clean JSON
+// quickly and sit on different providers, so a 429 on one often clears on the next.
+const FREE_FALLBACKS = [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'qwen/qwen3-next-80b-a3b-instruct:free',
+  'nousresearch/hermes-3-llama-3.1-405b:free',
+];
+
+function modelChain(): string[] {
+  const primary = process.env.OPENROUTER_MODEL?.trim();
+  const chain = primary ? [primary, ...FREE_FALLBACKS] : [...FREE_FALLBACKS];
+  return Array.from(new Set(chain)); // dedupe, preserve order
+}
+
 export function aiModel(): string {
-  return process.env.OPENROUTER_MODEL ?? 'meta-llama/llama-3.3-70b-instruct:free';
+  return modelChain()[0]!;
 }
 
 export function aiEnabled(): boolean {
@@ -30,24 +41,53 @@ export function aiKeyError(): string {
   return NO_KEY_MSG;
 }
 
-/**
- * One-shot chat completion. Returns the assistant's text content.
- * Throws a clean, user-facing Error on any failure (missing key, bad model
- * slug, rate-limit, no credits, timeout) — the raw upstream body is logged
- * server-side, never surfaced.
- */
-export async function chat(opts: {
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Errors flagged retryable cause chat() to try the next free model.
+class RetryableError extends Error {
+  readonly retryable = true;
+}
+
+interface ChatOpts {
   system: string;
   user: string;
   maxTokens?: number;
   temperature?: number;
   timeoutMs?: number;
-}): Promise<string> {
+}
+
+/**
+ * One-shot chat completion with automatic free-model fallback. Returns the
+ * assistant's text content. Throws a clean, user-facing Error only after every
+ * model in the chain has failed (or on a non-retryable error like a bad key).
+ */
+export async function chat(opts: ChatOpts): Promise<string> {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) throw new Error(NO_KEY_MSG);
 
+  const models = modelChain();
+  let lastErr: Error | null = null;
+  for (let i = 0; i < models.length; i++) {
+    try {
+      return await callModel(models[i]!, key, opts);
+    } catch (e: any) {
+      lastErr = e;
+      if (!(e instanceof RetryableError)) throw e; // e.g. bad key — stop immediately
+      console.error(`[openrouter] ${models[i]} failed: ${e.message} — trying next free model`);
+      if (i < models.length - 1) await sleep(800); // brief gap to dodge the per-minute window
+    }
+  }
+
+  const m = lastErr?.message ?? '';
+  if (/429|rate.?limit/i.test(m)) {
+    throw new Error('All free AI models are busy right now (rate limited). Please wait a minute and try again. Tip: adding a small one-time credit at openrouter.ai raises the free daily limit substantially.');
+  }
+  throw lastErr ?? new Error('AI request failed. Please try again.');
+}
+
+async function callModel(model: string, key: string, opts: ChatOpts): Promise<string> {
   const body: Record<string, unknown> = {
-    model: aiModel(),
+    model,
     messages: [
       { role: 'system', content: opts.system },
       { role: 'user', content: opts.user },
@@ -55,10 +95,7 @@ export async function chat(opts: {
     max_tokens: opts.maxTokens ?? 8000,
     temperature: opts.temperature ?? 0.3,
   };
-  // Nemotron-3 is reasoning-NATIVE. We let it reason in its default mode (the
-  // answer then lands in `content`) — do NOT disable reasoning, that returns an
-  // empty message. Only send an explicit reasoning effort if asked to, since a
-  // bad/unsupported param makes some free providers reply with a 200-body error.
+  // Only send a reasoning effort if explicitly asked (reasoning-native models only).
   const effort = process.env.OPENROUTER_REASONING_EFFORT;
   if (effort) body.reasoning = { effort };
 
@@ -74,58 +111,51 @@ export async function chat(opts: {
         'X-Title': process.env.OPENROUTER_SITE_NAME ?? 'Global Guides DMC',
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(opts.timeoutMs ?? 55_000),
+      signal: AbortSignal.timeout(opts.timeoutMs ?? 45_000),
       cache: 'no-store',
     });
   } catch (e: any) {
-    if (e?.name === 'TimeoutError' || e?.name === 'AbortError') {
-      throw new Error('The AI model took too long to respond. Try again, or set OPENROUTER_MODEL to a lighter model (e.g. nvidia/nemotron-3-super-120b-a12b:free).');
-    }
-    throw new Error('Could not reach OpenRouter. Check your network and try again.');
+    if (e?.name === 'TimeoutError' || e?.name === 'AbortError') throw new RetryableError('the model took too long to respond');
+    throw new RetryableError('could not reach OpenRouter');
   }
 
   if (!res.ok) {
     const raw = await res.text().catch(() => '');
-    console.error(`[openrouter] HTTP ${res.status}:`, raw.slice(0, 500));
+    console.error(`[openrouter] ${model} HTTP ${res.status}:`, raw.slice(0, 400));
+    if (res.status === 401) throw new Error('OpenRouter rejected the API key (401). Check OPENROUTER_API_KEY is correct and has access.');
+    if (res.status === 429) throw new RetryableError('free-tier rate limit (429)');
+    if (res.status >= 500) throw new RetryableError(`upstream ${res.status}`);
     let msg = `OpenRouter HTTP ${res.status}`;
-    try {
-      const j = JSON.parse(raw);
-      if (j?.error?.message) msg = `OpenRouter: ${j.error.message}`;
-    } catch {
-      /* non-JSON body — keep the status-code message */
-    }
-    if (res.status === 401) msg = 'OpenRouter rejected the API key (401). Check OPENROUTER_API_KEY is correct and has credits.';
-    if (res.status === 429) msg = 'OpenRouter rate limit hit (429) — the free tier is busy. Wait a moment and try again.';
-    throw new Error(msg);
+    try { const j = JSON.parse(raw); if (j?.error?.message) msg = `OpenRouter: ${j.error.message}`; } catch { /* keep status msg */ }
+    throw new Error(msg); // other 4xx — not retryable
   }
 
-  // Read as text first: on slow/non-streaming requests OpenRouter pads the body
-  // with SSE keep-alive comment lines (": OPENROUTER PROCESSING") that break a
-  // plain .json() parse. Try a direct parse, then fall back to slicing the JSON
-  // object out of the padded text.
+  // OpenRouter pads slow/non-streaming bodies with SSE keep-alive comment lines
+  // (": OPENROUTER PROCESSING") that break a plain .json(). Read text, try a
+  // direct parse, then slice the JSON object out of the padded text.
   const rawText = await res.text().catch(() => '');
   let json: any = null;
   try {
     json = JSON.parse(rawText);
   } catch {
-    const start = rawText.indexOf('{');
-    const end = rawText.lastIndexOf('}');
-    if (start !== -1 && end > start) {
-      try { json = JSON.parse(rawText.slice(start, end + 1)); } catch { /* unparseable */ }
-    }
+    const s = rawText.indexOf('{');
+    const e = rawText.lastIndexOf('}');
+    if (s !== -1 && e > s) { try { json = JSON.parse(rawText.slice(s, e + 1)); } catch { /* unparseable */ } }
   }
   if (!json || typeof json !== 'object') {
-    console.error('[openrouter] unparseable body (len %d): %s', rawText.length, rawText.slice(0, 400));
-    throw new Error('OpenRouter returned an unreadable response. Please try again.');
+    console.error('[openrouter] %s unparseable body (len %d): %s', model, rawText.length, rawText.slice(0, 300));
+    throw new RetryableError('unreadable response');
   }
-  // OpenRouter can return HTTP 200 with an error in the BODY (provider outage,
-  // unsupported param, free-tier limit) instead of a normal completion. Surface
-  // it rather than crashing downstream on a missing message.
+
+  // HTTP 200 with an error in the body (provider outage / unsupported param /
+  // free-tier limit). Rate/availability errors are retryable; surface the rest.
   if (json.error) {
-    const m = json.error?.message ?? JSON.stringify(json.error);
-    console.error('[openrouter] 200-with-error:', String(m).slice(0, 400));
-    throw new Error(`OpenRouter: ${String(m).slice(0, 300)}`);
+    const m = String(json.error?.message ?? JSON.stringify(json.error));
+    console.error('[openrouter] %s 200-with-error: %s', model, m.slice(0, 300));
+    if (/rate|limit|quota|busy|unavailable|capacity|temporar/i.test(m)) throw new RetryableError(m.slice(0, 120));
+    throw new Error(`OpenRouter: ${m.slice(0, 200)}`);
   }
+
   const choice = json.choices?.[0];
   const message = choice?.message;
   // Pull the answer from wherever the model put it: content first, then a
@@ -136,10 +166,8 @@ export async function chat(opts: {
     content = message.reasoning_details.map((r: any) => (typeof r?.text === 'string' ? r.text : '')).join('\n');
   }
   if (!content.trim()) {
-    // Log the whole body (safe: json is a non-null object here) so we can see the shape.
-    console.error('[openrouter] empty completion. finish_reason=%s body=%s', choice?.finish_reason, JSON.stringify(json).slice(0, 600));
-    const hint = choice?.finish_reason === 'length' ? ' — it ran out of tokens before answering' : '';
-    throw new Error(`The AI model returned an empty response${hint}. Please try again.`);
+    console.error('[openrouter] %s empty completion. finish_reason=%s', model, choice?.finish_reason);
+    throw new RetryableError('empty response');
   }
   return content;
 }
