@@ -4,16 +4,19 @@
 // the plain HTTP /chat/completions endpoint with `fetch` (no SDK dependency) so
 // the agency can point OPENROUTER_MODEL at any model OpenRouter hosts.
 //
-// Default model: nvidia/nemotron-3-ultra-550b-a55b:free — a free NVIDIA Nemotron
-// reasoning model. Because it (and most free models) don't reliably support
-// OpenAI tool-calling / json_schema, the Suggester asks for raw JSON in the
-// prompt and parses it defensively (see suggest-itinerary.ts). Reasoning is
-// disabled by default for speed; set OPENROUTER_REASONING=1 to re-enable it.
+// Default model: meta-llama/llama-3.3-70b-instruct:free — a free, NON-reasoning
+// instruct model that's fast, accurate, and excellent at structured JSON +
+// instruction-following (ideal for the bounded "order cities, allocate nights"
+// task). It returns the answer directly in `content` with no reasoning delay,
+// avoiding the empty-content and slow-inference padding issues of the big
+// reasoning models. Override with OPENROUTER_MODEL to use any OpenRouter model.
+// Because most free models don't reliably support tool-calling / json_schema,
+// the Suggester asks for raw JSON in the prompt and parses it defensively.
 
 const BASE = process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1';
 
 export function aiModel(): string {
-  return process.env.OPENROUTER_MODEL ?? 'nvidia/nemotron-3-ultra-550b-a55b:free';
+  return process.env.OPENROUTER_MODEL ?? 'meta-llama/llama-3.3-70b-instruct:free';
 }
 
 export function aiEnabled(): boolean {
@@ -96,8 +99,23 @@ export async function chat(opts: {
     throw new Error(msg);
   }
 
-  const json: any = await res.json().catch(() => null);
+  // Read as text first: on slow/non-streaming requests OpenRouter pads the body
+  // with SSE keep-alive comment lines (": OPENROUTER PROCESSING") that break a
+  // plain .json() parse. Try a direct parse, then fall back to slicing the JSON
+  // object out of the padded text.
+  const rawText = await res.text().catch(() => '');
+  let json: any = null;
+  try {
+    json = JSON.parse(rawText);
+  } catch {
+    const start = rawText.indexOf('{');
+    const end = rawText.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      try { json = JSON.parse(rawText.slice(start, end + 1)); } catch { /* unparseable */ }
+    }
+  }
   if (!json || typeof json !== 'object') {
+    console.error('[openrouter] unparseable body (len %d): %s', rawText.length, rawText.slice(0, 400));
     throw new Error('OpenRouter returned an unreadable response. Please try again.');
   }
   // OpenRouter can return HTTP 200 with an error in the BODY (provider outage,
