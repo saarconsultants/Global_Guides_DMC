@@ -33,17 +33,18 @@ module.exports = {
         // Legacy gold kept as alias (older components reference gold-*) — same as amber now.
         gold:   { 300:'#FFD24D', 500:'#FFBA06', 700:'#D69900' },
         action: { 100:'#E0F2FE', 500:'#0369A1', 600:'#075985', 700:'#0C4A6E' },
-        canvas: '#F7F9FC',
+        ink: { DEFAULT: '#211C17', soft: '#3A332B' }, // warm near-black for display headings
+        canvas: '#FAF6F0',      // warm ivory page background (was cold #F7F9FC)
         surface: '#FFFFFF',
-        'surface-2': '#F1F4F9',
+        'surface-2': '#F4EFE7',  // warm secondary surface / zebra (was cold #F1F4F9)
         success: { 100:'#DCFCE7', 500:'#16A34A' },
         warning: { 100:'#FEF3C7', 500:'#D97706' },
         danger:  { 100:'#FEE2E2', 500:'#DC2626' },
         info:    { 500:'#2563EB' },
         border: {
-          subtle: '#E5E9F0',
-          DEFAULT: '#D0D6E1',
-          strong: '#94A3B8',
+          subtle: '#ECE5DB',   // warm hairline (was cold #E5E9F0)
+          DEFAULT: '#DDD4C7',
+          strong: '#B3A795',
         },
         brick: { DEFAULT: '#B94025', dark: '#9D3520' },
       },

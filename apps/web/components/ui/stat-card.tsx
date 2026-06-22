@@ -14,9 +14,13 @@ interface StatCardProps {
 
 // Unified KPI / stat tile used across dashboard, leads, bookings, team, admin.
 export function StatCard({ label, value, sub, icon, delta, tone = 'navy', mono }: StatCardProps) {
-  const valueColor = tone === 'gold' ? 'text-gold-700' : tone === 'success' ? 'text-success-500' : tone === 'warning' ? 'text-warning-500' : 'text-navy-900';
+  const valueColor = tone === 'gold' ? 'text-amber-700' : tone === 'success' ? 'text-success-500' : tone === 'warning' ? 'text-warning-500' : 'text-ink';
+  // Serif numerals for display tone; keep mono+tabular for currency alignment.
+  const valueType = mono ? 'text-3xl font-bold font-mono tabular-nums tracking-tight' : 'font-display text-[1.9rem] font-semibold tracking-tight';
   return (
-    <Card className="lift">
+    <Card className="lift relative overflow-hidden">
+      {/* Signature crimson accent stripe */}
+      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-crimson-700 to-crimson-900" aria-hidden />
       <CardContent className="pt-5">
         <div className="flex items-center justify-between gap-2">
           <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">
@@ -24,7 +28,7 @@ export function StatCard({ label, value, sub, icon, delta, tone = 'navy', mono }
           </p>
           {delta && <Delta curr={delta.curr} prev={delta.prev} />}
         </div>
-        <p className={`mt-1.5 text-3xl font-bold tracking-tight ${valueColor} ${mono ? 'font-mono tabular-nums' : ''}`}>{value}</p>
+        <p className={`mt-1.5 ${valueType} ${valueColor}`}>{value}</p>
         {sub && <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">{sub}</p>}
       </CardContent>
     </Card>

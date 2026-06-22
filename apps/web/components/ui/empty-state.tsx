@@ -32,7 +32,7 @@ export function EmptyState({ icon, title, body, primary, secondary, className, d
           </div>
         )
       ) : null}
-      <h3 className={cn('text-navy-900', dense ? 'text-lg font-semibold' : 'font-display text-xl font-semibold')}>{title}</h3>
+      <h3 className={cn('text-ink', dense ? 'text-lg font-semibold' : 'font-display text-2xl font-semibold')}>{title}</h3>
       {body && <p className="mt-1.5 text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>}
       {(primary || secondary) && (
         <div className="mt-6 flex items-center justify-center gap-2">
