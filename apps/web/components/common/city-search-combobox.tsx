@@ -8,12 +8,13 @@ interface Props {
   onChange: (code: string) => void;
   label: string;
   placeholder?: string;
+  bare?: boolean;                // borderless input for use inside a HeroCell (label rendered by the cell)
 }
 
 // Autocomplete over the Hotelbeds-supported destinations (used by Hotels,
 // Activities, and Transfers search forms). Same UX as the flight airport
 // combobox; restricts to cities we have live coverage for.
-export function CitySearchCombobox({ value, onChange, label, placeholder = 'Search destination' }: Props) {
+export function CitySearchCombobox({ value, onChange, label, placeholder = 'Search destination', bare }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -47,16 +48,19 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
 
   return (
     <div ref={wrapRef} className="relative">
-      <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1.5">{label}</label>
+      {!bare && <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1.5">{label}</label>}
       <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
+        {!bare && <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />}
         <input
           value={open ? query : displayWhenClosed}
           onChange={(e) => { setQuery(e.target.value); setActive(0); setOpen(true); }}
           onFocus={() => { setQuery(''); setOpen(true); }}
           onKeyDown={onKey}
           placeholder={placeholder}
-          className="h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500"
+          aria-label={bare ? label : undefined}
+          className={bare
+            ? 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
+            : 'h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500'}
           autoComplete="off"
         />
       </div>

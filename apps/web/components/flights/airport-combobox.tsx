@@ -9,11 +9,12 @@ interface Props {
   label: string;
   placeholder?: string;
   iconRotate?: boolean;          // rotate the plane icon (for "To")
+  bare?: boolean;                // borderless input for use inside a HeroCell (label rendered by the cell)
 }
 
 // Skyscanner-style airport autocomplete. Type a city/airport/country and pick
 // from the dropdown; the IATA code is what we store + send to Tripjack.
-export function AirportCombobox({ value, onChange, label, placeholder = 'City or airport', iconRotate }: Props) {
+export function AirportCombobox({ value, onChange, label, placeholder = 'City or airport', iconRotate, bare }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -49,16 +50,19 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
 
   return (
     <div ref={wrapRef} className="relative">
-      <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1.5">{label}</label>
+      {!bare && <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1.5">{label}</label>}
       <div className="relative">
-        <Plane className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))] ${iconRotate ? 'rotate-90' : ''}`} />
+        {!bare && <Plane className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))] ${iconRotate ? 'rotate-90' : ''}`} />}
         <input
           value={open ? query : displayWhenClosed}
           onChange={(e) => { setQuery(e.target.value); setActive(0); setOpen(true); }}
           onFocus={() => { setQuery(''); setOpen(true); }}
           onKeyDown={onKey}
           placeholder={placeholder}
-          className="h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500"
+          aria-label={bare ? label : undefined}
+          className={bare
+            ? 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
+            : 'h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500'}
           autoComplete="off"
         />
       </div>
