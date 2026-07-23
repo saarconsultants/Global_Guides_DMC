@@ -5,6 +5,7 @@ import { Pill } from '@/components/ui/pill';
 import { searchHotels, isLive } from '@gg/hotelbeds';
 import { captureException } from '@/lib/observability';
 import type { Hotel } from '@/lib/itinerary/types';
+import { promoSrc } from '@/lib/promos';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,7 +96,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
   return (
     <div className="pb-12">
-      <HotelSearchForm hero defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
+      <HotelSearchForm hero heroImg={promoSrc('hero-hotels.jpg')} defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
       <div className="mx-auto max-w-7xl px-6 pt-6 space-y-6">
         {dateInvalid && (

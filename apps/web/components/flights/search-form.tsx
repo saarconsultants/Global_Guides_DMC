@@ -14,9 +14,10 @@ interface Props {
   leg?: 'outbound' | 'return';
   /** Render as the full-bleed portal hero (standalone browsing). */
   hero?: boolean;
+  heroImg?: string | null;
 }
 
-export function FlightSearchForm({ defaults, returnTo, leg, hero }: Props) {
+export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Props) {
   const router = useRouter();
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
@@ -57,6 +58,7 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero }: Props) {
           accent="the world."
           subtitle="Live consolidator fares · attach legs to any itinerary · one-click branded quotes"
           ghost="wander"
+          img={heroImg}
         >
           <HeroTabs>
             <HeroTab active={!roundTrip} onClick={() => setRoundTrip(false)}>One-way</HeroTab>

@@ -4,21 +4,33 @@ import { cn } from '@/lib/utils';
 // plus a floating white unified search bar that overlaps the band bottom.
 // Presentational only: search forms compose these and keep their own state.
 
-export function HeroBand({ title, accent, subtitle, ghost, children }: {
+export function HeroBand({ title, accent, subtitle, ghost, img, children }: {
   title: string;                 // plain part of the headline
   accent?: string;               // italic amber tail, e.g. "the world."
   subtitle?: string;
   ghost?: string;                // oversized faint word in the band corner
+  img?: string | null;           // /promos/hero-*.jpg — photo behind a brand-tinted scrim
   children?: React.ReactNode;    // tabs etc., rendered under the copy
 }) {
   return (
     <div className="relative overflow-hidden bg-[linear-gradient(135deg,#8C1816_0%,#630909_55%,#2E0404_100%)] text-white px-6 pt-10 pb-[76px]">
-      <div aria-hidden className="absolute -top-24 -right-16 w-[340px] h-[340px] rounded-full bg-[radial-gradient(circle,rgba(255,186,6,0.22),transparent_65%)]" />
-      <div aria-hidden className="absolute -bottom-32 left-[22%] w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.07),transparent_60%)]" />
-      {ghost && (
-        <span aria-hidden className="absolute right-8 bottom-0 font-display italic font-medium text-[110px] leading-none text-white/5 select-none pointer-events-none">
-          {ghost}
-        </span>
+      {img ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          {/* Brand-tinted scrim keeps copy legible and the crimson identity over any photo. */}
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#1F0202]/90 via-[#630909]/65 to-[#2E0404]/35" />
+        </>
+      ) : (
+        <>
+          <div aria-hidden className="absolute -top-24 -right-16 w-[340px] h-[340px] rounded-full bg-[radial-gradient(circle,rgba(255,186,6,0.22),transparent_65%)]" />
+          <div aria-hidden className="absolute -bottom-32 left-[22%] w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.07),transparent_60%)]" />
+          {ghost && (
+            <span aria-hidden className="absolute right-8 bottom-0 font-display italic font-medium text-[110px] leading-none text-white/5 select-none pointer-events-none">
+              {ghost}
+            </span>
+          )}
+        </>
       )}
       <div className="relative mx-auto max-w-7xl">
         <h1 className="font-display font-semibold text-[1.9rem] leading-tight tracking-tight">

@@ -5,6 +5,7 @@ import { Pill } from '@/components/ui/pill';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
+import { promoSrc } from '@/lib/promos';
 
 interface PageProps {
   searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
@@ -34,7 +35,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
     : [null, null];
 
   const searchForm = (
-    <FlightSearchForm hero={!sp.returnTo} defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
+    <FlightSearchForm hero={!sp.returnTo} heroImg={promoSrc('hero-flights.jpg')} defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
   );
 
   return (

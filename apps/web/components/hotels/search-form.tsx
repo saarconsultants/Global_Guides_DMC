@@ -16,9 +16,10 @@ interface Props {
   };
   /** Render as the full-bleed portal hero (standalone browsing). */
   hero?: boolean;
+  heroImg?: string | null;
 }
 
-export function HotelSearchForm({ defaults, hero }: Props) {
+export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
   const router = useRouter();
   const [city, setCity] = useState(defaults.city);
   const [checkin, setCheckin] = useState(defaults.checkin);
@@ -96,6 +97,7 @@ export function HotelSearchForm({ defaults, hero }: Props) {
           accent="will love."
           subtitle="Global wholesale rates · every board type · rooms & occupancy per your booking"
           ghost="stay"
+          img={heroImg}
         />
 
         <HeroBar>

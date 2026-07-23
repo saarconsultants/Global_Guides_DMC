@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { existsSync } from 'fs';
-import path from 'path';
+import { promoSrc, regionSrc } from '@/lib/promos';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -18,13 +17,6 @@ import { ArrowRight, Sparkles, Plane, Hotel as HotelIcon, MapPin, Ticket, Eye, M
 export const dynamic = 'force-dynamic';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-// Storefront artwork: when the owner drops a generated image into
-// apps/web/public/promos/<name>, the page automatically upgrades from
-// gradient art to the photo. Missing files simply keep the gradient.
-function promoSrc(name: string): string | null {
-  return existsSync(path.join(process.cwd(), 'public', 'promos', name)) ? `/promos/${name}` : null;
-}
 
 const DESTINATIONS: Array<{ city: string; country: string; code: string; img: string; tint: string }> = [
   { city: 'Paris',     country: 'France',      code: 'PAR', img: 'paris.jpg',     tint: 'from-[#5B6E9E] to-[#1E2A4A]' },
@@ -188,9 +180,9 @@ export default async function DashboardPage() {
                 return (
                   <Card key={t.id} className="lift overflow-hidden flex flex-col group">
                     <div className={`relative h-36 bg-gradient-to-br ${REGION_TINT[t.region] ?? 'from-navy-500 to-navy-900'}`}>
-                      {t.hero ? (
+                      {(t.hero ?? regionSrc(t.region)) ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={t.hero} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        <img src={(t.hero ?? regionSrc(t.region))!} alt="" className="absolute inset-0 w-full h-full object-cover" />
                       ) : null}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
                       <div className="absolute top-3 left-3 flex gap-1.5">

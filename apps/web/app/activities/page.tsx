@@ -7,7 +7,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ActivitiesBrowser } from '@/components/activities/activities-browser';
 import { Sparkles } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
-import { PageHeader } from '@/components/ui/page-header';
+import { HeroBand } from '@/components/ui/hero-search';
+import { promoSrc } from '@/lib/promos';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,14 +60,17 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
     : { variant: 'warning' as const, label: 'MOCK · set HOTELBEDS_ACTIVITIES_API_KEY' };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
-      <PageHeader
-        title="Activities &amp; experiences"
-        description={isLive('activities') ? 'Live tours & tickets via Hotelbeds. Browse to quote — add inside an itinerary to attach to a customer trip.' : 'Mock inventory. Add HOTELBEDS_ACTIVITIES_API_KEY to go live.'}
-        actions={hasQuery ? <Pill variant={badge.variant}>{badge.label}</Pill> : undefined}
+    <div className="pb-12">
+      <HeroBand
+        title="Experiences they'll"
+        accent="remember."
+        subtitle="Live tours, tickets & day trips — browse to quote, then add inside any itinerary"
+        ghost="explore"
+        img={promoSrc('hero-activities.jpg')}
       />
 
-      <ActivitySearchForm defaults={{ city, from, to, adults }} />
+      <div className="mx-auto max-w-7xl px-6 -mt-12 relative space-y-6">
+        <ActivitySearchForm defaults={{ city, from, to, adults }} />
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">{warning}</div>
@@ -74,7 +78,10 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
 
       {hasQuery && (
         <>
-          <div className="text-sm text-[rgb(var(--text-secondary))]">Activities in <span className="font-semibold text-navy-900">{cityName}</span> · {from} → {to}</div>
+          <div className="flex items-center justify-between gap-3 text-sm text-[rgb(var(--text-secondary))]">
+            <span>Activities in <span className="font-semibold text-navy-900">{cityName}</span> · {from} → {to}</span>
+            <Pill variant={badge.variant}>{badge.label}</Pill>
+          </div>
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (
@@ -83,6 +90,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-medium">+ Add Activity</span> on any day.</p>
         </>
       )}
+      </div>
     </div>
   );
 }
