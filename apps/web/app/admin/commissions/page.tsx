@@ -84,7 +84,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100">
                     <th className="py-3 pr-4 font-semibold">Scope</th>
                     <th className="py-3 pr-4 font-semibold">Product</th>
                     <th className="py-3 pr-4 font-semibold text-right">Percent</th>

@@ -116,7 +116,7 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero }: Props) {
   }
 
   return (
-    <Card>
+    <Card plain>
       <CardContent className="pt-6">
         {!returnTo && (
           <div className="flex items-center gap-2 mb-4">

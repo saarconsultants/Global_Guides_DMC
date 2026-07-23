@@ -64,12 +64,23 @@
       radial-gradient(55% 55% at 100% 0%, rgb(99 9 9 / 0.05) 0%, transparent 55%);
   }
 
-  /* Hover lift for cards — layered warm shadow reads as real depth */
-  .lift { transition: transform 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms cubic-bezier(0.2, 0, 0, 1), border-color 200ms ease; }
-  .lift:hover { transform: translateY(-3px); box-shadow: 0 1px 2px rgb(33 28 23 / 0.05), 0 18px 36px -10px rgb(33 28 23 / 0.16); }
+  /* Hover lift for cards — heavy fluid ease, soft diffused ambient shadow */
+  .lift { transition: transform 500ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 500ms cubic-bezier(0.32, 0.72, 0, 1), border-color 300ms ease; }
+  .lift:hover { transform: translateY(-4px); box-shadow: 0 1px 2px rgb(33 28 23 / 0.04), 0 24px 48px -16px rgb(33 28 23 / 0.18); }
 
-  /* Card surface elevation token (subtle, modern, warm) */
-  .elevate { box-shadow: 0 1px 2px rgb(33 28 23 / 0.04), 0 4px 14px -6px rgb(33 28 23 / 0.10); }
+  /* Card surface elevation token — soft, highly diffused, warm */
+  .elevate { box-shadow: 0 1px 1px rgb(33 28 23 / 0.03), 0 12px 32px -14px rgb(33 28 23 / 0.12); }
+
+  /* Film-grain overlay — fixed, pointer-events-none, mounted once in the root
+     layout. Gives every page the physical-paper feel of the editorial brand. */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.028;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 
   /* Branded data table — crimson caps headers, warm zebra, hover highlight.
      Opt-in: add class="gg-table" to a <table>. */

@@ -145,7 +145,7 @@ export function HotelSearchForm({ defaults, hero }: Props) {
   }
 
   return (
-    <Card>
+    <Card plain>
       <CardContent className="pt-6 space-y-4">
         <form onSubmit={submit} className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end">

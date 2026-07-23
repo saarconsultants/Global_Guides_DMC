@@ -43,7 +43,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
       <div className="overflow-hidden rounded-2xl shadow-lg">
         <div className="flex transition-transform duration-700 ease-standard" style={{ transform: `translateX(-${idx * 100}%)` }}>
           {banners.map((b) => (
-            <div key={b.key} className={`relative w-full shrink-0 min-h-[248px] lg:min-h-[280px] bg-gradient-to-br ${b.tint} text-white overflow-hidden`}>
+            <div key={b.key} className={`relative w-full shrink-0 min-h-[280px] lg:min-h-[360px] bg-gradient-to-br ${b.tint} text-white overflow-hidden`}>
               {b.img && (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}

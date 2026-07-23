@@ -236,7 +236,7 @@ export default async function DashboardPage() {
                 <Link
                   key={d.code}
                   href={`/hotels?city=${d.code}` as any}
-                  className={`relative h-40 rounded-xl overflow-hidden group bg-gradient-to-b ${d.tint} lift`}
+                  className={`relative h-64 rounded-2xl overflow-hidden group bg-gradient-to-b ${d.tint} lift`}
                 >
                   {src && (
                     // eslint-disable-next-line @next/next/no-img-element

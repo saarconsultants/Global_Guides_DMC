@@ -59,6 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             notif={notif}
           />
           <main id="main-content" className="min-h-screen">{children}</main>
+          <div className="grain" aria-hidden />
           <BugReportButton />
         </CurrencyProvider>
         <Toaster />

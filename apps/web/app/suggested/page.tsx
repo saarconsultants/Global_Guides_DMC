@@ -68,7 +68,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
               const cities = (JSON.parse(t.destinations) as any[]).map((d) => d.cityName);
               return (
                 <Card key={t.id} className="lift overflow-hidden flex flex-col group">
-                  <div className={`relative h-40 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
+                  <div className={`relative h-52 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
                     {t.hero ? <img src={t.hero} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3 flex gap-1.5">

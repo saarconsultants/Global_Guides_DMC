@@ -69,7 +69,7 @@ export default async function TeamSettingsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle"><th className="py-3 pr-4">Email</th><th>Role</th><th>Expires</th><th>Invite link</th><th></th></tr></thead>
+                <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Email</th><th>Role</th><th>Expires</th><th>Invite link</th><th></th></tr></thead>
                 <tbody>
                   {invites.map((inv) => (
                     <tr key={inv.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
@@ -100,7 +100,7 @@ export default async function TeamSettingsPage() {
         <Card><CardContent className="pt-2">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th><th></th></tr></thead>
+              <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th><th></th></tr></thead>
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">

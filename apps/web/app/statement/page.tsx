@@ -30,7 +30,7 @@ export default async function StatementPage() {
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 relative overflow-hidden bg-gradient-to-br from-crimson-700 via-crimson-900 to-black text-white border-0">
+        <Card plain className="lg:col-span-2 relative overflow-hidden bg-gradient-to-br from-crimson-700 via-crimson-900 to-black text-white border-0">
           <div className="absolute -top-12 -right-12 w-60 h-60 rounded-full bg-amber-500/25 blur-3xl" />
           <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-amber-300/10 blur-3xl" />
           <CardContent className="relative pt-6">
@@ -60,7 +60,7 @@ export default async function StatementPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100">
                     <th className="py-3 pr-4 font-semibold">Date</th>
                     <th className="py-3 pr-4 font-semibold">Type</th>
                     <th className="py-3 pr-4 font-semibold">Reference</th>
