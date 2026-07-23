@@ -5,6 +5,7 @@ import { Pill } from '@/components/ui/pill';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
+import { promoSrc } from '@/lib/promos';
 
 interface PageProps {
   searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
@@ -33,33 +34,44 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       ])
     : [null, null];
 
+  const searchForm = (
+    <FlightSearchForm hero={!sp.returnTo} heroImg={promoSrc('hero-flights.jpg')} defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
+  );
+
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
-      {sp.returnTo && (
-        <div className="rounded-md border border-crimson-700/30 bg-crimson-50 text-crimson-900 px-4 py-2.5 flex items-center justify-between gap-3">
-          <p className="text-sm">
-            <span className="font-semibold">Adding {sp.leg === 'return' ? 'return' : 'outbound'} flight to your itinerary.</span>
-            <span className="text-crimson-700/80 ml-2">Pick any option below — we'll attach it and bounce you back.</span>
-          </p>
-          <Link href={`/itinerary/${sp.returnTo}/customize` as any} className="inline-flex items-center gap-1 text-xs font-semibold hover:underline">
-            <ArrowLeft className="w-3.5 h-3.5" />Back without selecting
-          </Link>
-        </div>
-      )}
+    <div className="pb-12">
+      {/* Standalone browsing: full-bleed portal hero. Attach flow: compact card in-container. */}
+      {!sp.returnTo && searchForm}
 
-      <PageHeader
-        title="Flights"
-        description="Live fares via Tripjack. Mock data shown only if the API key is unset."
-        actions={results && !('error' in results) ? (
-          <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
-            {results.source === 'live' ? 'LIVE' : 'MOCK · set TRIPJACK_API_KEY to go live'}
-          </Pill>
-        ) : undefined}
-      />
+      <div className="mx-auto max-w-7xl px-6 pt-6 space-y-6">
+        {sp.returnTo && (
+          <>
+            <div className="mt-4 rounded-md border border-crimson-700/30 bg-crimson-50 text-crimson-900 px-4 py-2.5 flex items-center justify-between gap-3">
+              <p className="text-sm">
+                <span className="font-semibold">Adding {sp.leg === 'return' ? 'return' : 'outbound'} flight to your itinerary.</span>
+                <span className="text-crimson-700/80 ml-2">Pick any option below — we'll attach it and bounce you back.</span>
+              </p>
+              <Link href={`/itinerary/${sp.returnTo}/customize` as any} className="inline-flex items-center gap-1 text-xs font-semibold hover:underline">
+                <ArrowLeft className="w-3.5 h-3.5" />Back without selecting
+              </Link>
+            </div>
+            <PageHeader
+              title="Flights"
+              description="Live fares via Tripjack."
+            />
+            {searchForm}
+          </>
+        )}
 
-      <FlightSearchForm defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
+        {results && !('error' in results) && (
+          <div className="flex justify-end">
+            <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
+              {results.source === 'live' ? 'LIVE · Tripjack' : 'MOCK · set TRIPJACK_API_KEY to go live'}
+            </Pill>
+          </div>
+        )}
 
-      {results && 'error' in results && (
+        {results && 'error' in results && (
         <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm space-y-2">
           <div className="font-medium">{results.error}</div>
           {String(results.error).includes('rate-limited') && (
@@ -89,12 +101,13 @@ export default async function FlightsPage({ searchParams }: PageProps) {
         <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm">Return search failed: {returnResults.error}</div>
       )}
 
-      {isRoundTrip && returnResults && !('error' in returnResults) && (
-        <div className="space-y-3 pt-2">
-          <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2">Return <span className="text-sm font-normal text-[rgb(var(--text-secondary))]">{sp.to?.toUpperCase()} → {sp.from?.toUpperCase()} · {sp.rdate}</span></h2>
-          <FlightResults result={returnResults} cabin={(sp.cabin as any) ?? 'ECONOMY'} />
-        </div>
-      )}
+        {isRoundTrip && returnResults && !('error' in returnResults) && (
+          <div className="space-y-3 pt-2">
+            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2">Return <span className="text-sm font-normal text-[rgb(var(--text-secondary))]">{sp.to?.toUpperCase()} → {sp.from?.toUpperCase()} · {sp.rdate}</span></h2>
+            <FlightResults result={returnResults} cabin={(sp.cabin as any) ?? 'ECONOMY'} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

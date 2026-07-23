@@ -30,6 +30,9 @@ export default function LoginPage() {
     <div className="min-h-screen grid lg:grid-cols-2 bg-canvas">
       {/* Brand panel */}
       <aside className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-crimson-500 via-crimson-700 to-crimson-900 text-white items-center justify-center p-12">
+        {/* Optional owner artwork: /promos/login.jpg. Self-hides if absent. */}
+        <img src="/promos/login.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-crimson-900/85 via-crimson-700/70 to-[#1F0202]/85" />
         <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-amber-500/25 blur-3xl animate-[float_12s_ease-in-out_infinite]" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-300/15 blur-3xl animate-[float_10s_ease-in-out_infinite_reverse]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-crimson-300/10 blur-3xl animate-[float_14s_ease-in-out_infinite]" />

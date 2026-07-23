@@ -25,7 +25,7 @@ export function ActivitySearchForm({ defaults }: Props) {
   }
 
   return (
-    <Card>
+    <Card plain>
       <CardContent className="pt-6">
         <form onSubmit={submit} className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] lg:items-end">
           <CitySearchCombobox label="Destination" value={city} onChange={setCity} placeholder="Search destination" />

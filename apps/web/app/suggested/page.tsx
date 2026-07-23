@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getDisplayMoney } from '@/lib/money-server';
 import { cloneAndRedirectAction } from '@/app/actions/clone-template';
+import { regionSrc } from '@/lib/promos';
 import { Sparkles, MapPin, Plane } from 'lucide-react';
 import Link from 'next/link';
 
@@ -68,8 +69,8 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
               const cities = (JSON.parse(t.destinations) as any[]).map((d) => d.cityName);
               return (
                 <Card key={t.id} className="lift overflow-hidden flex flex-col group">
-                  <div className={`relative h-40 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
-                    {t.hero ? <img src={t.hero} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
+                  <div className={`relative h-52 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
+                    {(t.hero ?? regionSrc(t.region)) ? <img src={(t.hero ?? regionSrc(t.region))!} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3 flex gap-1.5">
                       <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>

@@ -125,7 +125,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead><tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle"><th className="py-3 pr-4">Code</th><th>Trip</th><th>Created</th><th className="text-right">Price</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Code</th><th>Trip</th><th>Created</th><th className="text-right">Price</th><th>Status</th><th></th></tr></thead>
                     <tbody>
                       {lead.proposals.map((p) => (
                         <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">

@@ -4,16 +4,20 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowRightLeft, Search } from 'lucide-react';
+import { ArrowRightLeft, Search, Check } from 'lucide-react';
 import { AirportCombobox } from './airport-combobox';
+import { HeroBand, HeroTabs, HeroTab, HeroBar, HeroCell, HeroSubmit, HeroChip, heroControl } from '@/components/ui/hero-search';
 
 interface Props {
   defaults: { from: string; to: string; date: string; adults: string; cabin: string; rdate?: string };
   returnTo?: string;
   leg?: 'outbound' | 'return';
+  /** Render as the full-bleed portal hero (standalone browsing). */
+  hero?: boolean;
+  heroImg?: string | null;
 }
 
-export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
+export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Props) {
   const router = useRouter();
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
@@ -46,8 +50,75 @@ export function FlightSearchForm({ defaults, returnTo, leg }: Props) {
     setTo(from);
   }
 
+  if (hero && !returnTo) {
+    return (
+      <form onSubmit={submit}>
+        <HeroBand
+          title="Book flights and explore"
+          accent="the world."
+          subtitle="Live consolidator fares · attach legs to any itinerary · one-click branded quotes"
+          ghost="wander"
+          img={heroImg}
+        >
+          <HeroTabs>
+            <HeroTab active={!roundTrip} onClick={() => setRoundTrip(false)}>One-way</HeroTab>
+            <HeroTab active={roundTrip} onClick={() => setRoundTrip(true)}>Round-trip</HeroTab>
+          </HeroTabs>
+        </HeroBand>
+
+        <HeroBar>
+          <HeroCell eyebrow="From" grow>
+            <AirportCombobox bare label="From" value={from} onChange={setFrom} placeholder="City or airport" />
+            <button
+              type="button"
+              onClick={swap}
+              aria-label="Swap from/to"
+              className="hidden lg:flex absolute -right-[14px] top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-900 hover:bg-crimson-50 transition-colors"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+            </button>
+          </HeroCell>
+          <HeroCell eyebrow="To" grow className="lg:pl-6">
+            <AirportCombobox bare label="To" value={to} onChange={setTo} placeholder="City or airport" iconRotate />
+          </HeroCell>
+          <HeroCell eyebrow={roundTrip ? 'Depart' : 'Travel date'}>
+            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setDateError(null); }} className={heroControl} aria-label="Departure date" />
+          </HeroCell>
+          {roundTrip && (
+            <HeroCell eyebrow="Return">
+              <input type="date" value={rdate} min={date} onChange={(e) => { setRdate(e.target.value); setDateError(null); }} className={heroControl} aria-label="Return date" />
+            </HeroCell>
+          )}
+          <HeroCell eyebrow="Travellers">
+            <select value={adults} onChange={(e) => setAdults(e.target.value)} className={heroControl} aria-label="Adults">
+              {[1,2,3,4,5,6,7,8,9].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
+            </select>
+          </HeroCell>
+          <HeroCell eyebrow="Cabin">
+            <select value={cabin} onChange={(e) => setCabin(e.target.value)} className={heroControl} aria-label="Cabin">
+              <option value="ECONOMY">Economy</option>
+              <option value="PREMIUM_ECONOMY">Premium Economy</option>
+              <option value="BUSINESS">Business</option>
+              <option value="FIRST">First</option>
+            </select>
+          </HeroCell>
+          <HeroSubmit><Search className="w-4 h-4" />Search</HeroSubmit>
+        </HeroBar>
+
+        <div className="mx-auto max-w-7xl px-6 mt-3.5 flex flex-wrap items-center gap-2">
+          <HeroChip active={directOnly} onClick={() => setDirectOnly((v) => !v)}>
+            {directOnly && <Check className="w-3.5 h-3.5" />}Direct flights only
+          </HeroChip>
+          {dateError
+            ? <p className="text-sm text-danger-500" role="alert">{dateError}</p>
+            : <p className="ml-auto text-[11.5px] text-[rgb(var(--text-tertiary))]">Fares refresh live from Tripjack</p>}
+        </div>
+      </form>
+    );
+  }
+
   return (
-    <Card>
+    <Card plain>
       <CardContent className="pt-6">
         {!returnTo && (
           <div className="flex items-center gap-2 mb-4">

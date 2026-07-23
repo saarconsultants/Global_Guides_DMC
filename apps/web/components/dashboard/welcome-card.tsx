@@ -32,7 +32,7 @@ export function WelcomeCard({ firstName, steps }: Props) {
   }
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-br from-crimson-500 via-crimson-700 to-crimson-900 text-white border-0">
+    <Card plain className="relative overflow-hidden bg-gradient-to-br from-crimson-500 via-crimson-700 to-crimson-900 text-white border-0">
       <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl" />
       <div className="absolute -bottom-12 -left-12 w-60 h-60 rounded-full bg-amber-300/15 blur-3xl" />
       <button

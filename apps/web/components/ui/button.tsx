@@ -3,7 +3,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-all ease-standard duration-200 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
+  // Pill geometry + spring-like press physics (scale, heavy fluid bezier).
+  'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
   {
     variants: {
       variant: {
@@ -20,9 +21,9 @@ const buttonVariants = cva(
         brick: 'bg-crimson-700 text-white hover:bg-crimson-900',
       },
       size: {
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-12 px-6 text-base',
+        sm: 'h-8 px-3.5 text-sm',
+        md: 'h-10 px-5 text-sm',
+        lg: 'h-12 px-7 text-base',
         icon: 'h-10 w-10',
       },
     },

@@ -89,7 +89,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       </div>
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
-        <Card className="lift relative overflow-hidden bg-gradient-to-br from-crimson-700 to-crimson-900 text-white border-0">
+        <Card plain className="lift relative overflow-hidden bg-gradient-to-br from-crimson-700 to-crimson-900 text-white border-0">
           <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-amber-500/30 blur-2xl" />
           <CardContent className="pt-5 relative">
             <p className="text-[11px] uppercase tracking-widest text-amber-300 font-bold inline-flex items-center gap-1.5"><Coins className="w-3 h-3" />Commission</p>
@@ -171,7 +171,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-xs uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle"><th className="py-3 pr-4">Date</th><th>Agency</th><th>Proposal</th><th>Product</th><th className="text-right">Basis</th><th className="text-right">Amount</th><th>Note</th></tr></thead>
+                <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Date</th><th>Agency</th><th>Proposal</th><th>Product</th><th className="text-right">Basis</th><th className="text-right">Amount</th><th>Note</th></tr></thead>
                 <tbody>
                   {filtered.slice(0, 200).map((r) => {
                     const a = agencies.find((x) => x.id === r.agencyId);

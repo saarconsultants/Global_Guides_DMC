@@ -5,7 +5,7 @@ import { Pill } from '@/components/ui/pill';
 import { searchHotels, isLive } from '@gg/hotelbeds';
 import { captureException } from '@/lib/observability';
 import type { Hotel } from '@/lib/itinerary/types';
-import { PageHeader } from '@/components/ui/page-header';
+import { promoSrc } from '@/lib/promos';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,36 +95,32 @@ export default async function HotelsPage({ searchParams }: PageProps) {
       : { variant: 'warning' as const, label: 'MOCK · set HOTELBEDS_API_KEY for live' };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-8">
-      <PageHeader
-        title="Hotels"
-        description={isLive() ? 'Live inventory via Hotelbeds (HBX Group) — 250k+ properties globally.' : 'Mock inventory. Add HOTELBEDS_API_KEY + HOTELBEDS_API_SECRET to go live.'}
-        actions={hasQuery && !dateInvalid ? <Pill variant={badge.variant}>{badge.label}</Pill> : undefined}
-      />
+    <div className="pb-12">
+      <HotelSearchForm hero heroImg={promoSrc('hero-hotels.jpg')} defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
-      <HotelSearchForm defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
-
-      {dateInvalid && (
-        <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm" role="alert">
-          Check-out must be after check-in. Please adjust the dates and search again.
-        </div>
-      )}
-
-      {!dateInvalid && warning && source !== 'live' && (
-        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
-          {warning.length > 180 ? warning.slice(0, 180) + '…' : warning}
-        </div>
-      )}
-
-      {hasQuery && !dateInvalid && (
-        <>
-          <div className="flex items-center justify-between text-sm text-[rgb(var(--text-secondary))]">
-            <span>Hotels in <span className="font-semibold text-navy-900">{cityName}</span> · {checkin} → {checkout}</span>
-            {filteredOut > 0 && <span className="text-xs">{filteredOut} hidden by filters</span>}
+      <div className="mx-auto max-w-7xl px-6 pt-6 space-y-6">
+        {dateInvalid && (
+          <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm" role="alert">
+            Check-out must be after check-in. Please adjust the dates and search again.
           </div>
-          <HotelResults hotels={hotels} nights={nights} />
-        </>
-      )}
+        )}
+
+        {!dateInvalid && warning && source !== 'live' && (
+          <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
+            {warning.length > 180 ? warning.slice(0, 180) + '…' : warning}
+          </div>
+        )}
+
+        {hasQuery && !dateInvalid && (
+          <>
+            <div className="flex items-center justify-between gap-3 text-sm text-[rgb(var(--text-secondary))]">
+              <span>Hotels in <span className="font-semibold text-navy-900">{cityName}</span> · {checkin} → {checkout}{filteredOut > 0 && <span className="text-xs ml-2">({filteredOut} hidden by filters)</span>}</span>
+              <Pill variant={badge.variant}>{badge.label}</Pill>
+            </div>
+            <HotelResults hotels={hotels} nights={nights} />
+          </>
+        )}
+      </div>
     </div>
   );
 }

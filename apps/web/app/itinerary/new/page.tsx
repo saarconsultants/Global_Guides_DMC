@@ -111,7 +111,7 @@ export default function NewItineraryPage() {
       </div>
 
       <form onSubmit={submit}>
-      <Card>
+      <Card plain>
         <CardContent className="pt-6 space-y-5">
           <section>
             <div className="flex items-center justify-between mb-1">
