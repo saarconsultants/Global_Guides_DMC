@@ -225,6 +225,10 @@ export default function NewItineraryPage() {
           setDestinations(cities.map((c) => ({ id: newId(), cityCode: c.cityCode, nights: c.nights })));
           setAiUsed(true);
         }}
+        onTrip={(itin) => {
+          upsert(itin);
+          router.push(`/itinerary/${itin.id}/customize`);
+        }}
       />
     </div>
     </div>

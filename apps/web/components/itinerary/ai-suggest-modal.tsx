@@ -1,33 +1,82 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { aiSuggestAction } from '@/app/actions/ai-suggest';
+import { AirportCombobox } from '@/components/flights/airport-combobox';
+import { useCurrency } from '@/components/providers/currency-provider';
+import { formatMoney } from '@/lib/money';
 import type { SuggestedCity } from '@/lib/ai/suggest-itinerary';
-import { Sparkles, AlertTriangle, ArrowRight, Loader2 } from 'lucide-react';
+import type { Itinerary } from '@/lib/itinerary/types';
+import { Sparkles, AlertTriangle, ArrowRight, Loader2, Plane, Hotel as HotelIcon, Wand2, Check } from 'lucide-react';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onApply: (cities: SuggestedCity[]) => void;
+  /** Full AI trip: receives the complete architected itinerary (load + navigate). */
+  onTrip?: (itinerary: Itinerary) => void;
 }
 
-export function AiSuggestModal({ open, onClose, onApply }: Props) {
+const STAGES = [
+  'Routing your cities…',
+  'Fetching live fares, rooms & activities…',
+  'AI is selecting the best options…',
+  'Composing your trip…',
+];
+
+function defaultDeparture(): string {
+  const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0, 10);
+}
+
+export function AiSuggestModal({ open, onClose, onApply, onTrip }: Props) {
   const [destinationsText, setDestinationsText] = useState('Paris, Amsterdam, Zurich');
   const [totalNights, setTotalNights] = useState(7);
   const [notes, setNotes] = useState('');
   const [budget, setBudget] = useState<'standard'|'premium'|'luxury'>('standard');
+  const [departureDate, setDepartureDate] = useState(defaultDeparture());
+  const [originIATA, setOriginIATA] = useState('DEL');
+  const [adults, setAdults] = useState(2);
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<number | null>(null);   // full-trip progress
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ cities: SuggestedCity[]; summary: string; warnings: string[] } | null>(null);
+  const [trip, setTrip] = useState<{ itinerary: Itinerary; summary: string; warnings: string[] } | null>(null);
+  const stageTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { currency, rate } = useCurrency();
+  const fmt = (p: number) => formatMoney(p, currency, rate);
 
-  async function load() {
-    setError(null); setBusy(true); setResult(null);
+  useEffect(() => () => { if (stageTimer.current) clearInterval(stageTimer.current); }, []);
+
+  async function loadRoute() {
+    setError(null); setBusy(true); setResult(null); setTrip(null);
     const r = await aiSuggestAction({ destinationsText, totalNights, notes: notes || undefined, budget });
     setBusy(false);
     if (r.ok) setResult(r.result); else setError(r.error);
+  }
+
+  async function buildTrip() {
+    setError(null); setBusy(true); setResult(null); setTrip(null); setStage(0);
+    // Advance the narrative while the single request runs (~15-40s).
+    let s = 0;
+    stageTimer.current = setInterval(() => { s = Math.min(s + 1, STAGES.length - 1); setStage(s); }, 8000);
+    try {
+      const res = await fetch('/api/ai-trip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destinationsText, totalNights, departureDate, adults, originIATA: originIATA || undefined, budget, notes: notes || undefined }),
+      });
+      const j = await res.json().catch(() => null);
+      if (j?.ok) setTrip({ itinerary: j.itinerary, summary: j.summary, warnings: j.warnings ?? [] });
+      else setError(j?.error ?? `Trip build failed (HTTP ${res.status}). Please try again.`);
+    } catch {
+      setError('Could not reach the trip builder. Check your connection and try again.');
+    } finally {
+      if (stageTimer.current) { clearInterval(stageTimer.current); stageTimer.current = null; }
+      setBusy(false); setStage(null);
+    }
   }
 
   function apply() {
@@ -36,15 +85,82 @@ export function AiSuggestModal({ open, onClose, onApply }: Props) {
     reset();
   }
 
+  function openTrip() {
+    if (!trip) return;
+    onTrip?.(trip.itinerary);
+    reset();
+  }
+
   function reset() {
-    setError(null); setResult(null); setBusy(false); onClose();
+    setError(null); setResult(null); setTrip(null); setBusy(false); setStage(null);
+    if (stageTimer.current) { clearInterval(stageTimer.current); stageTimer.current = null; }
+    onClose();
   }
 
   return (
     <Dialog open={open} onClose={reset} title="Where would you like to wander?" size="lg" glass>
-      {!result ? (
+      {busy && stage !== null ? (
+        /* ── Full-trip progress ── */
+        <div className="py-10 text-center space-y-5">
+          <div className="mx-auto w-14 h-14 rounded-full bg-gradient-to-br from-crimson-50 to-amber-50 border border-crimson-100 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 text-crimson-700 animate-spin" />
+          </div>
+          <div className="space-y-2">
+            {STAGES.map((label, i) => (
+              <p key={label} className={`text-sm transition-colors ${i < stage ? 'text-success-500' : i === stage ? 'text-ink font-semibold' : 'text-[rgb(var(--text-tertiary))]'}`}>
+                {i < stage ? <Check className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" /> : null}{label}
+              </p>
+            ))}
+          </div>
+          <p className="text-xs text-[rgb(var(--text-tertiary))]">Live inventory + AI selection takes up to a minute.</p>
+        </div>
+      ) : trip ? (
+        /* ── Full-trip result ── */
         <div className="space-y-4">
-          <p className="text-sm text-[rgb(var(--text-secondary))]">Enter your desired destinations. We'll order them, allocate nights, and load the plan into the builder. <span className="font-medium">Powered by AI.</span></p>
+          <div className="rounded-md bg-crimson-50 text-crimson-900 px-4 py-3 text-sm">
+            <p className="font-medium">{trip.summary}</p>
+          </div>
+          <div className="space-y-2">
+            {trip.itinerary.flights && (
+              <div className="flex items-center gap-3 p-3 rounded-md bg-surface border border-border-subtle text-sm">
+                <Plane className="w-4 h-4 text-crimson-700 flex-shrink-0" />
+                <span className="font-medium text-ink">
+                  {trip.itinerary.flights.segments[0]?.airlineName} · {trip.itinerary.flights.segments[0]?.fromIATA} → {trip.itinerary.flights.segments[trip.itinerary.flights.segments.length - 1]?.toIATA}
+                  {trip.itinerary.flights.return ? ' · round-trip' : ''}
+                </span>
+                <span className="ml-auto font-mono text-xs">{fmt(trip.itinerary.flights.totalPaise + (trip.itinerary.flights.return?.totalPaise ?? 0))}</span>
+              </div>
+            )}
+            {trip.itinerary.destinations.map((d) => (
+              <div key={d.cityCode} className="flex items-center gap-3 p-3 rounded-md bg-surface border border-border-subtle text-sm">
+                <HotelIcon className="w-4 h-4 text-crimson-700 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-ink truncate">{d.cityName} · {d.nights}N — {d.stay?.hotel.name ?? 'no stay'}</p>
+                  {d.stay && <p className="text-xs text-[rgb(var(--text-secondary))]">{'★'.repeat(d.stay.hotel.stars)} · {d.stay.hotel.mealPlan}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-md bg-gradient-to-r from-crimson-900 to-crimson-700 text-white px-4 py-3 flex items-center justify-between">
+            <span className="text-xs uppercase tracking-widest font-bold text-amber-300">Complete trip total</span>
+            <span className="font-mono font-bold text-lg">{fmt(trip.itinerary.pricePaise)}</span>
+          </div>
+          {trip.warnings.length > 0 && (
+            <div className="rounded-md bg-warning-100 text-warning-500 px-3 py-2 text-xs space-y-1">
+              {trip.warnings.map((w, i) => (
+                <p key={i} className="inline-flex items-start gap-1"><AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" /> {w}</p>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-between items-center pt-2">
+            <Button variant="ghost" onClick={() => setTrip(null)}>Adjust query</Button>
+            <Button onClick={openTrip} className="gap-2">Open in builder <ArrowRight className="w-4 h-4" /></Button>
+          </div>
+        </div>
+      ) : !result ? (
+        /* ── Input form ── */
+        <div className="space-y-4">
+          <p className="text-sm text-[rgb(var(--text-secondary))]">Type destinations — AI routes the cities, then builds the complete trip from live inventory: hotels, activities, flights, priced. <span className="font-medium">Nothing invented, everything bookable.</span></p>
           <div>
             <Label required>Destinations</Label>
             <Input value={destinationsText} onChange={(e) => setDestinationsText(e.target.value)} placeholder="e.g. Paris, Amsterdam, London" />
@@ -58,6 +174,19 @@ export function AiSuggestModal({ open, onClose, onApply }: Props) {
               </select>
             </div>
             <div>
+              <Label>Departure</Label>
+              <Input type="date" value={departureDate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setDepartureDate(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <AirportCombobox label="Flying from" value={originIATA} onChange={setOriginIATA} placeholder="Origin city" />
+            <div>
+              <Label>Adults</Label>
+              <select value={adults} onChange={(e) => setAdults(parseInt(e.target.value, 10))} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                {[1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div>
               <Label>Budget tier</Label>
               <select value={budget} onChange={(e) => setBudget(e.target.value as any)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
                 <option value="standard">Standard</option>
@@ -68,17 +197,23 @@ export function AiSuggestModal({ open, onClose, onApply }: Props) {
           </div>
           <div>
             <Label>Notes (optional)</Label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. honeymoon, prefers boutique stays, no shellfish allergies" className="h-20 w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm" />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. honeymoon, prefers boutique stays, no shellfish allergies" className="h-16 w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm" />
           </div>
           {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end items-center gap-2 pt-2">
             <Button variant="ghost" onClick={reset}>Cancel</Button>
-            <Button onClick={load} disabled={busy} className="gap-2">
-              {busy ? <><Loader2 className="w-4 h-4 animate-spin" />Loading...</> : <><Sparkles className="w-4 h-4" />Load suggestions</>}
+            <Button variant="outline" onClick={loadRoute} disabled={busy} className="gap-2">
+              {busy && stage === null ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}Route only
             </Button>
+            {onTrip && (
+              <Button onClick={buildTrip} disabled={busy} className="gap-2">
+                <Wand2 className="w-4 h-4" />Build full trip
+              </Button>
+            )}
           </div>
         </div>
       ) : (
+        /* ── Route-only result (existing flow) ── */
         <div className="space-y-4">
           <div className="rounded-md bg-crimson-50 text-crimson-900 px-4 py-3 text-sm">
             <p className="font-medium">{result.summary}</p>
