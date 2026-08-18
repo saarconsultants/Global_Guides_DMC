@@ -221,6 +221,16 @@ export default function NewItineraryPage() {
       <AiSuggestModal
         open={aiOpen}
         onClose={() => setAiOpen(false)}
+        /* Inherit whatever the agent already filled in on this page. */
+        defaults={{
+          destinationsText: destinations.map((d) => findCity(d.cityCode)?.name ?? d.cityCode).join(", "),
+          totalNights: destinations.reduce((s, d) => s + d.nights, 0),
+          departureDate,
+          originIATA: leavingFromCode,
+          adults: rooms.reduce((s, r) => s + r.adults, 0),
+          children: rooms.reduce((s, r) => s + (r.children ?? 0), 0),
+          budget: starRating === 5 ? "luxury" : starRating === 4 ? "premium" : "standard",
+        }}
         onApply={(cities) => {
           setDestinations(cities.map((c) => ({ id: newId(), cityCode: c.cityCode, nights: c.nights })));
           setAiUsed(true);

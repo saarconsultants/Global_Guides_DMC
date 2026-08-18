@@ -18,6 +18,19 @@ interface Props {
   onApply: (cities: SuggestedCity[]) => void;
   /** Full AI trip: receives the complete architected itinerary (load + navigate). */
   onTrip?: (itinerary: Itinerary) => void;
+  /**
+   * Prefill from the intake form the agent has already filled in, so the modal
+   * never asks for data that's on screen. Re-applied every time it opens.
+   */
+  defaults?: {
+    destinationsText?: string;
+    totalNights?: number;
+    departureDate?: string;
+    originIATA?: string;
+    adults?: number;
+    children?: number;
+    budget?: 'standard' | 'premium' | 'luxury';
+  };
 }
 
 const STAGES = [
@@ -31,14 +44,15 @@ function defaultDeparture(): string {
   const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0, 10);
 }
 
-export function AiSuggestModal({ open, onClose, onApply, onTrip }: Props) {
-  const [destinationsText, setDestinationsText] = useState('Paris, Amsterdam, Zurich');
-  const [totalNights, setTotalNights] = useState(7);
+export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Props) {
+  const [destinationsText, setDestinationsText] = useState(defaults?.destinationsText || 'Paris, Amsterdam, Zurich');
+  const [totalNights, setTotalNights] = useState(defaults?.totalNights ?? 7);
   const [notes, setNotes] = useState('');
-  const [budget, setBudget] = useState<'standard'|'premium'|'luxury'>('standard');
-  const [departureDate, setDepartureDate] = useState(defaultDeparture());
-  const [originIATA, setOriginIATA] = useState('DEL');
-  const [adults, setAdults] = useState(2);
+  const [budget, setBudget] = useState<'standard'|'premium'|'luxury'>(defaults?.budget ?? 'standard');
+  const [departureDate, setDepartureDate] = useState(defaults?.departureDate || defaultDeparture());
+  const [originIATA, setOriginIATA] = useState(defaults?.originIATA || 'DEL');
+  const [adults, setAdults] = useState(defaults?.adults ?? 2);
+  const [children, setChildren] = useState(defaults?.children ?? 0);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState<number | null>(null);   // full-trip progress
   const [error, setError] = useState<string | null>(null);
@@ -47,12 +61,31 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip }: Props) {
   const stageTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const { currency, rate } = useCurrency();
   const fmt = (p: number) => formatMoney(p, currency, rate);
+  // Always include the inherited night count, even if it's not a preset (e.g. 5, 11).
+  const nightOptions = Array.from(new Set([...[3, 4, 5, 6, 7, 8, 9, 10, 12, 14], totalNights]))
+    .filter((n) => n >= 2 && n <= 21)
+    .sort((a, b) => a - b);
 
   useEffect(() => () => { if (stageTimer.current) clearInterval(stageTimer.current); }, []);
 
+  // Re-seed from the intake form every time the modal opens — the agent may have
+  // edited destinations/dates/travellers since this component first mounted.
+  // Keyed on `open` only: `defaults` is an inline object, so a new identity each
+  // render would loop.
+  useEffect(() => {
+    if (!open || !defaults) return;
+    if (defaults.destinationsText) setDestinationsText(defaults.destinationsText);
+    if (defaults.totalNights) setTotalNights(defaults.totalNights);
+    if (defaults.departureDate) setDepartureDate(defaults.departureDate);
+    if (defaults.originIATA) setOriginIATA(defaults.originIATA);
+    if (defaults.adults) setAdults(defaults.adults);
+    if (typeof defaults.children === 'number') setChildren(defaults.children);
+    if (defaults.budget) setBudget(defaults.budget);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function loadRoute() {
     setError(null); setBusy(true); setResult(null); setTrip(null);
-    const r = await aiSuggestAction({ destinationsText, totalNights, notes: notes || undefined, budget });
+    const r = await aiSuggestAction({ destinationsText, totalNights, notes: notes || undefined, budget, travelers: { adults, children } });
     setBusy(false);
     if (r.ok) setResult(r.result); else setError(r.error);
   }
@@ -66,7 +99,7 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip }: Props) {
       const res = await fetch('/api/ai-trip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destinationsText, totalNights, departureDate, adults, originIATA: originIATA || undefined, budget, notes: notes || undefined }),
+        body: JSON.stringify({ destinationsText, totalNights, departureDate, adults, children, originIATA: originIATA || undefined, budget, notes: notes || undefined }),
       });
       const j = await res.json().catch(() => null);
       if (j?.ok) setTrip({ itinerary: j.itinerary, summary: j.summary, warnings: j.warnings ?? [] });
@@ -164,13 +197,13 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip }: Props) {
           <div>
             <Label required>Destinations</Label>
             <Input value={destinationsText} onChange={(e) => setDestinationsText(e.target.value)} placeholder="e.g. Paris, Amsterdam, London" />
-            <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Supported: Paris, Amsterdam, London, Rome, Zurich, Dubai, Bangkok, Singapore, Istanbul, Maldives.</p>
+            <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Prefilled from your trip above — edit if you want a different plan. 130+ cities supported.</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Total nights</Label>
               <select value={totalNights} onChange={(e) => setTotalNights(parseInt(e.target.value, 10))} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
-                {[3,4,5,6,7,8,9,10,12,14].map((n) => <option key={n} value={n}>{n} nights</option>)}
+                {nightOptions.map((n) => <option key={n} value={n}>{n} nights</option>)}
               </select>
             </div>
             <div>
