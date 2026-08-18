@@ -45,6 +45,25 @@ const CAND_HOTELS = 6;
 const CAND_ACTS = 8;
 const CAND_FLIGHTS = 5;
 
+const SLOTS = ['morning', 'afternoon', 'evening'] as const;
+type Slot = (typeof SLOTS)[number];
+
+// Time of day implied by the supplier's own wording. Fed to the model as a
+// hint AND enforced at assembly time — a "Dinner Cruise" must never land in a
+// morning slot no matter what the model picked. Generic wording ("Canal
+// Cruise") returns null and stays flexible.
+const EVENING_RE = /\b(dinner|dine|night|nightlife|sunset|sundowner|evening|cabaret|moulin|illuminat\w*|after[- ]dark|light show|son et lumi\w*|stargaz\w*|(bar|pub) crawl)\b/i;
+const MORNING_RE = /\b(sunrise|dawn|breakfast|early[- ]morning|morning)\b/i;
+const AFTERNOON_RE = /\b(lunch|afternoon|high tea|matin[ée]e)\b/i;
+
+function inferSlot(a: Activity): Slot | null {
+  const t = `${a.name} ${a.description ?? ''}`;
+  if (EVENING_RE.test(t)) return 'evening';
+  if (MORNING_RE.test(t)) return 'morning';
+  if (AFTERNOON_RE.test(t)) return 'afternoon';
+  return null;
+}
+
 const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T> =>
   Promise.race([p, new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
 
@@ -161,7 +180,7 @@ export async function architectTrip(input: ArchitectInput): Promise<ArchitectRes
       code: m.cityCode,
       nights: intake.destinations[i]!.nights,
       hotels: m.hotels.map((h, j) => ({ i: j, name: h.name, stars: h.stars, inrPerNight: fp(h.pricePerNightPaise), board: h.mealPlan, refundable: h.refundable })),
-      activities: m.acts.map((a, j) => ({ i: j, name: a.name, mins: a.durationMin, inr: fp(a.pricePaise) })),
+      activities: m.acts.map((a, j) => ({ i: j, name: a.name, mins: a.durationMin, inr: fp(a.pricePaise), when: inferSlot(a) ?? 'any' })),
     })),
     days: base.days.map((d) => ({ dayNo: d.dayNo, city: d.cityCode, type: d.type })),
     flightsOut: (flightsOut ?? []).map((o, j) => ({ i: j, airline: o.segments[0]?.airlineName, dep: o.segments[0]?.departureAt?.slice(11, 16), arr: o.segments[o.segments.length - 1]?.arrivalAt?.slice(11, 16), stops: o.segments.length - 1, inr: fp(o.fare.totalPaise) })),
@@ -173,6 +192,7 @@ export async function architectTrip(input: ArchitectInput): Promise<ArchitectRes
 Rules:
 - Pick exactly one hotel index per city, matching the budget tier (standard = value-for-money; premium = 4-star comfort; luxury = the best available).
 - Assign activities to days: use the day list; each day may get at most morning + afternoon OR a single long activity; leave "arrival" days free except optionally an evening pick; leave "departure" days empty; never repeat an activity; total activity spend should fit the budget tier.
+- Every activity carries a "when" hint (morning | afternoon | evening | any). RESPECT IT: an activity marked "evening" (dinner cruises, night shows, sunset tours) goes in the "e" slot only — never morning or afternoon. "any" activities can go in any slot.
 - If flight menus are provided, pick one outbound index and one return index — sensible timings (avoid pre-6am departures when alternatives exist) balanced against price for the budget tier.
 - Respond with ONLY a JSON object, no markdown, no commentary:
 {"hotels": {"CITYCODE": index, ...}, "days": [{"d": dayNo, "m": actIndex?, "a": actIndex?, "e": actIndex?}, ...], "out": index?, "ret": index?, "note": "one sentence on the overall selection logic"}
@@ -208,7 +228,8 @@ Omit m/a/e keys for empty slots. Omit out/ret if no flight menus. Indices must e
         if (inc.transfer.fromName === oldName) inc.transfer.fromName = chosen.name;
       }
     }
-    // Activities into day slots
+    // Activities into day slots. The model's slot choice is ADVISORY: the
+    // activity's own wording decides where it can go (see inferSlot).
     if (Array.isArray(sel.days)) {
       for (const pick of sel.days) {
         const day = itinerary.days.find((d) => d.dayNo === pick?.d);
@@ -216,18 +237,29 @@ Omit m/a/e keys for empty slots. Omit out/ret if no flight menus. Indices must e
         const menu = menus.find((m) => m.cityCode === day.cityCode);
         if (!menu) continue;
         const used = new Set<string>();
-        for (const d2 of itinerary.days) for (const s of ['morning', 'afternoon', 'evening'] as const) if (d2[s]) used.add(d2[s]!.id);
-        const assign = (slot: 'morning' | 'afternoon' | 'evening', idx: unknown) => {
-          if (typeof idx !== 'number' || !menu.acts[idx]) return;
-          if (day.type === 'arrival' && slot !== 'evening') return;
+        for (const d2 of itinerary.days) for (const s of SLOTS) if (d2[s]) used.add(d2[s]!.id);
+
+        // Collect this day's valid, non-duplicate picks.
+        const wanted: Array<{ asked: Slot; act: Activity }> = [];
+        for (const [asked, idx] of [['morning', pick?.m], ['afternoon', pick?.a], ['evening', pick?.e]] as const) {
+          if (typeof idx !== 'number' || !menu.acts[idx]) continue;
           const act = menu.acts[idx]!;
-          if (used.has(act.id)) return;
-          day[slot] = act;
+          if (used.has(act.id) || wanted.some((w) => w.act.id === act.id)) continue;
+          wanted.push({ asked, act });
+        }
+        // Time-anchored activities claim their slot first so a dinner cruise
+        // takes the evening even if the model put something else there.
+        wanted.sort((a, b) => (inferSlot(b.act) ? 1 : 0) - (inferSlot(a.act) ? 1 : 0));
+
+        for (const { asked, act } of wanted) {
+          const pref = inferSlot(act);
+          // Preferred slot → the model's slot → any free slot.
+          const order: Slot[] = pref ? [pref, asked, ...SLOTS] : [asked, ...SLOTS];
+          const target = order.find((s) => !day[s] && !(day.type === 'arrival' && s !== 'evening'));
+          if (!target) continue;
+          day[target] = act;
           used.add(act.id);
-        };
-        assign('morning', pick.m);
-        assign('afternoon', pick.a);
-        assign('evening', pick.e);
+        }
       }
     }
     // Flights
