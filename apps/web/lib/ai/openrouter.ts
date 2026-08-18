@@ -14,8 +14,12 @@ const BASE = process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1';
 
 // Free, non-reasoning instruct models in fallback order. All return clean JSON
 // quickly and sit on different providers, so a 429 on one often clears on the next.
+// Primary is the PAID Llama 3.3 70B (~$0.15/M blended — a full trip costs
+// well under a rupee; the owner's credit covers thousands of builds). Free
+// variants rotate in and out of OpenRouter's catalogue, so they are only
+// fallbacks now.
 const FREE_FALLBACKS = [
-  'meta-llama/llama-3.3-70b-instruct:free',
+  'meta-llama/llama-3.3-70b-instruct',
   'qwen/qwen3-next-80b-a3b-instruct:free',
   'nousresearch/hermes-3-llama-3.1-405b:free',
 ];
@@ -124,6 +128,7 @@ async function callModel(model: string, key: string, opts: ChatOpts): Promise<st
     console.error(`[openrouter] ${model} HTTP ${res.status}:`, raw.slice(0, 400));
     if (res.status === 401) throw new Error('OpenRouter rejected the API key (401). Check OPENROUTER_API_KEY is correct and has access.');
     if (res.status === 429) throw new RetryableError('free-tier rate limit (429)');
+    if (res.status === 404) throw new RetryableError('model unavailable (404)'); // free models rotate — try the next
     if (res.status >= 500) throw new RetryableError(`upstream ${res.status}`);
     let msg = `OpenRouter HTTP ${res.status}`;
     try { const j = JSON.parse(raw); if (j?.error?.message) msg = `OpenRouter: ${j.error.message}`; } catch { /* keep status msg */ }
