@@ -45,7 +45,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
               <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
             </div>
-            <select name="status" defaultValue={sp.status ?? ''} className="control">
+            <select name="status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
             </select>

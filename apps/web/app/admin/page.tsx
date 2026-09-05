@@ -7,6 +7,7 @@ import { platformCommissionTotalPaise } from '@/lib/db/commissions';
 import { formatINR, formatDateShort } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowUpRight, FileText } from 'lucide-react';
+import { Pill } from '@/components/ui/pill';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export default async function AdminOverview() {
   ];
 
   return (
-    <div className="p-8 space-y-8 ambient">
+    <div className="p-8 space-y-8">
       <PageHeader
         eyebrow="Platform"
         title="Overview"
@@ -40,7 +41,7 @@ export default async function AdminOverview() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-ink mb-3">Latest proposals across all agencies</h2>
+        <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3">Latest proposals across all agencies</h2>
         <Card>
           <CardContent className="pt-2">
             {recent.length === 0 ? (
@@ -54,7 +55,7 @@ export default async function AdminOverview() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100">
+                    <tr className="text-left label border-b border-border">
                       <th className="py-3 pr-4 font-semibold">Code</th>
                       <th className="py-3 pr-4 font-semibold">Agency</th>
                       <th className="py-3 pr-4 font-semibold">Trip</th>
@@ -66,12 +67,12 @@ export default async function AdminOverview() {
                   <tbody>
                     {recent.map((p) => (
                       <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
-                        <td className="py-3 pr-4 font-mono text-xs">{p.code}</td>
+                        <td className="py-3 pr-4 font-mono text-[12.5px] font-bold">{p.code}</td>
                         <td className="py-3 pr-4 font-medium">{p.agency.name}</td>
                         <td className="py-3 pr-4">{p.name}</td>
                         <td className="py-3 pr-4">{formatDateShort(p.travelDate)}</td>
-                        <td className="py-3 pr-4 font-mono text-right">{formatINR(p.pricePaise)}</td>
-                        <td className="py-3 pr-4">{p.status}</td>
+                        <td className="py-3 pr-4 money text-right">{formatINR(p.pricePaise)}</td>
+                        <td className="py-3 pr-4"><Pill variant={p.status === 'BOOKED' || p.status === 'ACCEPTED' ? 'success' : p.status === 'VIEWED' || p.status === 'SENT' ? 'info' : 'neutral'}>{p.status}</Pill></td>
                       </tr>
                     ))}
                   </tbody>

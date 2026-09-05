@@ -66,7 +66,7 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
+                  <tr className="text-left label border-b border-border">
                     <th className="py-2 pr-3 font-semibold">Agency</th>
                     <th className="py-2 px-3 font-semibold text-right">Team</th>
                     <th className="py-2 px-3 font-semibold text-right">Sent</th>

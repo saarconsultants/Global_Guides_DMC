@@ -171,7 +171,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Date</th><th>Agency</th><th>Proposal</th><th>Product</th><th className="text-right">Basis</th><th className="text-right">Amount</th><th>Note</th></tr></thead>
+                <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Date</th><th>Agency</th><th>Proposal</th><th>Product</th><th className="text-right">Basis</th><th className="text-right">Amount</th><th>Note</th></tr></thead>
                 <tbody>
                   {filtered.slice(0, 200).map((r) => {
                     const a = agencies.find((x) => x.id === r.agencyId);

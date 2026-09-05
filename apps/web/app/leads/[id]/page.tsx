@@ -118,14 +118,14 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
           {/* Proposals */}
           <section>
-            <h2 className="text-xl font-semibold text-ink mb-3">Proposals ({lead.proposals.length})</h2>
+            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3">Proposals ({lead.proposals.length})</h2>
             <Card><CardContent className="pt-2">
               {lead.proposals.length === 0 ? (
                 <EmptyState dense icon={<FileText className="w-7 h-7" />} title="No proposals yet" body="Build a trip and save it — it'll be linked to this lead." primary={{ label: 'Build a proposal', href: '/itinerary/new' }} />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Code</th><th>Trip</th><th>Created</th><th className="text-right">Price</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Code</th><th>Trip</th><th>Created</th><th className="text-right">Price</th><th>Status</th><th></th></tr></thead>
                     <tbody>
                       {lead.proposals.map((p) => (
                         <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">

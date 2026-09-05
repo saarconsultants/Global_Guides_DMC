@@ -11,16 +11,16 @@ export default async function SettingsPage() {
   if (!agency) return null;
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-6xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="Settings"
         description="Agency profile, white-label branding, and markup defaults. These affect what your customers see on every share link."
         actions={<span className="text-xs text-[rgb(var(--text-secondary))]">Agency ID · <span className="font-mono">{agency.code}</span></span>}
       />
-      <nav className="flex flex-wrap gap-3 text-sm">
-        <a href="/settings" className="px-3 py-1.5 rounded-md bg-navy-900 text-white font-medium">Profile &amp; branding</a>
-        <a href="/settings/sales" className="px-3 py-1.5 rounded-md text-navy-700 hover:bg-navy-50 font-medium">Sales &amp; markup</a>
-        <a href="/settings/team" className="px-3 py-1.5 rounded-md text-navy-700 hover:bg-navy-50 font-medium">Team</a>
+      <nav className="flex flex-wrap gap-2 text-[13px]">
+        <a href="/settings" className="px-3.5 h-9 inline-flex items-center rounded-md bg-ink text-white font-bold">Profile &amp; branding</a>
+        <a href="/settings/sales" className="px-3.5 h-9 inline-flex items-center rounded-md bg-surface border border-border text-navy-700 hover:border-border-strong font-bold">Sales &amp; markup</a>
+        <a href="/settings/team" className="px-3.5 h-9 inline-flex items-center rounded-md bg-surface border border-border text-navy-700 hover:border-border-strong font-bold">Team</a>
       </nav>
       <BrandingForm
         initial={{

@@ -114,7 +114,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
           {commissionRules.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-2 pr-4">Product</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4">Applies to</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Note</th><th></th></tr></thead>
+                <thead><tr className="text-left label border-b border-border"><th className="py-2 pr-4">Product</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4">Applies to</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Note</th><th></th></tr></thead>
                 <tbody>
                   {commissionRules.map((r) => (
                     <tr key={r.id} className="border-b border-border-subtle/60">
@@ -166,14 +166,14 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-ink mb-3">Team ({agency.users.length})</h2>
+        <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3">Team ({agency.users.length})</h2>
         <Card><CardContent className="pt-2">
           {agency.users.length === 0 ? (
             <EmptyState dense icon={<UsersIcon className="w-7 h-7" />} title="No users yet" body="The owner can invite team members from Settings → Team." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th></tr></thead>
+                <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th></tr></thead>
                 <tbody>
                   {agency.users.map((u) => (
                     <tr key={u.id} className="border-b border-border-subtle hover:bg-surface-2"><td className="py-3 pr-4">{u.email}</td><td>{u.name ?? '—'}</td><td><Pill variant="neutral">{u.role}</Pill></td><td className="text-[rgb(var(--text-secondary))] text-xs">{u.lastLoginAt ? formatDateShort(u.lastLoginAt) : 'never'}</td><td className="text-[rgb(var(--text-secondary))] text-xs">{formatDateShort(u.createdAt)}</td></tr>
@@ -186,14 +186,14 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-ink mb-3">Recent proposals</h2>
+        <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3">Recent proposals</h2>
         <Card><CardContent className="pt-2">
           {agency.proposals.length === 0 ? (
             <EmptyState dense icon={<FileText className="w-7 h-7" />} title="No proposals yet" body="Once this agency creates proposals, the most recent 10 show up here." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100"><th className="py-3 pr-4">Code</th><th>Customer</th><th>Trip</th><th className="text-right">Price</th><th>Status</th></tr></thead>
+                <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Code</th><th>Customer</th><th>Trip</th><th className="text-right">Price</th><th>Status</th></tr></thead>
                 <tbody>
                   {agency.proposals.map((p) => (
                     <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2"><td className="py-3 pr-4 font-mono text-xs">{p.code}</td><td>{p.lead?.customerName ?? '—'}</td><td>{p.name}</td><td className="text-right font-mono">{formatINR(p.pricePaise)}</td><td><Pill variant={p.status === 'ACCEPTED' || p.status === 'BOOKED' ? 'success' : p.status === 'DECLINED' ? 'danger' : 'neutral'}>{p.status}</Pill></td></tr>

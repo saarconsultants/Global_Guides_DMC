@@ -39,25 +39,24 @@ const SECTIONS = [
 
 export default function HolidaysPage() {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         eyebrow="Holidays"
         title="What kind of trip are you putting together?"
         description="Pick the product type that fits your customer. Each one has its own pricing model, inventory pool, and turnaround time."
       />
 
-      <div className="grid gap-4 md:grid-cols-3 stagger">
+      <div className="grid gap-4 md:grid-cols-3">
         {SECTIONS.map(({ href, icon: Icon, eyebrow, title, body, cta, pill }) => (
           <Card key={href} className="lift group">
             <CardContent className="pt-6 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-crimson-700 to-crimson-900 text-white inline-flex items-center justify-center">
+                <div className="w-10 h-10 rounded-md bg-navy-50 text-crimson-700 inline-flex items-center justify-center">
                   <Icon className="w-5 h-5" />
                 </div>
                 <Pill variant={pill.variant}>{pill.label}</Pill>
               </div>
-              <p className="label">{eyebrow}</p>
-              <h2 className="text-lg font-bold text-ink">{title}</h2>
+              <h2 className="text-[18px] font-extrabold tracking-[-0.01em] text-ink">{title} <span className="font-mono text-[12px] font-bold text-[rgb(var(--text-tertiary))] ml-1">{eyebrow}</span></h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>
               <Link href={href as any} className="inline-flex">
                 <Button variant="ghost" className="gap-1.5 group-hover:text-crimson-700 px-0">{cta}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></Button>

@@ -34,7 +34,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
   const leader = rows.find((r) => r.won > 0);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         eyebrow="Team"
         title="Team performance"
@@ -45,7 +45,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
               <Link
                 key={w.key}
                 href={`/team?d=${w.key}` as any}
-                className={`px-3 py-1.5 text-sm transition-colors ${w.key === win.key ? 'bg-crimson-700 text-white' : 'bg-surface text-[rgb(var(--text-secondary))] hover:bg-surface-2'}`}
+                className={`px-3.5 h-9 inline-flex items-center text-[13px] font-bold transition-colors ${w.key === win.key ? 'bg-ink text-white' : 'bg-surface text-navy-700 hover:bg-surface-2'}`}
               >
                 {w.label}
               </Link>
@@ -64,7 +64,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
 
       <Card>
         <CardContent className="pt-6">
-          <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2 mb-4"><Users2 className="w-4 h-4 text-crimson-700" />By counsellor</h2>
+          <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-2 mb-4 tracking-[-0.01em]"><Users2 className="w-4 h-4 text-crimson-700" />By counsellor</h2>
 
           {!hasData ? (
             <EmptyState
@@ -77,7 +77,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
+                  <tr className="text-left label border-b border-border">
                     <th className="py-2 pr-3 font-semibold">Counsellor</th>
                     <th className="py-2 px-3 font-semibold text-right">Drafts</th>
                     <th className="py-2 px-3 font-semibold text-right">Sent</th>

@@ -24,8 +24,8 @@ export default async function MarketingPage() {
   const templates = await db.itineraryTemplate.findMany({ where: { published: true }, orderBy: { createdAt: 'desc' } });
 
   return (
-    <div className="ambient">
-      <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div>
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
         <PageHeader
           eyebrow="Marketing"
           title="Download branded flyers"
@@ -44,7 +44,7 @@ export default async function MarketingPage() {
             />
           </CardContent></Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 stagger">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {templates.map((t) => {
               const cities = (() => { try { return (JSON.parse(t.destinations) as any[]).map((d) => d.cityName); } catch { return []; } })();
               return (
@@ -54,7 +54,7 @@ export default async function MarketingPage() {
                       <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
                       <Pill variant="info">{t.category}</Pill>
                     </div>
-                    <h3 className="font-semibold text-ink">{t.title}</h3>
+                    <h3 className="text-[16px] font-bold text-ink tracking-[-0.01em]">{t.title}</h3>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-1 line-clamp-2">{t.blurb}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">{cities.join(' → ') || '—'}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">
@@ -66,7 +66,7 @@ export default async function MarketingPage() {
                         href={`/api/flyer/${t.id}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-crimson-700 text-white text-sm font-semibold hover:bg-crimson-700 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-crimson-700 text-white text-sm font-bold hover:bg-crimson-900 transition-colors"
                       >
                         <Download className="w-4 h-4" />Download PDF
                       </a>
@@ -90,7 +90,7 @@ export default async function MarketingPage() {
           <CardContent className="pt-6 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-ink mb-1">Generate Leads widget</h2>
+                <h2 className="text-[18px] font-extrabold text-ink mb-1 tracking-[-0.01em]">Lead-capture widget</h2>
                 <p className="text-sm text-[rgb(var(--text-secondary))]">An embeddable form for your own website. Drops captured enquiries straight into your <Link href="/leads" className="text-crimson-700 hover:underline font-medium">My Leads</Link> with the bell ringing in real-time.</p>
               </div>
               <Pill variant="success">Live</Pill>

@@ -7,7 +7,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { getDisplayMoney } from '@/lib/money-server';
 import { cloneAndRedirectAction } from '@/app/actions/clone-template';
 import { regionSrc } from '@/lib/promos';
-import { Sparkles, MapPin, Plane } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { RouteCode } from '@/components/ui/pass';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -36,8 +37,8 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
   const categories = ['LEISURE', 'HONEYMOON', 'FAMILY', 'LUXURY', 'ADVENTURE', 'GROUP'];
 
   return (
-    <div className="ambient">
-      <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div>
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
         <PageHeader
           eyebrow="Hand-curated"
           title="Suggested itineraries"
@@ -64,41 +65,43 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
             />
           </CardContent></Card>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 stagger">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {templates.map((t) => {
-              const cities = (JSON.parse(t.destinations) as any[]).map((d) => d.cityName);
+              const dests = JSON.parse(t.destinations) as any[];
+              const codes = dests.map((d) => d.cityCode).filter(Boolean);
               return (
-                <Card key={t.id} className="lift overflow-hidden flex flex-col group">
+                <article key={t.id} className="group flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
                   <div className={`relative h-52 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
                     {(t.hero ?? regionSrc(t.region)) ? <img src={(t.hero ?? regionSrc(t.region))!} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3 flex gap-1.5">
                       <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
-                      <Pill variant="info">{t.category}</Pill>
+                      <Pill variant="ink">{t.category}</Pill>
                     </div>
-                    <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-black/30 backdrop-blur px-2 py-1 rounded-md"><Plane className="w-3 h-3" /> {t.totalNights} nights</span>
-                      <span className="text-[10px] uppercase tracking-widest font-bold bg-black/30 backdrop-blur px-2 py-1 rounded-md">{t.code}</span>
+                    <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                      {codes.length > 0 && <RouteCode codes={codes} />}
+                      <span className="font-mono text-[11px] font-bold text-white/85 bg-black/35 backdrop-blur px-2 py-1 rounded-[6px]">{t.code}</span>
                     </div>
                   </div>
-                  <CardContent className="pt-5 flex-1 flex flex-col">
-                    <h3 className="text-lg font-semibold text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h3>
-                    <p className="text-sm text-[rgb(var(--text-secondary))] mt-1 flex-1">{t.blurb}</p>
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-[rgb(var(--text-secondary))]">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {cities.join(' → ')}
+                  <div className="px-4 pt-4 pb-3 flex-1 flex flex-col">
+                    <h3 className="text-[17px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h3>
+                    <p className="text-[13.5px] text-[rgb(var(--text-secondary))] mt-1.5 flex-1 leading-relaxed">{t.blurb}</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div><div className="label">Nights</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{t.totalNights}</div></div>
+                      <div><div className="label">Cities</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{dests.length}</div></div>
+                      <div><div className="label">Route</div><div className="mt-1 text-[13px] font-bold truncate">{dests.map((d) => d.cityName).join(' → ')}</div></div>
                     </div>
-                    <div className="mt-4 flex items-center justify-between pt-3 border-t border-border-subtle">
-                      <div>
-                        <p className="label">Starting from</p>
-                        <p className="money text-ink">{fmt(t.startingPricePaise)}</p>
-                      </div>
-                      <form action={cloneAndRedirectAction.bind(null, t.id)}>
-                        <Button type="submit" size="sm">Use this</Button>
-                      </form>
+                  </div>
+                  <div className="border-t-2 border-dashed border-border-subtle px-4 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="label">From, per adult</p>
+                      <p className="money text-[19px] text-ink mt-0.5">{fmt(t.startingPricePaise)}</p>
                     </div>
-                  </CardContent>
-                </Card>
+                    <form action={cloneAndRedirectAction.bind(null, t.id)}>
+                      <Button type="submit" size="sm">Use this</Button>
+                    </form>
+                  </div>
+                </article>
               );
             })}
           </div>
@@ -110,6 +113,6 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
 
 function FilterPill({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <a href={href} className={`px-3 h-8 inline-flex items-center rounded-full text-xs font-medium border transition-all cursor-pointer ${active ? 'bg-navy-900 text-white border-navy-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50 hover:border-navy-200'}`}>{label}</a>
+    <a href={href} className={`px-3 h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</a>
   );
 }

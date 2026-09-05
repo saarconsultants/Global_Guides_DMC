@@ -70,7 +70,7 @@ async function main() {
     const row = await db.proposal.create({
       data: {
         code: code(p.i), agencyId: agency.id, ownerUserId: owner?.id, leadId: p.lead?.id, templateId: p.t.id,
-        name: `${p.lead?.customerName.split(' ·')[0] ?? p.t.title} · ${p.t.title.replace(/ · \d+N$/, '')}`,
+        name: p.t.title,
         travelDate: p.dep, nationality: 'IN',
         travelers: JSON.stringify({ rooms: [{ adults: p.adults ?? 2, children: 0 }] }),
         destinations: JSON.stringify(it.destinations), days: JSON.stringify(it.days),
