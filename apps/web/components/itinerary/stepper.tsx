@@ -19,7 +19,7 @@ export function Stepper({ step, steps = ['Trip details', 'Customise', 'Save & se
             <span className={cn('inline-flex items-center justify-center w-6 h-6 rounded-[5px] text-[11px] font-bold tnum', done && 'bg-success-100 text-success-600', current && 'bg-crimson-700 text-white', !done && !current && 'bg-surface border border-border text-[rgb(var(--text-tertiary))]')}>
               {done ? <Check className="w-3.5 h-3.5" /> : idx}
             </span>
-            <span className={cn('font-bold', current ? 'text-ink' : 'text-[rgb(var(--text-tertiary))]')}>{label}</span>
+            <span className={cn('font-bold whitespace-nowrap', current ? 'text-ink' : 'text-[rgb(var(--text-tertiary))] hidden sm:inline')}>{label}</span>
             {idx < steps.length && <span className="hidden md:block w-8 border-t-2 border-dashed border-border mx-1" />}
           </li>
         );

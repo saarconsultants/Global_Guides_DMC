@@ -40,6 +40,7 @@
 
   ::selection { background: rgb(168 23 46 / 0.16); color: #7C1024; }
   a { text-underline-offset: 3px; }
+  main { overflow-x: clip; }
   [id] { scroll-margin-top: 88px; }
   input[type='date']::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
 }

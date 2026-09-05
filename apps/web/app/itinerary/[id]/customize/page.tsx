@@ -93,7 +93,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4">
           <Stepper step={2} />
           <div className="text-right">
-            <p className="text-[12px] text-[rgb(var(--text-secondary))] tnum">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room · {adults} adult{adults !== 1 ? 's' : ''}</p>
+            <p className="hidden sm:block text-[12px] text-[rgb(var(--text-secondary))] tnum">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room · {adults} adult{adults !== 1 ? 's' : ''}</p>
             <p className="money text-[18px] text-ink leading-tight">{money(itinerary.pricePaise)}</p>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
       <div className="mx-auto max-w-7xl px-6 py-8 grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* main column */}
-        <div className="space-y-8">
+        <div className="space-y-8 min-w-0">
           {/* Flights */}
           <section id="section-flights">
             <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><Plane className="w-4 h-4 text-crimson-700" />Flights</h2>
@@ -274,7 +274,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         </div>
 
         {/* Sticky rails */}
-        <aside id="section-price" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[132px] self-start">
+        <aside id="section-price" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[132px] self-start min-w-0">
           <PriceRail itinerary={itinerary} onSave={() => setSaveOpen(true)} />
           <TripSummaryRail itinerary={itinerary} />
         </aside>

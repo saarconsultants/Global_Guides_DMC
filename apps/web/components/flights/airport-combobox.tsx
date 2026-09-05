@@ -50,7 +50,7 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
 
   return (
     <div ref={wrapRef} className="relative">
-      {!bare && <label className="block text-sm font-medium text-[rgb(var(--text-secondary))] mb-1.5">{label}</label>}
+      {!bare && <label className="label block mb-1.5">{label}</label>}
       <div className="relative">
         {!bare && <Plane className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))] ${iconRotate ? 'rotate-90' : ''}`} />}
         <input
@@ -62,13 +62,13 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
           aria-label={bare ? label : undefined}
           className={bare
             ? 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
-            : 'h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500'}
+            : 'control !pl-9'}
           autoComplete="off"
         />
       </div>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full min-w-[280px] bg-surface rounded-md shadow-xl border border-border-subtle overflow-hidden max-h-72 overflow-y-auto">
+        <div className="absolute z-30 mt-1 w-full sm:min-w-[280px] bg-surface rounded-md shadow-xl border border-border-subtle overflow-hidden max-h-72 overflow-y-auto">
           {results.length === 0 ? (
             <p className="px-4 py-3 text-sm text-[rgb(var(--text-secondary))]">No airports match “{query}”.</p>
           ) : results.map((a, i) => (

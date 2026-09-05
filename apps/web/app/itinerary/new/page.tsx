@@ -140,10 +140,10 @@ function NewItineraryForm() {
         <Button variant="outline" type="button" onClick={() => setAiOpen(true)} className="gap-1.5"><Sparkles className="w-4 h-4" />Build it with AI</Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px] items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
         <form onSubmit={submit} className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
           <section className="p-5 lg:p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-[16px] font-extrabold text-ink">Destinations</h2>
               <p className="text-[12.5px] text-[rgb(var(--text-secondary))]">Drag to reorder · <span className="text-success-600 font-bold">Live</span> = full hotel inventory</p>
             </div>
@@ -208,8 +208,8 @@ function NewItineraryForm() {
                 <Label required>Travellers</Label>
                 <div className="space-y-2">
                   {rooms.map((r, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_auto_auto_28px] items-center gap-3 px-3.5 py-2.5 bg-surface-2 rounded-md border border-border-subtle">
-                      <span className="label">Room {i + 1}</span>
+                    <div key={i} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3.5 py-2.5 bg-surface-2 rounded-md border border-border-subtle">
+                      <span className="label w-full sm:w-auto sm:mr-auto">Room {i + 1}</span>
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">Adults</span>
                         <Stepper2 value={r.adults} min={1} onChange={(v) => updateRoom(i, { adults: v })} />
@@ -218,7 +218,7 @@ function NewItineraryForm() {
                         <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">Children</span>
                         <Stepper2 value={r.children} min={0} max={4} onChange={(v) => updateRoom(i, { children: v })} />
                       </div>
-                      <button type="button" onClick={() => removeRoom(i)} disabled={rooms.length <= 1} className="text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 w-7 h-7 inline-flex items-center justify-center rounded-md" aria-label="Remove room">
+                      <button type="button" onClick={() => removeRoom(i)} disabled={rooms.length <= 1} className="text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 w-7 h-7 inline-flex items-center justify-center rounded-md ml-auto sm:ml-0" aria-label="Remove room">
                         <X className="w-4 h-4" />
                       </button>
                     </div>

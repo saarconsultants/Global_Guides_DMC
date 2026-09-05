@@ -31,7 +31,7 @@ export function SortableDestinationRow({ id, index, cityCode, nights, disabledCo
       ref={setNodeRef}
       style={style}
       className={cn(
-        'grid grid-cols-[28px_30px_1fr_130px_28px] items-center gap-2 py-1.5',
+        'grid grid-cols-[22px_26px_minmax(0,1fr)_92px_24px] sm:grid-cols-[28px_30px_minmax(0,1fr)_130px_28px] items-center gap-1.5 sm:gap-2 py-1.5',
         isDragging && 'bg-surface rounded-md shadow-lg border border-crimson-200',
       )}
     >
@@ -46,7 +46,7 @@ export function SortableDestinationRow({ id, index, cityCode, nights, disabledCo
       </button>
       <span className="w-7 h-7 inline-flex items-center justify-center rounded-[6px] bg-ink text-white font-mono text-[12px] font-bold tnum">{index + 1}</span>
       <CityCombobox value={cityCode} onChange={onChangeCity} disabledCodes={disabledCodes} placeholder="Pick destination" />
-      <select value={nights} onChange={(e) => onChangeNights(parseInt(e.target.value, 10))} className="control">
+      <select value={nights} onChange={(e) => onChangeNights(parseInt(e.target.value, 10))} className="control px-2 text-[13px] sm:text-[15px] sm:px-3.5">
         {[1,2,3,4,5,6,7,10,14].map((n) => <option key={n} value={n}>{n} night{n !== 1 ? 's' : ''}</option>)}
       </select>
       <button

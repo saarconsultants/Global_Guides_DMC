@@ -57,18 +57,18 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
         aria-label="Open city search"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="h-10 w-full inline-flex items-center gap-2 rounded-sm border border-border bg-surface px-3 text-sm text-left hover:border-navy-300 focus:border-crimson-500 focus:outline-none focus:ring-2 focus:ring-crimson-100 transition-colors cursor-text"
+        className="h-11 w-full min-w-0 flex items-center gap-2 rounded-md border border-border bg-surface px-3 text-[15px] text-left overflow-hidden hover:border-border-strong focus:border-crimson-700 focus:outline-none focus:ring-2 focus:ring-crimson-700/15 transition-colors cursor-text"
       >
         <MapPin className="w-4 h-4 text-[rgb(var(--text-tertiary))] flex-shrink-0" />
         {selected ? (
-          <span className="flex-1 min-w-0">
-            <span className="text-navy-900 font-medium">{selected.name}</span>
-            <span className="ml-1.5 text-xs text-[rgb(var(--text-secondary))]">{selected.country}</span>
+          <span className="flex-1 min-w-0 truncate">
+            <span className="text-ink font-bold">{selected.name}</span>
+            <span className="ml-1.5 text-xs text-[rgb(var(--text-secondary))] hidden sm:inline">{selected.country}</span>
           </span>
         ) : (
           <span className="flex-1 text-[rgb(var(--text-tertiary))]">{placeholder}</span>
         )}
-        {selected && <Pill variant="neutral" className="font-mono text-[10px] flex-shrink-0">{selected.code}</Pill>}
+        {selected && <span className="font-mono text-[11px] font-bold text-ink bg-navy-50 rounded-[5px] px-1.5 py-0.5 flex-shrink-0 hidden sm:inline">{selected.code}</span>}
       </button>
 
       {open && (
@@ -106,7 +106,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
                 >
                   <MapPin className="w-3.5 h-3.5 text-crimson-700 flex-shrink-0" />
                   <span className="flex-1 min-w-0">
-                    <span className="text-sm text-navy-900">{c.name}</span>
+                    <span className="text-sm text-ink font-semibold">{c.name}</span>
                     <span className="ml-1.5 text-xs text-[rgb(var(--text-secondary))]">{c.country}</span>
                   </span>
                   <span className="text-[10px] font-mono text-[rgb(var(--text-tertiary))]">{c.code}</span>
