@@ -2,28 +2,24 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
+// Stub geometry: firm rectangle, 10px radius, bold label. Press = 2% scale.
 const buttonVariants = cva(
-  // Pill geometry + spring-like press physics (scale, heavy fluid bezier).
-  'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
+  'inline-flex items-center justify-center gap-2 rounded-md font-bold tracking-[-0.005em] transition-[background-color,color,box-shadow,transform] duration-150 ease-standard active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
   {
     variants: {
       variant: {
-        // PLATFORM-BRAND primary — deep crimson + white text.
-        primary: 'bg-crimson-900 text-white hover:bg-crimson-700 active:bg-crimson-500 shadow-sm hover:shadow-md hover:shadow-crimson-900/15',
-        // High-emphasis accent — vibrant amber with crimson text. Use sparingly (KPI hero / sales CTA).
-        accent:  'bg-amber-500 text-crimson-900 hover:bg-amber-300 hover:text-crimson-900 shadow-sm hover:shadow-md hover:shadow-amber-500/25',
-        // Neutrals
-        secondary: 'bg-surface-2 text-navy-900 hover:bg-navy-50 border border-border',
-        outline:   'bg-transparent text-crimson-900 border border-crimson-900 hover:bg-crimson-50',
-        ghost:     'bg-transparent text-navy-700 hover:bg-navy-50',
+        primary: 'bg-crimson-700 text-white hover:bg-crimson-900 shadow-sm',
+        accent:  'bg-amber-500 text-ink hover:bg-amber-300 shadow-sm',
+        secondary: 'bg-surface text-ink border border-border hover:border-border-strong hover:bg-surface-2',
+        outline:   'bg-transparent text-crimson-700 border border-crimson-700 hover:bg-crimson-50',
+        ghost:     'bg-transparent text-navy-700 hover:bg-navy-50 hover:text-ink',
         destructive: 'bg-danger-500 text-white hover:bg-danger-500/90',
-        // Legacy alias — kept so older "brick" call-outs keep working but now matches brand.
         brick: 'bg-crimson-700 text-white hover:bg-crimson-900',
       },
       size: {
-        sm: 'h-8 px-3.5 text-sm',
-        md: 'h-10 px-5 text-sm',
-        lg: 'h-12 px-7 text-base',
+        sm: 'h-9 px-3.5 text-[13px]',
+        md: 'h-11 px-5 text-sm',
+        lg: 'h-12 px-6 text-[15px]',
         icon: 'h-10 w-10',
       },
     },

@@ -6,13 +6,15 @@ import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
 import { WelcomeCard } from '@/components/dashboard/welcome-card';
 import { PromoCarousel, type PromoBanner } from '@/components/dashboard/promo-carousel';
+import { DashboardSearch } from '@/components/dashboard/dashboard-search';
+import { RouteCode } from '@/components/ui/pass';
 import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
 import { StatCard } from '@/components/ui/stat-card';
 import { cloneAndRedirectAction } from '@/app/actions/clone-template';
-import { ArrowRight, Sparkles, Plane, Hotel as HotelIcon, MapPin, Ticket, Eye, MessageCircleQuestion, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Eye, MessageCircleQuestion, Clock, CheckCircle2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,7 +94,7 @@ export default async function DashboardPage() {
       title: 'Type a few cities.',
       titleAccent: 'Get a trip.',
       body: 'Destinations in, routed day-by-day plan out — hotels, transfers and activities loaded straight into the builder. Quote in minutes, not hours.',
-      cta: { label: 'Try AI Suggest', href: '/itinerary/new?ai=1' },
+      cta: { label: 'Build a trip with AI', href: '/itinerary/new?ai=1' },
       cta2: { label: 'Browse templates', href: '/suggested' },
       img: promoSrc('banner-ai.jpg'),
       tint: 'from-crimson-500 via-crimson-700 to-crimson-900',
@@ -125,119 +127,151 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="ambient">
-      <div className="mx-auto max-w-7xl px-6 py-7 lg:py-8 space-y-11">
-
-        {/* Slim greeting + primary action */}
-        <div className="flex flex-wrap items-end justify-between gap-4 -mb-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-widest text-crimson-700 font-bold">{greeting}, {firstName}</p>
-            <h1 className="font-display text-[1.65rem] leading-tight font-semibold tracking-tight text-ink mt-1">What will you sell today?</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/suggested"><Button variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />Suggested</Button></Link>
-            <Link href="/itinerary/new"><Button className="gap-1.5">New trip<ArrowRight className="w-4 h-4" /></Button></Link>
-          </div>
-        </div>
-
-        {/* ── Shop window ── */}
+    <div>
+      <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-7">
+        {/* ── Shop window + the pass ── */}
         <PromoCarousel banners={banners} />
+      </div>
+      <DashboardSearch />
 
-        {/* Quick search strip */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 -mt-4">
-          <SearchTile href="/flights" icon={Plane} title="Flights" sub="Live Tripjack fares" />
-          <SearchTile href="/hotels" icon={HotelIcon} title="Hotels" sub="250k+ properties" />
-          <SearchTile href="/activities" icon={Ticket} title="Activities" sub="Tours & experiences" />
-          <SearchTile href="/itinerary/new?ai=1" icon={Sparkles} title="AI Trip" sub="Cities in, plan out" accent />
+      <div className="mx-auto max-w-7xl px-6 py-10 lg:py-12 space-y-12">
+        {/* ── Ready to sell + your desk ── */}
+        <section className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr_320px]">
+          <div className="lg:col-span-3">
+            <div className="flex items-end justify-between mb-4">
+              <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Ready to sell</h2>
+              <Link href="/suggested" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">All packages <ArrowRight className="w-3.5 h-3.5" /></Link>
+            </div>
+            <div className="grid gap-5 md:grid-cols-3">
+              {templates.map((t) => {
+                const dests = JSON.parse(t.destinations) as any[];
+                const codes = dests.map((d) => d.cityCode).filter(Boolean);
+                const src = t.hero ?? regionSrc(t.region);
+                return (
+                  <article key={t.id} className="group flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
+                    <div className="relative h-[150px] bg-navy-900">
+                      {src && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      {codes.length > 0 && <div className="absolute left-3 bottom-3"><RouteCode codes={codes} /></div>}
+                    </div>
+                    <div className="px-4 pt-3.5 pb-3">
+                      <h3 className="text-[16px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors truncate">{t.title}</h3>
+                      <div className="mt-3 grid grid-cols-4 gap-2">
+                        <div><div className="label">Nights</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{t.totalNights}</div></div>
+                        <div><div className="label">Cities</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{dests.length}</div></div>
+                        <div><div className="label">Style</div><div className="mt-1 font-bold text-[13px] truncate">{t.category.charAt(0) + t.category.slice(1).toLowerCase()}</div></div>
+                        <div><div className="label">Region</div><div className="mt-1 font-bold text-[13px] truncate">{REGION_LABEL[t.region] ?? t.region}</div></div>
+                      </div>
+                    </div>
+                    <div className="mt-auto border-t-2 border-dashed border-border-subtle px-4 py-3 flex items-center justify-between">
+                      <div>
+                        <div className="label">From, per adult</div>
+                        <div className="mt-0.5 money text-[19px] text-ink">{fmt(t.startingPricePaise)}</div>
+                      </div>
+                      <form action={cloneAndRedirectAction.bind(null, t.id)}>
+                        <Button type="submit" size="sm">Use this</Button>
+                      </form>
+                    </div>
+                  </article>
+                );
+              })}
+              {templates.length === 0 && (
+                <div className="md:col-span-3"><EmptyState dense title="No packages published yet" body="Suggested itineraries appear here once the platform team publishes them." /></div>
+              )}
+            </div>
+          </div>
+
+          <aside className="lg:mt-[44px]">
+            <Card className="h-full">
+              <CardContent className="pt-4">
+                <div className="flex items-baseline justify-between">
+                  <h2 className="text-[15px] font-extrabold text-ink inline-flex items-center gap-2">On your desk {attentionCount > 0 && <Pill variant="live">{attentionCount}</Pill>}</h2>
+                  <span className="text-[12px] text-[rgb(var(--text-tertiary))]">{greeting}, {firstName}</span>
+                </div>
+                {attentionCount === 0 ? (
+                  <EmptyState dense icon={<CheckCircle2 className="w-6 h-6 text-success-500" />} title="Inbox zero" body="No open follow-ups. Start a trip or use a package." />
+                ) : (
+                  <ul className="mt-3 -mx-1">
+                    {newLeads.map((l) => (
+                      <li key={'l' + l.id} className="border-t border-dashed border-border-subtle first:border-0">
+                        <Link href={`/leads/${l.id}` as any} className="flex items-center gap-3 px-1 py-2.5 rounded-md hover:bg-surface-2 transition-colors">
+                          <span className="w-8 h-8 rounded-md bg-action-100 text-action-600 inline-flex items-center justify-center flex-shrink-0"><MessageCircleQuestion className="w-4 h-4" /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13.5px] font-bold text-ink truncate">{l.customerName}</span>
+                            <span className="block font-mono text-[11px] text-[rgb(var(--text-secondary))] truncate tnum">{l.destinations} · {relTime(l.createdAt)}</span>
+                          </span>
+                          <Pill variant="live">New</Pill>
+                        </Link>
+                      </li>
+                    ))}
+                    {viewedNoResponse.map((p) => (
+                      <li key={'v' + p.id} className="border-t border-dashed border-border-subtle">
+                        <Link href={`/itinerary/${p.id}/customize` as any} className="flex items-center gap-3 px-1 py-2.5 rounded-md hover:bg-surface-2 transition-colors">
+                          <span className="w-8 h-8 rounded-md bg-amber-100 text-amber-900 inline-flex items-center justify-center flex-shrink-0"><Eye className="w-4 h-4" /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13.5px] font-bold text-ink truncate">{p.lead?.customerName ?? p.name}</span>
+                            <span className="block font-mono text-[11px] text-[rgb(var(--text-secondary))] truncate tnum">{p.code} · viewed {relTime(p.lastViewedAt!)}</span>
+                          </span>
+                          <Pill variant="warning">Viewed</Pill>
+                        </Link>
+                      </li>
+                    ))}
+                    {sentNotViewed.map((p) => (
+                      <li key={'s' + p.id} className="border-t border-dashed border-border-subtle">
+                        <Link href={`/itinerary/${p.id}/customize` as any} className="flex items-center gap-3 px-1 py-2.5 rounded-md hover:bg-surface-2 transition-colors">
+                          <span className="w-8 h-8 rounded-md bg-navy-50 text-navy-500 inline-flex items-center justify-center flex-shrink-0"><Clock className="w-4 h-4" /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13.5px] font-bold text-ink truncate">{p.lead?.customerName ?? p.name}</span>
+                            <span className="block font-mono text-[11px] text-[rgb(var(--text-secondary))] truncate tnum">{p.code} · sent {relTime(p.createdAt)} · not opened</span>
+                          </span>
+                          <Pill>Sent</Pill>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link href="/leads" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-crimson-700 hover:underline">All leads <ArrowRight className="w-3.5 h-3.5" /></Link>
+              </CardContent>
+            </Card>
+          </aside>
         </section>
 
         {showWelcome && (
           <WelcomeCard
             firstName={firstName}
             steps={[
-              { done: !!agency?.logoUrl,        title: 'Brand the customer view', body: 'Upload your logo + brand colours so every proposal shows your identity, not ours.', cta: { label: agency?.logoUrl ? 'Edit branding' : 'Set up branding', href: '/settings' } },
+              { done: !!agency?.logoUrl,        title: 'Brand the customer view', body: 'Upload your logo and brand colours so every proposal shows your identity, not ours.', cta: { label: agency?.logoUrl ? 'Edit branding' : 'Set up branding', href: '/settings' } },
               { done: totalProposals > 0,       title: 'Build your first trip',    body: 'Drag-reorder cities, pick hotels and activities, save as proposal — under 10 minutes.', cta: { label: 'Start a trip', href: '/itinerary/new' } },
               { done: totalProposals > 0,       title: 'Send to a customer',       body: 'After saving, share the link via WhatsApp or email. They can accept without logging in.', cta: { label: 'See proposals', href: '/proposals' } },
-              { done: viewedAny > 0,            title: 'Track who opened it',      body: 'Status updates from DRAFT → SENT → VIEWED → ACCEPTED automatically.', cta: { label: 'View leads', href: '/leads' } },
+              { done: viewedAny > 0,            title: 'Track who opened it',      body: 'Status moves from DRAFT to SENT, VIEWED and ACCEPTED automatically.', cta: { label: 'View leads', href: '/leads' } },
               { done: (wallet?.walletPaise ?? 0n) > 0n, title: 'Set markup + recharge', body: 'Pick your default markup and prepay your wallet so bookings confirm instantly.', cta: { label: 'Sales settings', href: '/settings/sales' } },
             ]}
           />
         )}
 
-        {/* Featured packages — live platform templates */}
-        {templates.length > 0 && (
-          <section>
-            <div className="flex items-end justify-between mb-4">
-              <div>
-                <p className="text-[11px] uppercase tracking-widest text-crimson-700 font-bold">Ready to sell</p>
-                <h2 className="font-display text-xl font-semibold text-ink mt-0.5">Featured packages</h2>
-              </div>
-              <Link href="/suggested" className="text-sm text-crimson-700 hover:underline font-medium inline-flex items-center gap-1">All templates <ArrowRight className="w-3.5 h-3.5" /></Link>
-            </div>
-            <div className="grid gap-5 md:grid-cols-3 stagger">
-              {templates.map((t) => {
-                const cities = (JSON.parse(t.destinations) as any[]).map((d) => d.cityName);
-                return (
-                  <Card key={t.id} className="lift overflow-hidden flex flex-col group">
-                    <div className={`relative h-36 bg-gradient-to-br ${REGION_TINT[t.region] ?? 'from-navy-500 to-navy-900'}`}>
-                      {(t.hero ?? regionSrc(t.region)) ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={(t.hero ?? regionSrc(t.region))!} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                      ) : null}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                      <div className="absolute top-3 left-3 flex gap-1.5">
-                        <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
-                      </div>
-                      <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-black/30 backdrop-blur px-2 py-1 rounded-md"><Plane className="w-3 h-3" /> {t.totalNights} nights</span>
-                      </div>
-                    </div>
-                    <CardContent className="pt-4 flex-1 flex flex-col">
-                      <h3 className="font-display text-[1.05rem] font-semibold text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h3>
-                      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[rgb(var(--text-secondary))]"><MapPin className="w-3.5 h-3.5" />{cities.join(' → ')}</p>
-                      <div className="mt-3 flex items-center justify-between pt-3 border-t border-border-subtle">
-                        <div>
-                          <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">From</p>
-                          <p className="font-mono font-bold text-ink">{fmt(t.startingPricePaise)}</p>
-                        </div>
-                        <form action={cloneAndRedirectAction.bind(null, t.id)}>
-                          <Button type="submit" size="sm">Use this</Button>
-                        </form>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Destination inspiration */}
+        {/* ── Where next ── */}
         <section>
           <div className="flex items-end justify-between mb-4">
-            <div>
-              <p className="text-[11px] uppercase tracking-widest text-crimson-700 font-bold">Where next</p>
-              <h2 className="font-display text-xl font-semibold text-ink mt-0.5">Top destinations</h2>
-            </div>
-            <Link href="/hotels" className="text-sm text-crimson-700 hover:underline font-medium inline-flex items-center gap-1">Search hotels <ArrowRight className="w-3.5 h-3.5" /></Link>
+            <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Where next</h2>
+            <Link href="/hotels" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Search hotels <ArrowRight className="w-3.5 h-3.5" /></Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 stagger">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {DESTINATIONS.map((d) => {
               const src = promoSrc(d.img);
               return (
-                <Link
-                  key={d.code}
-                  href={`/hotels?city=${d.code}` as any}
-                  className={`relative h-64 rounded-2xl overflow-hidden group bg-gradient-to-b ${d.tint} lift`}
-                >
+                <Link key={d.code} href={`/hotels?city=${d.code}` as any} className={`relative aspect-[4/5] rounded-lg overflow-hidden group bg-gradient-to-b ${d.tint} lift`}>
                   {src && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
+                  <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>
                   <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
-                    <p className="font-display font-semibold text-[15px] leading-tight">{d.city}</p>
-                    <p className="text-[11px] text-white/70">{d.country}</p>
+                    <p className="font-extrabold text-[17px] leading-tight tracking-[-0.01em]">{d.city}</p>
+                    <p className="text-[12px] text-white/75">{d.country}</p>
                   </div>
                 </Link>
               );
@@ -245,96 +279,17 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* ── Your desk: follow-ups + numbers ── */}
-        <section className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
-          <Card className="overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-baseline justify-between mb-4">
-                <div>
-                  <h2 className="font-display text-xl font-semibold text-ink inline-flex items-center gap-2">
-                    Needs your attention
-                    {attentionCount > 0 && <Pill variant="warning">{attentionCount}</Pill>}
-                  </h2>
-                  <p className="text-sm text-[rgb(var(--text-secondary))] mt-0.5">Open loops worth a nudge today.</p>
-                </div>
-              </div>
-
-              {attentionCount === 0 ? (
-                <EmptyState
-                  dense
-                  icon={<CheckCircle2 className="w-7 h-7 text-success-500" />}
-                  title="Inbox zero"
-                  body="No open follow-ups. Time to start a new proposal or browse templates."
-                />
-              ) : (
-                <ul className="divide-y divide-border-subtle -mx-2">
-                  {newLeads.map((l) => (
-                    <li key={'l' + l.id}>
-                      <Link href={`/leads/${l.id}` as any} className="flex items-center gap-3 px-2 py-2.5 rounded-md hover:bg-surface-2 transition-colors group">
-                        <div className="w-8 h-8 rounded-full bg-info-100 text-info-500 inline-flex items-center justify-center flex-shrink-0">
-                          <MessageCircleQuestion className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className="font-medium text-ink truncate">{l.customerName}</p>
-                            <span className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-tertiary))] font-bold flex-shrink-0">{relTime(l.createdAt)}</span>
-                          </div>
-                          <p className="text-xs text-[rgb(var(--text-secondary))] truncate">New lead · {l.destinations} {l.source !== 'manual' && <span className="text-[rgb(var(--text-tertiary))]">· via {l.source}</span>}</p>
-                        </div>
-                        <span className="text-xs text-crimson-700 font-semibold opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Send quote →</span>
-                      </Link>
-                    </li>
-                  ))}
-                  {viewedNoResponse.map((p) => (
-                    <li key={'v' + p.id}>
-                      <Link href={`/itinerary/${p.id}/customize` as any} className="flex items-center gap-3 px-2 py-2.5 rounded-md hover:bg-surface-2 transition-colors group">
-                        <div className="w-8 h-8 rounded-full bg-amber-500/15 text-amber-700 inline-flex items-center justify-center flex-shrink-0">
-                          <Eye className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className="font-medium text-ink truncate">{p.lead?.customerName ?? p.name}</p>
-                            <span className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-tertiary))] font-bold flex-shrink-0">{relTime(p.lastViewedAt!)}</span>
-                          </div>
-                          <p className="text-xs text-[rgb(var(--text-secondary))] truncate">Viewed <span className="font-mono">{p.code}</span> · no response yet — time to nudge</p>
-                        </div>
-                        <span className="text-xs text-crimson-700 font-semibold opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Follow up →</span>
-                      </Link>
-                    </li>
-                  ))}
-                  {sentNotViewed.map((p) => (
-                    <li key={'s' + p.id}>
-                      <Link href={`/itinerary/${p.id}/customize` as any} className="flex items-center gap-3 px-2 py-2.5 rounded-md hover:bg-surface-2 transition-colors group">
-                        <div className="w-8 h-8 rounded-full bg-danger-100 text-danger-500 inline-flex items-center justify-center flex-shrink-0">
-                          <Clock className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className="font-medium text-ink truncate">{p.lead?.customerName ?? p.name}</p>
-                            <span className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-tertiary))] font-bold flex-shrink-0">{relTime(p.createdAt)}</span>
-                          </div>
-                          <p className="text-xs text-[rgb(var(--text-secondary))] truncate">Sent <span className="font-mono">{p.code}</span> · never opened — re-share the link</p>
-                        </div>
-                        <span className="text-xs text-crimson-700 font-semibold opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Reshare →</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-
-          <div>
-            <div className="flex items-end justify-between mb-4">
-              <h2 className="font-display text-xl font-semibold text-ink">Last 30 days</h2>
-              <Link href="/leads" className="text-sm text-crimson-700 hover:underline font-medium inline-flex items-center gap-1">All leads <ArrowRight className="w-3.5 h-3.5" /></Link>
-            </div>
-            <div className="grid gap-3.5 grid-cols-2 stagger">
-              <StatCard label="Leads"          value={String(leadCount)}   delta={{ curr: leadCount, prev: leadPrev }}     sub="enquiries" />
-              <StatCard label="Proposals"      value={String(propCount)}   delta={{ curr: propCount, prev: propPrev }}     sub="quotes sent" />
-              <StatCard label="Converted"      value={String(bookedCount)} delta={{ curr: bookedCount, prev: bookedPrev }} sub={`${convRate}% rate`} tone="gold" />
-              <StatCard label="Wallet"         value={fmt(wallet?.walletPaise ?? 0n)} sub="recharge for bookings" mono />
-            </div>
+        {/* ── Last 30 days ── */}
+        <section>
+          <div className="flex items-end justify-between mb-4">
+            <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Last 30 days</h2>
+            <Link href="/statement" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Statement <ArrowRight className="w-3.5 h-3.5" /></Link>
+          </div>
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+            <StatCard label="Leads"     value={String(leadCount)}   delta={{ curr: leadCount, prev: leadPrev }}     sub="enquiries" />
+            <StatCard label="Proposals" value={String(propCount)}   delta={{ curr: propCount, prev: propPrev }}     sub="quotes sent" />
+            <StatCard label="Converted" value={String(bookedCount)} delta={{ curr: bookedCount, prev: bookedPrev }} sub={`${convRate}% win rate`} tone="gold" />
+            <StatCard label="Wallet"    value={fmt(wallet?.walletPaise ?? 0n)} sub="recharge for instant bookings" mono />
           </div>
         </section>
       </div>
@@ -342,33 +297,9 @@ export default async function DashboardPage() {
   );
 }
 
-const REGION_TINT: Record<string, string> = {
-  EUROPE:      'from-[#5B6E9E] to-[#1E2A4A]',
-  SE_ASIA:     'from-[#3E8E68] to-[#123B2A]',
-  MIDDLE_EAST: 'from-[#C89A5B] to-[#6A4416]',
+const REGION_LABEL: Record<string, string> = {
+  EUROPE: 'Europe', SE_ASIA: 'SE Asia', MIDDLE_EAST: 'Middle East', INDIAN_SUB: 'Indian Sub', OCEANIA: 'Oceania', AFRICA: 'Africa', AMERICAS: 'Americas',
 };
-
-function SearchTile({ href, icon: Icon, title, sub, accent }: { href: string; icon: any; title: string; sub: string; accent?: boolean }) {
-  return (
-    <Link
-      href={href as any}
-      className={`group flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-all lift ${
-        accent
-          ? 'bg-gradient-to-br from-crimson-700 to-crimson-900 border-crimson-900 text-white'
-          : 'bg-surface border-border-subtle hover:border-border-strong'
-      }`}
-    >
-      <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${accent ? 'bg-amber-500 text-crimson-900' : 'bg-crimson-50 text-crimson-700 group-hover:bg-crimson-900 group-hover:text-white transition-colors'}`}>
-        <Icon className="w-4.5 h-4.5 w-[18px] h-[18px]" />
-      </span>
-      <span className="min-w-0">
-        <span className={`block text-sm font-bold ${accent ? 'text-white' : 'text-ink'}`}>{title}</span>
-        <span className={`block text-[11.5px] truncate ${accent ? 'text-white/75' : 'text-[rgb(var(--text-tertiary))]'}`}>{sub}</span>
-      </span>
-      <ArrowRight className={`w-4 h-4 ml-auto flex-shrink-0 transition-transform group-hover:translate-x-0.5 ${accent ? 'text-amber-300' : 'text-crimson-700'}`} />
-    </Link>
-  );
-}
 
 function relTime(d: Date) {
   const diff = Date.now() - d.getTime();

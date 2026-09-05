@@ -53,11 +53,11 @@ function subscribe(cb: () => void) { listeners.add(cb); return () => { listeners
 function getSnap() { return toasts; }
 
 const palette: Record<ToastVariant, { wrap: string; icon: React.ReactNode }> = {
-  success: { wrap: 'bg-surface border-success-500/25 border-l-4 border-l-success-500 text-navy-900',  icon: <Check className="w-4 h-4 text-success-500 flex-shrink-0" /> },
-  error:   { wrap: 'bg-surface border-danger-500/30 border-l-4 border-l-danger-500 text-navy-900',    icon: <AlertTriangle className="w-4 h-4 text-danger-500 flex-shrink-0" /> },
-  info:    { wrap: 'bg-surface border-action-500/25 border-l-4 border-l-action-500 text-navy-900',    icon: <Info className="w-4 h-4 text-action-500 flex-shrink-0" /> },
-  warning: { wrap: 'bg-surface border-warning-500/30 border-l-4 border-l-warning-500 text-navy-900',  icon: <AlertTriangle className="w-4 h-4 text-warning-500 flex-shrink-0" /> },
-  loading: { wrap: 'bg-surface border-action-500/25 border-l-4 border-l-action-500 text-navy-900',    icon: <Loader2 className="w-4 h-4 text-action-500 animate-spin flex-shrink-0" /> },
+  success: { wrap: 'bg-surface border-border text-ink',  icon: <span className="w-7 h-7 rounded-md bg-success-100 inline-flex items-center justify-center flex-shrink-0"><Check className="w-4 h-4 text-success-600" /></span> },
+  error:   { wrap: 'bg-surface border-border text-ink',  icon: <span className="w-7 h-7 rounded-md bg-danger-100 inline-flex items-center justify-center flex-shrink-0"><AlertTriangle className="w-4 h-4 text-danger-500" /></span> },
+  info:    { wrap: 'bg-surface border-border text-ink',  icon: <span className="w-7 h-7 rounded-md bg-action-100 inline-flex items-center justify-center flex-shrink-0"><Info className="w-4 h-4 text-action-600" /></span> },
+  warning: { wrap: 'bg-surface border-border text-ink',  icon: <span className="w-7 h-7 rounded-md bg-amber-100 inline-flex items-center justify-center flex-shrink-0"><AlertTriangle className="w-4 h-4 text-amber-900" /></span> },
+  loading: { wrap: 'bg-surface border-border text-ink',  icon: <span className="w-7 h-7 rounded-md bg-navy-50 inline-flex items-center justify-center flex-shrink-0"><Loader2 className="w-4 h-4 text-navy-500 animate-spin" /></span> },
 };
 
 export function Toaster() {
@@ -68,7 +68,7 @@ export function Toaster() {
         <div key={t.id}
           role={t.variant === 'error' ? 'alert' : 'status'}
           className={cn(
-            'pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg backdrop-blur-md',
+            'pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg border shadow-xl',
             'animate-in slide-in-from-top-2 fade-in duration-200',
             palette[t.variant].wrap,
           )}

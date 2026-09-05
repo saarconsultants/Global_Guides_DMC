@@ -1,15 +1,18 @@
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
-const pillVariants = cva('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ring-black/[0.05] whitespace-nowrap', {
+// Status cell: fixed caps, letterspaced, small radius — the pass's BOARDING / GATE cell.
+const pillVariants = cva('inline-flex items-center gap-1 rounded-[5px] px-2 py-[3px] text-[10.5px] font-bold uppercase tracking-[0.1em] whitespace-nowrap leading-none', {
   variants: {
     variant: {
-      neutral: 'bg-navy-50 text-navy-700',
-      success: 'bg-success-100 text-success-500',
-      warning: 'bg-warning-100 text-warning-500',
+      neutral: 'bg-navy-100 text-navy-700',
+      success: 'bg-success-100 text-success-600',
+      warning: 'bg-amber-100 text-amber-900',
       danger: 'bg-danger-100 text-danger-500',
-      info: 'bg-action-100 text-action-500',
-      gold: 'bg-gold-300 text-gold-700',
+      info: 'bg-action-100 text-action-600',
+      gold: 'bg-amber-500 text-ink',
+      live: 'bg-amber-500 text-ink',
+      ink: 'bg-ink text-white',
     },
   },
   defaultVariants: { variant: 'neutral' },

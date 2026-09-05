@@ -1,64 +1,51 @@
 import { cn } from '@/lib/utils';
 
-// Modern "portal" search hero — deep-brand gradient band with a serif headline,
-// plus a floating white unified search bar that overlaps the band bottom.
-// Presentational only: search forms compose these and keep their own state.
+// Search hero in the boarding-pass world: a photo band with a headline, then
+// the PASS — a white bar of label-grid cells with a perforation before the
+// crimson SEARCH stub — overlapping the band's bottom edge.
+// Presentational only: the search forms compose these and keep their state.
 
-export function HeroBand({ title, accent, subtitle, ghost, img, children }: {
-  title: string;                 // plain part of the headline
-  accent?: string;               // italic amber tail, e.g. "the world."
+export function HeroBand({ title, accent, subtitle, img, children }: {
+  title: string;
+  accent?: string;
   subtitle?: string;
-  ghost?: string;                // oversized faint word in the band corner
-  img?: string | null;           // /promos/hero-*.jpg — photo behind a brand-tinted scrim
-  children?: React.ReactNode;    // tabs etc., rendered under the copy
+  ghost?: string;               // accepted, unused
+  img?: string | null;
+  children?: React.ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden bg-[linear-gradient(135deg,#8C1816_0%,#630909_55%,#2E0404_100%)] text-white px-6 pt-10 pb-[76px]">
-      {img ? (
+    <div className="relative overflow-hidden bg-ink text-white px-6 pt-12 pb-[92px]">
+      {img && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          {/* Brand-tinted scrim keeps copy legible and the crimson identity over any photo. */}
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#1F0202]/90 via-[#630909]/65 to-[#2E0404]/35" />
-        </>
-      ) : (
-        <>
-          <div aria-hidden className="absolute -top-24 -right-16 w-[340px] h-[340px] rounded-full bg-[radial-gradient(circle,rgba(255,186,6,0.22),transparent_65%)]" />
-          <div aria-hidden className="absolute -bottom-32 left-[22%] w-[420px] h-[420px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.07),transparent_60%)]" />
-          {ghost && (
-            <span aria-hidden className="absolute right-8 bottom-0 font-display italic font-medium text-[110px] leading-none text-white/5 select-none pointer-events-none">
-              {ghost}
-            </span>
-          )}
+          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,12,18,0.82)_0%,rgba(10,12,18,0.48)_45%,rgba(10,12,18,0.08)_85%)]" />
         </>
       )}
       <div className="relative mx-auto max-w-7xl">
-        <h1 className="font-display font-semibold text-[1.9rem] leading-tight tracking-tight">
-          {title}{accent && <> <i className="italic text-amber-300">{accent}</i></>}
+        <h1 className="text-[34px] lg:text-[42px] leading-[1.02] font-extrabold tracking-[-0.02em] max-w-3xl [text-wrap:balance]">
+          {title}{accent && <> {accent}</>}
         </h1>
-        {subtitle && <p className="mt-1.5 text-[13.5px] text-white/70">{subtitle}</p>}
+        {subtitle && <p className="mt-3 text-[15px] text-white/80 max-w-2xl">{subtitle}</p>}
         {children}
       </div>
     </div>
   );
 }
 
-/** Segmented pill tabs that sit on the band (e.g. One-way / Round-trip). */
+/** Pills that sit on the band (One-way / Round-trip, or product switch). */
 export function HeroTabs({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="inline-flex items-center bg-white/10 border border-white/15 rounded-full p-[3px] mt-5 backdrop-blur-sm">
-      {children}
-    </div>
-  );
+  return <div className="inline-flex items-center gap-2 mt-6">{children}</div>;
 }
 export function HeroTab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        'px-4 h-8 rounded-full text-[12.5px] font-semibold transition-colors',
-        active ? 'bg-white text-crimson-900' : 'text-white/85 hover:text-white',
+        'h-9 px-4 rounded-full text-[13px] font-bold transition-colors border',
+        active ? 'bg-amber-500 text-ink border-amber-500' : 'bg-white/12 text-white border-white/25 hover:bg-white/20 backdrop-blur-sm',
       )}
     >
       {children}
@@ -66,55 +53,54 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
   );
 }
 
-/** Floating white search bar overlapping the band bottom. Children = cells + submit. */
+/** The pass: white sheet, overlapping the band's bottom edge. */
 export function HeroBar({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="relative mx-auto max-w-7xl px-6 -mt-12">
-      <div className={cn(
-        'bg-surface rounded-2xl border border-border-subtle flex flex-col lg:flex-row lg:items-stretch',
-        'divide-y lg:divide-y-0 lg:divide-x divide-border-subtle',
-        'shadow-[0_2px_4px_rgba(33,28,23,0.05),0_24px_48px_-16px_rgba(33,28,23,0.25)]',
-        className,
-      )}>
+    <div className="relative mx-auto max-w-7xl px-6 -mt-[60px]">
+      <div className={cn('bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch overflow-hidden', className)}>
         {children}
       </div>
     </div>
   );
 }
 
-/** One field cell inside the bar: tiny caps eyebrow + a borderless control. */
+/** One label-grid cell. */
 export function HeroCell({ eyebrow, grow, children, className }: { eyebrow: string; grow?: boolean; children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn('relative min-w-0 px-[18px] py-3', grow ? 'lg:flex-[1.4]' : 'lg:flex-1', className)}>
-      <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-[rgb(var(--text-tertiary))]">{eyebrow}</p>
-      <div className="mt-0.5">{children}</div>
+    <div className={cn('relative min-w-0 px-5 py-4 border-b lg:border-b-0 lg:border-r border-border-subtle', grow ? 'lg:flex-[1.35]' : 'lg:flex-1', className)}>
+      <p className="label">{eyebrow}</p>
+      <div className="mt-1.5">{children}</div>
     </div>
   );
 }
 
-/** The big brand submit at the bar's end. */
-export function HeroSubmit({ children = 'Search' }: { children?: React.ReactNode }) {
+/** The crimson stub at the pass's end, behind a perforation. */
+export function HeroSubmit({ children = 'Search', caption }: { children?: React.ReactNode; caption?: string }) {
   return (
-    <button
-      type="submit"
-      className="shrink-0 bg-[linear-gradient(135deg,#8C1816,#630909)] text-white font-bold text-[14.5px] px-8 py-4 lg:py-0 rounded-b-2xl lg:rounded-bl-none lg:rounded-r-2xl hover:brightness-110 active:brightness-95 transition inline-flex items-center justify-center gap-2"
-    >
-      {children}
-    </button>
+    <>
+      <div aria-hidden className="hidden lg:block w-0 border-l-2 border-dashed border-border self-stretch" />
+      <button
+        type="submit"
+        className="relative shrink-0 lg:w-[232px] bg-crimson-700 text-white px-6 lg:pr-14 py-5 lg:py-0 hover:bg-crimson-900 active:bg-crimson-900 transition-colors flex flex-col items-start justify-center gap-1"
+      >
+        <span aria-hidden className="barcode absolute right-4 top-4 h-7 w-6 text-white/50 hidden lg:block" />
+        <span className="inline-flex items-center gap-2 text-[17px] font-extrabold tracking-[0.02em] uppercase">{children}</span>
+        {caption && <span className="font-mono text-[11px] tracking-[0.08em] text-white/80 uppercase">{caption}</span>}
+      </button>
+    </>
   );
 }
 
-/** Toggle chip for the options row under the bar. */
+/** Toggle chip for the options row under the pass. */
 export function HeroChip({ active, onClick, children }: { active?: boolean; onClick?: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={!!active}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-3.5 h-8 text-xs font-semibold transition-colors',
-        active
-          ? 'border-crimson-700 text-crimson-900 bg-crimson-50/60'
-          : 'border-border bg-surface text-[rgb(var(--text-secondary))] hover:border-border-strong',
+        'inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-[13px] font-semibold transition-colors',
+        active ? 'border-crimson-700 text-crimson-700 bg-crimson-50' : 'border-border bg-surface text-navy-700 hover:border-border-strong',
       )}
     >
       {children}
@@ -122,5 +108,5 @@ export function HeroChip({ active, onClick, children }: { active?: boolean; onCl
   );
 }
 
-/** Shared borderless control style for inputs/selects inside a HeroCell. */
-export const heroControl = 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0 rounded-none';
+/** Borderless control inside a HeroCell: bold value type. */
+export const heroControl = 'h-7 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-ink tnum placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0 rounded-none';

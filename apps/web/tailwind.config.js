@@ -1,5 +1,8 @@
 // Tailwind config in plain JS to avoid TS/ESM edge cases during `next dev`.
-// Tokens mirror design-system/tokens.md.
+// Visual world: BOARDING PASS — white card stock on a cool grey ground, ink
+// navy, crimson as the carrier stripe / primary action, amber for the live
+// cell. Token NAMES are kept stable so every existing class keeps working;
+// only the values changed with the redesign.
 const animate = require('tailwindcss-animate');
 
 /** @type {import('tailwindcss').Config} */
@@ -9,57 +12,56 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Platform brand — Global Guides DMC
+        // Platform brand — carrier crimson (pops against white stock)
         crimson: {
-          50:  '#FCEBEB',
-          100: '#F6CECE',
-          200: '#E89797',
-          300: '#D86161',
-          500: '#8C1816',   // logo internal
-          700: '#760F0F',
-          900: '#630909',   // platform primary
+          50:  '#FDECEF',
+          100: '#F9D3DA',
+          200: '#F0A3B0',
+          300: '#E36A80',
+          500: '#C41E3A',   // brand pop / hover of primary
+          700: '#A8172E',   // primary action, carrier stripe
+          900: '#7C1024',   // deep: pressed, headings on crimson
         },
         amber: {
-          50:  '#FFF8DD',
-          100: '#FFEFB0',
-          300: '#FFD24D',
-          500: '#FFBA06',   // platform accent
-          700: '#D69900',
-          900: '#8F6700',
+          50:  '#FFF7DF',
+          100: '#FFEDB8',
+          300: '#FFD166',
+          500: '#F5B324',   // live cell / accent
+          700: '#C98A00',
+          900: '#7A5400',
         },
-
-        // Neutrals + structural (kept for body text, cards, admin)
-        navy:   { 50:'#EEF2F7', 100:'#D7DEEA', 200:'#AAB6CD', 500:'#1E3A66', 700:'#102747', 900:'#081428' },
-        // Legacy gold kept as alias (older components reference gold-*) — same as amber now.
-        gold:   { 300:'#FFD24D', 500:'#FFBA06', 700:'#D69900' },
+        // Ink scale (cool navy-black) — navy-* kept as the neutral ramp.
+        navy:   { 50:'#F2F4F7', 100:'#E4E7EC', 200:'#D0D5DD', 500:'#475467', 700:'#344054', 900:'#101828' },
+        gold:   { 300:'#FFD166', 500:'#F5B324', 700:'#C98A00' },
         action: { 100:'#E0F2FE', 500:'#0369A1', 600:'#075985', 700:'#0C4A6E' },
-        ink: { DEFAULT: '#211C17', soft: '#3A332B' }, // warm near-black for display headings
-        canvas: '#FAF6F0',      // warm ivory page background (was cold #F7F9FC)
-        surface: '#FFFFFF',
-        'surface-2': '#F4EFE7',  // warm secondary surface / zebra (was cold #F1F4F9)
-        success: { 100:'#DCFCE7', 500:'#16A34A' },
-        warning: { 100:'#FEF3C7', 500:'#D97706' },
+        ink: { DEFAULT: '#101828', soft: '#344054' },
+        canvas: '#EEF0F3',       // cool grey ground the passes sit on
+        surface: '#FFFFFF',      // card stock
+        'surface-2': '#F5F6F8',  // secondary surface / zebra
+        success: { 100:'#DCFCE7', 500:'#15803D', 600:'#166534' },
+        warning: { 100:'#FEF3C7', 500:'#B45309' },
         danger:  { 100:'#FEE2E2', 500:'#DC2626' },
         info:    { 500:'#2563EB' },
         border: {
-          subtle: '#ECE5DB',   // warm hairline (was cold #E5E9F0)
-          DEFAULT: '#DDD4C7',
-          strong: '#B3A795',
+          subtle: '#E9ECF0',
+          DEFAULT: '#D5DAE1',
+          strong: '#98A2B3',
         },
-        brick: { DEFAULT: '#B94025', dark: '#9D3520' },
+        brick: { DEFAULT: '#A8172E', dark: '#7C1024' },
       },
       fontFamily: {
-        sans: ['var(--font-jakarta)', 'ui-sans-serif', 'system-ui'],
-        mono: ['var(--font-jbm)', 'ui-monospace', 'SFMono-Regular'],
-        display: ['var(--font-fraunces)', 'ui-serif', 'Georgia'],
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular'],
+        // One family: display headings are the same face, heavier.
+        display: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
       },
       borderRadius: { xs:'4px', sm:'6px', md:'10px', lg:'14px', xl:'18px', '2xl':'24px' },
       boxShadow: {
-        xs: '0 1px 2px 0 rgb(99 9 9 / 0.04)',
-        sm: '0 2px 6px -1px rgb(99 9 9 / 0.06), 0 1px 3px -1px rgb(99 9 9 / 0.04)',
-        md: '0 6px 14px -3px rgb(99 9 9 / 0.08), 0 3px 6px -2px rgb(99 9 9 / 0.05)',
-        lg: '0 12px 28px -6px rgb(99 9 9 / 0.10), 0 6px 12px -4px rgb(99 9 9 / 0.06)',
-        xl: '0 24px 48px -12px rgb(99 9 9 / 0.16)',
+        xs: '0 1px 2px 0 rgb(16 24 40 / 0.05)',
+        sm: '0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.05)',
+        md: '0 4px 10px -2px rgb(16 24 40 / 0.08), 0 2px 4px -2px rgb(16 24 40 / 0.05)',
+        lg: '0 12px 24px -8px rgb(16 24 40 / 0.14), 0 4px 8px -4px rgb(16 24 40 / 0.06)',
+        xl: '0 24px 48px -16px rgb(16 24 40 / 0.28), 0 2px 6px rgb(16 24 40 / 0.06)',
       },
       transitionTimingFunction: { standard: 'cubic-bezier(0.2,0,0,1)' },
     },

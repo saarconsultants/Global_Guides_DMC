@@ -6,30 +6,24 @@ interface StatCardProps {
   value: string;
   sub?: string;
   icon?: React.ReactNode;
-  /** Period-over-period delta; renders an up/down/flat chip. */
   delta?: { curr: number; prev: number };
   tone?: 'navy' | 'gold' | 'success' | 'warning';
   mono?: boolean;
 }
 
-// Unified KPI / stat tile used across dashboard, leads, bookings, team, admin.
+// A stat is one cell of the label grid: caps label, big tabular value, delta.
 export function StatCard({ label, value, sub, icon, delta, tone = 'navy', mono }: StatCardProps) {
   const valueColor = tone === 'gold' ? 'text-amber-700' : tone === 'success' ? 'text-success-500' : tone === 'warning' ? 'text-warning-500' : 'text-ink';
-  // Serif numerals for display tone; keep mono+tabular for currency alignment.
-  const valueType = mono ? 'text-3xl font-bold font-mono tabular-nums tracking-tight' : 'font-display text-[1.9rem] font-semibold tracking-tight';
+  const valueType = mono ? 'money text-[28px]' : 'text-[30px] font-extrabold tnum tracking-[-0.02em]';
   return (
-    <Card className="lift relative overflow-hidden">
-      {/* Signature crimson accent stripe */}
-      <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-crimson-700 to-crimson-900" aria-hidden />
-      <CardContent className="pt-5">
+    <Card>
+      <CardContent className="pt-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">
-            {icon && <span className="text-crimson-700">{icon}</span>}{label}
-          </p>
+          <p className="label inline-flex items-center gap-1.5">{icon && <span className="text-crimson-700">{icon}</span>}{label}</p>
           {delta && <Delta curr={delta.curr} prev={delta.prev} />}
         </div>
-        <p className={`mt-1.5 ${valueType} ${valueColor}`}>{value}</p>
-        {sub && <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">{sub}</p>}
+        <p className={`mt-2 leading-none ${valueType} ${valueColor}`}>{value}</p>
+        {sub && <p className="mt-2 text-[13px] text-[rgb(var(--text-secondary))]">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -45,6 +39,6 @@ function Delta({ curr, prev }: { curr: number; prev: number }) {
 }
 
 function Chip({ tone, icon, children }: { tone: 'up' | 'down' | 'muted'; icon: React.ReactNode; children: React.ReactNode }) {
-  const cls = tone === 'up' ? 'text-success-600 bg-success-500/10' : tone === 'down' ? 'text-danger-500 bg-danger-500/10' : 'text-[rgb(var(--text-tertiary))] bg-surface-2';
-  return <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cls}`}>{icon}{children}</span>;
+  const cls = tone === 'up' ? 'text-success-600 bg-success-100' : tone === 'down' ? 'text-danger-500 bg-danger-100' : 'text-[rgb(var(--text-tertiary))] bg-surface-2';
+  return <span className={`inline-flex items-center gap-0.5 text-[10.5px] font-bold px-1.5 py-0.5 rounded-[5px] tnum ${cls}`}>{icon}{children}</span>;
 }

@@ -40,15 +40,16 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
       onMouseEnter={() => { hover.current = true; }}
       onMouseLeave={() => { hover.current = false; }}
     >
-      <div className="overflow-hidden rounded-2xl shadow-lg">
+      <div className="overflow-hidden rounded-lg shadow-md">
         <div className="flex transition-transform duration-700 ease-standard" style={{ transform: `translateX(-${idx * 100}%)` }}>
           {banners.map((b) => (
-            <div key={b.key} className={`relative w-full shrink-0 min-h-[280px] lg:min-h-[360px] bg-gradient-to-br ${b.tint} text-white overflow-hidden`}>
+            <div key={b.key} className={`relative w-full shrink-0 min-h-[440px] lg:min-h-[500px] bg-gradient-to-br ${b.tint} text-white overflow-hidden`}>
               {b.img && (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={b.img} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,12,18,0.84)_0%,rgba(10,12,18,0.5)_45%,rgba(10,12,18,0.1)_85%)]" />
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/55 to-transparent" />
                 </>
               )}
               {!b.img && (
@@ -62,23 +63,22 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
                   )}
                 </>
               )}
-              <div className="relative h-full flex flex-col justify-center px-8 lg:px-12 py-10 max-w-2xl">
-                <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-amber-300">{b.kicker}</p>
-                <h2 className="mt-2 font-display font-semibold text-[1.75rem] lg:text-[2.1rem] leading-tight tracking-tight">
-                  {b.title}{b.titleAccent && <> <i className="italic text-amber-300">{b.titleAccent}</i></>}
+              <div className="relative flex flex-col justify-start px-8 lg:px-12 pt-12 lg:pt-14 pb-[170px] max-w-2xl">
+                                <h2 className="font-extrabold text-[32px] lg:text-[42px] leading-[1.02] tracking-[-0.02em] [text-wrap:balance]">
+                  {b.title}{b.titleAccent && <> <span className="text-amber-300">{b.titleAccent}</span></>}
                 </h2>
-                <p className="mt-2.5 text-sm lg:text-[15px] text-white/80 max-w-xl">{b.body}</p>
+                <p className="mt-3 text-[15px] text-white/82 max-w-xl">{b.body}</p>
                 <div className="mt-5 flex flex-wrap items-center gap-2.5">
                   <Link
                     href={b.cta.href as any}
-                    className="inline-flex items-center gap-2 h-11 px-5 rounded-lg bg-amber-500 text-crimson-900 font-bold text-sm hover:bg-amber-300 transition-colors"
+                    className="inline-flex items-center gap-2 h-11 px-5 rounded-md bg-amber-500 text-ink font-bold text-sm hover:bg-amber-300 transition-colors"
                   >
                     {b.cta.label} <ArrowRight className="w-4 h-4" />
                   </Link>
                   {b.cta2 && (
                     <Link
                       href={b.cta2.href as any}
-                      className="inline-flex items-center gap-1.5 h-11 px-4 rounded-lg border border-white/30 text-white font-semibold text-sm hover:bg-white/10 transition-colors"
+                      className="inline-flex items-center gap-1.5 h-11 px-4 rounded-md border border-white/35 text-white font-bold text-sm hover:bg-white/10 transition-colors"
                     >
                       {b.cta2.label}
                     </Link>
@@ -96,7 +96,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
             type="button"
             aria-label="Previous promotion"
             onClick={() => setIdx((i) => (i - 1 + n) % n)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 hover:bg-black/45 text-white backdrop-blur flex items-center justify-center transition-colors"
+            className="hidden md:flex absolute left-3 top-[38%] -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -104,11 +104,11 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
             type="button"
             aria-label="Next promotion"
             onClick={() => setIdx((i) => (i + 1) % n)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/25 hover:bg-black/45 text-white backdrop-blur flex items-center justify-center transition-colors"
+            className="hidden md:flex absolute right-3 top-[38%] -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+          <div className="absolute top-5 right-6 flex items-center gap-1.5">
             {banners.map((b, i) => (
               <button
                 key={b.key}

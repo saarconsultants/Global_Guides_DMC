@@ -17,7 +17,7 @@ interface DialogProps {
 // its top-layer + close-event behavior interacts badly with React re-renders
 // (modals were closing themselves a beat after async content loaded). A plain
 // portal overlay is fully under React's control and has no hidden side-effects.
-export function Dialog({ open, onClose, title, children, size = 'md', glass }: DialogProps) {
+export function Dialog({ open, onClose, title, children, size = 'md', glass: _glass }: DialogProps) {
   const titleId = useId();
   const [mounted, setMounted] = useState(false);
 
@@ -53,18 +53,17 @@ export function Dialog({ open, onClose, title, children, size = 'md', glass }: D
     >
       <div
         className={cn(
-          'relative w-full my-auto rounded-xl shadow-xl max-h-[90vh] overflow-y-auto',
+          'relative w-full my-auto rounded-lg shadow-xl border border-border-subtle max-h-[90vh] overflow-y-auto bg-surface',
           sizes[size],
-          glass ? 'glass' : 'bg-surface',
         )}
         // Stop propagation so clicks inside the panel never reach the backdrop handler.
         onMouseDown={(e) => e.stopPropagation()}
       >
         <header className="sticky top-0 z-10 flex items-center justify-between px-6 pt-5 pb-3 bg-inherit">
-          {title ? <h2 id={titleId} className="text-lg font-semibold text-navy-900 tracking-tight">{title}</h2> : <span />}
+          {title ? <h2 id={titleId} className="text-[18px] font-extrabold text-ink tracking-[-0.01em]">{title}</h2> : <span />}
           <button
             onClick={onClose}
-            className="ml-auto -mr-2 h-9 w-9 inline-flex items-center justify-center rounded-full hover:bg-navy-50 transition-colors cursor-pointer"
+            className="ml-auto -mr-2 h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-navy-50 transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-4 h-4 text-navy-700" />

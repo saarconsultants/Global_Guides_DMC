@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, JetBrains_Mono, Fraunces } from 'next/font/google';
+import { Archivo, B612_Mono } from 'next/font/google';
 import { TopNav } from '@/components/layout/top-nav';
 import { Toaster } from '@/components/ui/toast';
 import { BugReportButton } from '@/components/feedback/bug-report-button';
@@ -13,9 +13,10 @@ import { Eye } from 'lucide-react';
 import { db } from '@/lib/db/client';
 import { countUnread, listNotifications } from '@/lib/db/notifications';
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', display: 'swap' });
-const jbm = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jbm', display: 'swap' });
-const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' });
+// Boarding-pass world: Archivo carries every UI voice (labels, body, display);
+// B612 Mono — the Airbus cockpit face — sets codes, PNRs, dates and money.
+const archivo = Archivo({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' });
+const b612 = B612_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-mono', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Global Guides DMC',
@@ -41,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en" className={`${jakarta.variable} ${jbm.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${b612.variable}`}>
       <body>
         <CurrencyProvider currency={currency} rate={rate}>
           <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:rounded-md focus:bg-crimson-900 focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-white">Skip to content</a>
@@ -59,7 +60,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             notif={notif}
           />
           <main id="main-content" className="min-h-screen">{children}</main>
-          <div className="grain" aria-hidden />
           <BugReportButton />
         </CurrencyProvider>
         <Toaster />
