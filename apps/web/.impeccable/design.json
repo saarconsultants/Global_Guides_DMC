@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-06T00:00:00.000Z",
+  "title": "Design System: Global Guides DMC",
+  "extensions": {
+    "colorMeta": {
+      "crimson-700": { "role": "primary", "displayName": "Carrier Crimson", "canonical": "#A8172E", "tonalRamp": ["#3D0812", "#5C0D1B", "#7C1024", "#A8172E", "#C41E3A", "#E36A80", "#F0A3B0", "#FDECEF"] },
+      "crimson-900": { "role": "primary", "displayName": "Crimson Deep", "canonical": "#7C1024", "tonalRamp": ["#2B0610", "#4A0A17", "#630D1E", "#7C1024", "#A8172E", "#C41E3A", "#E36A80", "#F9D3DA"] },
+      "crimson-500": { "role": "primary", "displayName": "Crimson Bright", "canonical": "#C41E3A", "tonalRamp": ["#3D0812", "#5C0D1B", "#7C1024", "#A8172E", "#C41E3A", "#E36A80", "#F0A3B0", "#FDECEF"] },
+      "crimson-50": { "role": "primary", "displayName": "Crimson Wash", "canonical": "#FDECEF", "tonalRamp": ["#7C1024", "#A8172E", "#C41E3A", "#E36A80", "#F0A3B0", "#F9D3DA", "#FDECEF", "#FFF7F8"] },
+      "amber-500": { "role": "secondary", "displayName": "Live Amber", "canonical": "#F5B324", "tonalRamp": ["#3D2A00", "#5C3F00", "#7A5400", "#C98A00", "#F5B324", "#FFD166", "#FFEDB8", "#FFF7DF"] },
+      "amber-100": { "role": "secondary", "displayName": "Amber Wash", "canonical": "#FFEDB8", "tonalRamp": ["#7A5400", "#C98A00", "#F5B324", "#FFD166", "#FFEDB8", "#FFF3D2", "#FFF7DF", "#FFFCF2"] },
+      "amber-900": { "role": "secondary", "displayName": "Amber Deep", "canonical": "#7A5400", "tonalRamp": ["#291C00", "#3D2A00", "#5C3F00", "#7A5400", "#C98A00", "#F5B324", "#FFD166", "#FFEDB8"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#101828", "tonalRamp": ["#050810", "#101828", "#1D2939", "#344054", "#475467", "#98A2B3", "#D0D5DD", "#F2F4F7"] },
+      "ink-soft": { "role": "neutral", "displayName": "Ink Soft", "canonical": "#344054", "tonalRamp": ["#050810", "#101828", "#1D2939", "#344054", "#475467", "#98A2B3", "#D0D5DD", "#F2F4F7"] },
+      "navy-500": { "role": "neutral", "displayName": "Slate", "canonical": "#475467", "tonalRamp": ["#101828", "#1D2939", "#344054", "#475467", "#667085", "#98A2B3", "#D0D5DD", "#F2F4F7"] },
+      "navy-100": { "role": "neutral", "displayName": "Chip Grey", "canonical": "#E4E7EC", "tonalRamp": ["#101828", "#344054", "#475467", "#98A2B3", "#D0D5DD", "#E4E7EC", "#F2F4F7", "#FAFBFC"] },
+      "navy-50": { "role": "neutral", "displayName": "Wash Grey", "canonical": "#F2F4F7", "tonalRamp": ["#101828", "#344054", "#475467", "#98A2B3", "#D0D5DD", "#E4E7EC", "#F2F4F7", "#FAFBFC"] },
+      "canvas": { "role": "neutral", "displayName": "Cool Ground", "canonical": "#EEF0F3", "tonalRamp": ["#101828", "#344054", "#667085", "#98A2B3", "#D5DAE1", "#E9ECF0", "#EEF0F3", "#FFFFFF"] },
+      "surface": { "role": "neutral", "displayName": "Card Stock", "canonical": "#FFFFFF", "tonalRamp": ["#101828", "#344054", "#667085", "#98A2B3", "#D5DAE1", "#E9ECF0", "#F5F6F8", "#FFFFFF"] },
+      "surface-2": { "role": "neutral", "displayName": "Zebra Grey", "canonical": "#F5F6F8", "tonalRamp": ["#101828", "#344054", "#667085", "#98A2B3", "#D5DAE1", "#E9ECF0", "#F5F6F8", "#FFFFFF"] },
+      "border-subtle": { "role": "neutral", "displayName": "Hairline", "canonical": "#E9ECF0", "tonalRamp": ["#101828", "#344054", "#667085", "#98A2B3", "#D5DAE1", "#E9ECF0", "#F5F6F8", "#FFFFFF"] },
+      "border": { "role": "neutral", "displayName": "Rule", "canonical": "#D5DAE1", "tonalRamp": ["#101828", "#344054", "#667085", "#98A2B3", "#D0D5DD", "#D5DAE1", "#E9ECF0", "#F5F6F8"] },
+      "border-strong": { "role": "neutral", "displayName": "Rule Strong", "canonical": "#98A2B3", "tonalRamp": ["#101828", "#344054", "#475467", "#667085", "#98A2B3", "#D0D5DD", "#E4E7EC", "#F2F4F7"] },
+      "success-500": { "role": "tertiary", "displayName": "Confirmed Green", "canonical": "#15803D", "tonalRamp": ["#052E16", "#14532D", "#166534", "#15803D", "#22C55E", "#86EFAC", "#DCFCE7", "#F0FDF4"] },
+      "danger-500": { "role": "tertiary", "displayName": "Alert Red", "canonical": "#DC2626", "tonalRamp": ["#450A0A", "#7F1D1D", "#991B1B", "#DC2626", "#EF4444", "#FCA5A5", "#FEE2E2", "#FEF2F2"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero band headline over the photo. 34px mobile, 42px desktop, balanced wrap, max 3xl." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles via PageHeader. No eyebrow above it." },
+      "title": { "displayName": "Title", "purpose": "Card titles, section heads, dialog titles, hero submit label." },
+      "body": { "displayName": "Body", "purpose": "Descriptions and prose, capped at max-w-2xl." },
+      "label": { "displayName": "Label", "purpose": "The pass vocabulary: FROM / TO / DEPART / TRAVELLERS, stat labels, table headers. Always caps." },
+      "code": { "displayName": "Code", "purpose": "B612 Mono for airport codes, PNRs, dates, times, route chips, stub captions. Never for money." },
+      "money": { "displayName": "Money", "purpose": "Archivo bold tabular for prices; mono commas break Indian lakh grouping." }
+    },
+    "shadows": [
+      { "name": "stock", "value": "0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.05)", "purpose": "Resting state of every pass, card and toast." },
+      { "name": "lift", "value": "0 1px 2px rgb(16 24 40 / 0.04), 0 16px 32px -14px rgb(16 24 40 / 0.22)", "purpose": "Hover on an interactive pass, paired with translateY(-2px)." },
+      { "name": "elevate", "value": "0 1px 2px rgb(16 24 40 / 0.05), 0 8px 24px -14px rgb(16 24 40 / 0.14)", "purpose": "Standing panels that need separation without hover." },
+      { "name": "overlap", "value": "0 24px 48px -16px rgb(16 24 40 / 0.28), 0 2px 6px rgb(16 24 40 / 0.06)", "purpose": "The hero search pass overlapping the band, and dialogs." },
+      { "name": "focus-ring", "value": "0 0 0 2px #C41E3A, 0 0 0 4px #EEF0F3", "purpose": "Global focus-visible ring: crimson-500 offset against the canvas." },
+      { "name": "input-focus", "value": "0 0 0 2px rgb(168 23 46 / 0.15)", "purpose": "Input focus halo, paired with a crimson-700 border shift." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.2, 0, 0, 1)", "purpose": "The only easing in the system." },
+      { "name": "duration-state", "value": "150ms", "purpose": "Colour and border state changes on buttons, links, inputs, chips." },
+      { "name": "duration-lift", "value": "220ms", "purpose": "Hover lift transform and shadow on an interactive pass." },
+      { "name": "duration-overlay", "value": "180ms", "purpose": "Dialog and backdrop entrance." },
+      { "name": "entrance", "value": "none", "purpose": "Deliberately retired. .stagger ships as a no-op; task surfaces load visible." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "container", "value": "1280px (max-w-7xl content) / 1400px (top nav)" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The stub action. Crimson, bold, 44px, firm 10px corners.",
+      "html": "<button class=\"ds-btn-primary\">Send proposal</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border: none; border-radius: 10px; background: #A8172E; color: #fff; font-family: Archivo, ui-sans-serif, system-ui; font-size: 14px; font-weight: 700; letter-spacing: -0.005em; white-space: nowrap; cursor: pointer; box-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.05); transition: background-color 150ms cubic-bezier(0.2,0,0,1), transform 150ms cubic-bezier(0.2,0,0,1); } .ds-btn-primary:hover { background: #7C1024; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #EEF0F3, 0 0 0 4px #C41E3A; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White card stock with a hairline that strengthens on hover.",
+      "html": "<button class=\"ds-btn-secondary\">Duplicate</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border: 1px solid #D5DAE1; border-radius: 10px; background: #fff; color: #101828; font-family: Archivo, ui-sans-serif, system-ui; font-size: 14px; font-weight: 700; letter-spacing: -0.005em; cursor: pointer; transition: background-color 150ms cubic-bezier(0.2,0,0,1), border-color 150ms cubic-bezier(0.2,0,0,1); } .ds-btn-secondary:hover { border-color: #98A2B3; background: #F5F6F8; } .ds-btn-secondary:active { transform: scale(0.98); } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 2px #EEF0F3, 0 0 0 4px #C41E3A; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "44px field, tabular numerals, focus is a crimson stroke shift plus a soft halo.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Traveller name</span><input class=\"ds-input\" placeholder=\"Enter name\" /></label>",
+      "css": ".ds-field { display: block; } .ds-field-label { display: block; margin-bottom: 6px; font-family: Archivo, ui-sans-serif, system-ui; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #98A2B3; } .ds-input { height: 44px; width: 100%; box-sizing: border-box; padding: 0 14px; border: 1px solid #D5DAE1; border-radius: 10px; background: #fff; color: #101828; font-family: Archivo, ui-sans-serif, system-ui; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; transition: border-color 150ms cubic-bezier(0.2,0,0,1), box-shadow 150ms cubic-bezier(0.2,0,0,1); } .ds-input::placeholder { color: #98A2B3; font-weight: 400; } .ds-input:hover { border-color: #98A2B3; } .ds-input:focus { outline: none; border-color: #A8172E; box-shadow: 0 0 0 2px rgb(168 23 46 / 0.15); }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "pill-status",
+      "description": "The pass's BOARDING/GATE cell: fixed caps, letterspaced, 5px radius. The live variant is solid amber.",
+      "html": "<span class=\"ds-pill ds-pill-neutral\">Draft</span> <span class=\"ds-pill ds-pill-live\">Live rate</span> <span class=\"ds-pill ds-pill-success\">Confirmed</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 5px; font-family: Archivo, ui-sans-serif, system-ui; font-size: 10.5px; font-weight: 700; line-height: 1; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; } .ds-pill-neutral { background: #E4E7EC; color: #344054; } .ds-pill-live { background: #F5B324; color: #101828; } .ds-pill-success { background: #DCFCE7; color: #166534; }"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "button-secondary",
+      "description": "Toggle chip under the search pass; selected swaps to a crimson outline on a crimson wash.",
+      "html": "<button class=\"ds-chip\">Direct only</button> <button class=\"ds-chip ds-chip-on\" aria-pressed=\"true\">Refundable</button>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 1px solid #D5DAE1; border-radius: 10px; background: #fff; color: #344054; font-family: Archivo, ui-sans-serif, system-ui; font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color 150ms cubic-bezier(0.2,0,0,1), background-color 150ms cubic-bezier(0.2,0,0,1); } .ds-chip:hover { border-color: #98A2B3; } .ds-chip-on { border-color: #A8172E; color: #A8172E; background: #FDECEF; } .ds-chip:focus-visible { outline: none; box-shadow: 0 0 0 2px #EEF0F3, 0 0 0 4px #C41E3A; }"
+    },
+    {
+      "name": "Top Navigation",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "Sticky 64px white bar; the active link is crimson with a 3px underline pinned to the bar's bottom edge.",
+      "html": "<header class=\"ds-nav\"><nav class=\"ds-nav-inner\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\">Home</a><a class=\"ds-nav-link\" href=\"#\">Flights</a><a class=\"ds-nav-link\" href=\"#\">Hotels</a><a class=\"ds-nav-link\" href=\"#\">Proposals</a></nav></header>",
+      "css": ".ds-nav { background: #fff; border-bottom: 1px solid #E9ECF0; } .ds-nav-inner { display: flex; align-items: center; height: 64px; padding: 0 24px; } .ds-nav-link { position: relative; display: inline-flex; align-items: center; height: 64px; padding: 0 12px; font-family: Archivo, ui-sans-serif, system-ui; font-size: 14px; font-weight: 600; color: #344054; text-decoration: none; transition: color 150ms cubic-bezier(0.2,0,0,1); } .ds-nav-link:hover { color: #101828; } .ds-nav-link-active { color: #A8172E; } .ds-nav-link-active::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; border-radius: 999px 999px 0 0; background: #A8172E; }"
+    },
+    {
+      "name": "The Pass",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The world's core object: a main label grid, a dashed perforation with punched notches, and a crimson stub carrying the price and the one action.",
+      "html": "<div class=\"ds-pass\"><div class=\"ds-pass-main\"><div class=\"ds-pass-grid\"><div><div class=\"ds-lab\">From</div><div class=\"ds-code\">DEL</div><div class=\"ds-sub\">Delhi</div></div><div><div class=\"ds-lab\">To</div><div class=\"ds-code\">CDG</div><div class=\"ds-sub\">Paris</div></div><div><div class=\"ds-lab\">Depart</div><div class=\"ds-mono\">02 MAR 2026</div></div><div><div class=\"ds-lab\">Travellers</div><div class=\"ds-val\">2 adults</div></div></div></div><div class=\"ds-perf\"></div><div class=\"ds-pass-stub\"><div class=\"ds-lab ds-lab-inv\">Total</div><div class=\"ds-money\">₹ 2,45,800</div><button class=\"ds-stub-btn\">Quote<span class=\"ds-barcode\"></span></button></div></div>",
+      "css": ".ds-pass { position: relative; display: flex; background: #fff; border: 1px solid #E9ECF0; border-radius: 14px; box-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.05); overflow: hidden; transition: transform 220ms cubic-bezier(0.2,0,0,1), box-shadow 220ms cubic-bezier(0.2,0,0,1); } .ds-pass:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 16px 32px -14px rgb(16 24 40 / 0.22); } .ds-pass-main { flex: 1; min-width: 0; padding: 20px; } .ds-pass-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px 12px; } .ds-lab { font-family: Archivo, ui-sans-serif, system-ui; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #98A2B3; } .ds-lab-inv { color: rgba(255,255,255,0.75); } .ds-code { margin-top: 4px; font-family: 'B612 Mono', ui-monospace, SFMono-Regular; font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: #101828; font-variant-numeric: tabular-nums; } .ds-mono { margin-top: 4px; font-family: 'B612 Mono', ui-monospace, SFMono-Regular; font-size: 19px; font-weight: 700; line-height: 1; color: #101828; font-variant-numeric: tabular-nums; } .ds-val { margin-top: 4px; font-family: Archivo, ui-sans-serif, system-ui; font-size: 15px; font-weight: 700; color: #101828; } .ds-sub { margin-top: 6px; font-family: Archivo, ui-sans-serif, system-ui; font-size: 12.5px; color: #475467; } .ds-perf { position: relative; width: 0; border-left: 2px dashed #D5DAE1; align-self: stretch; } .ds-perf::before, .ds-perf::after { content: ''; position: absolute; left: -11px; width: 20px; height: 20px; border-radius: 50%; background: #EEF0F3; } .ds-perf::before { top: -10px; } .ds-perf::after { bottom: -10px; } .ds-pass-stub { flex-shrink: 0; width: 220px; padding: 20px; background: #A8172E; color: #fff; display: flex; flex-direction: column; justify-content: center; gap: 8px; } .ds-money { font-family: Archivo, ui-sans-serif, system-ui; font-size: 26px; font-weight: 700; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; } .ds-stub-btn { position: relative; margin-top: 4px; align-self: flex-start; height: 36px; padding: 0 14px; border: none; border-radius: 10px; background: #fff; color: #A8172E; font-family: Archivo, ui-sans-serif, system-ui; font-size: 13px; font-weight: 700; cursor: pointer; transition: background-color 150ms cubic-bezier(0.2,0,0,1); } .ds-stub-btn:hover { background: #FDECEF; } .ds-barcode { display: inline-block; margin-left: 8px; width: 14px; height: 12px; vertical-align: -2px; color: #A8172E; background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px, currentColor 4px 5px, transparent 5px 8px, currentColor 8px 11px, transparent 11px 13px); }"
+    },
+    {
+      "name": "Hero Search Pass",
+      "kind": "custom",
+      "refersTo": "hero-band",
+      "description": "The first-viewport object: an ink/photo band with the white search pass pulled up over its bottom edge, ending in the crimson SEARCH stub.",
+      "html": "<div class=\"ds-hero\"><h1 class=\"ds-hero-title\">Quote a trip in minutes.</h1></div><div class=\"ds-hero-bar\"><div class=\"ds-hero-cell\"><div class=\"ds-lab2\">From</div><div class=\"ds-hero-code\">DEL</div></div><div class=\"ds-hero-cell\"><div class=\"ds-lab2\">To</div><div class=\"ds-hero-code\">CDG</div></div><div class=\"ds-hero-cell\"><div class=\"ds-lab2\">Depart</div><div class=\"ds-hero-date\">02 MAR 2026</div></div><div class=\"ds-hero-tear\"></div><button class=\"ds-hero-submit\"><span class=\"ds-hero-submit-label\">Search</span><span class=\"ds-hero-cap\">42 suppliers</span></button></div>",
+      "css": ".ds-hero { background: #101828; color: #fff; padding: 48px 24px 92px; } .ds-hero-title { margin: 0; font-family: Archivo, ui-sans-serif, system-ui; font-size: 42px; font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; } .ds-hero-bar { position: relative; margin: -60px 24px 0; display: flex; align-items: stretch; background: #fff; border-radius: 14px; box-shadow: 0 24px 48px -16px rgb(16 24 40 / 0.28), 0 2px 6px rgb(16 24 40 / 0.06); overflow: hidden; } .ds-hero-cell { flex: 1; min-width: 0; padding: 16px 20px; border-right: 1px solid #E9ECF0; } .ds-lab2 { font-family: Archivo, ui-sans-serif, system-ui; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #98A2B3; } .ds-hero-code { margin-top: 6px; font-family: 'B612 Mono', ui-monospace, SFMono-Regular; font-size: 32px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: #101828; font-variant-numeric: tabular-nums; } .ds-hero-date { margin-top: 6px; font-family: 'B612 Mono', ui-monospace, SFMono-Regular; font-size: 19px; font-weight: 700; line-height: 1; color: #101828; font-variant-numeric: tabular-nums; } .ds-hero-tear { width: 0; border-left: 2px dashed #D5DAE1; align-self: stretch; } .ds-hero-submit { position: relative; flex-shrink: 0; width: 232px; border: none; background: #A8172E; color: #fff; padding: 0 56px 0 24px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.2,0,0,1); } .ds-hero-submit:hover { background: #7C1024; } .ds-hero-submit-label { font-family: Archivo, ui-sans-serif, system-ui; font-size: 17px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; } .ds-hero-cap { font-family: 'B612 Mono', ui-monospace, SFMono-Regular; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.8); } .ds-hero-submit::after { content: ''; position: absolute; right: 16px; top: 16px; width: 24px; height: 28px; color: rgba(255,255,255,0.5); background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px, currentColor 4px 5px, transparent 5px 8px, currentColor 8px 11px, transparent 11px 13px); }"
+    },
+    {
+      "name": "Ghost Pass (Empty State)",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "An empty list draws the pass's real geometry in dashed outline instead of a centred icon-and-sentence block.",
+      "html": "<div class=\"ds-empty\"><div class=\"ds-ghost\"><div class=\"ds-ghost-main\"><div class=\"ds-ghost-row\"><span class=\"ds-ghost-icon\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z\"/></svg></span><span class=\"ds-ghost-bars\"><i style=\"width:66%\"></i><i style=\"width:33%\"></i></span></div><div class=\"ds-ghost-grid\"><span><i class=\"ds-ghost-lab\"></i><i class=\"ds-ghost-val\"></i></span><span><i class=\"ds-ghost-lab\"></i><i class=\"ds-ghost-val\"></i></span><span><i class=\"ds-ghost-lab\"></i><i class=\"ds-ghost-val\"></i></span></div></div><div class=\"ds-ghost-tear\"></div><div class=\"ds-ghost-stub\"><span class=\"ds-ghost-bar-code\"></span></div></div><h3 class=\"ds-empty-title\">No proposals yet</h3><p class=\"ds-empty-body\">Start a trip and the pass will appear here.</p></div>",
+      "css": ".ds-empty { text-align: center; max-width: 448px; margin: 0 auto; padding: 64px 0; } .ds-ghost { width: 260px; margin: 0 auto 24px; display: flex; overflow: hidden; border: 2px dashed #D5DAE1; border-radius: 14px; background: rgba(255,255,255,0.6); } .ds-ghost-main { flex: 1; padding: 16px; text-align: left; } .ds-ghost-row { display: flex; align-items: center; gap: 12px; } .ds-ghost-icon { width: 36px; height: 36px; border-radius: 10px; background: #F2F4F7; color: #475467; display: inline-flex; align-items: center; justify-content: center; } .ds-ghost-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; } .ds-ghost-bars i { height: 8px; border-radius: 4px; background: #E4E7EC; display: block; } .ds-ghost-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 10px; } .ds-ghost-lab { display: block; width: 32px; height: 6px; border-radius: 3px; background: #E4E7EC; } .ds-ghost-val { display: block; margin-top: 6px; width: 24px; height: 10px; border-radius: 3px; background: #E4E7EC; } .ds-ghost-tear { width: 0; border-left: 2px dashed #D5DAE1; } .ds-ghost-stub { width: 64px; background: #F2F4F7; display: flex; align-items: center; justify-content: center; } .ds-ghost-bar-code { width: 24px; height: 32px; color: #D0D5DD; background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px, currentColor 4px 5px, transparent 5px 8px, currentColor 8px 11px, transparent 11px 13px); } .ds-empty-title { margin: 0; font-family: Archivo, ui-sans-serif, system-ui; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; color: #101828; } .ds-empty-body { margin: 6px 0 0; font-family: Archivo, ui-sans-serif, system-ui; font-size: 14px; line-height: 1.6; color: #475467; }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "One cell of the label grid, freestanding: caps label, big tabular value, delta chip.",
+      "html": "<div class=\"ds-stat\"><div class=\"ds-stat-top\"><span class=\"ds-lab3\">Receivable</span><span class=\"ds-delta\">+12%</span></div><p class=\"ds-stat-val\">₹ 8,42,150</p><p class=\"ds-stat-sub\">Across 14 open bookings</p></div>",
+      "css": ".ds-stat { background: #fff; border: 1px solid #E9ECF0; border-radius: 14px; padding: 16px 20px 20px; box-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.05); } .ds-stat-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .ds-lab3 { font-family: Archivo, ui-sans-serif, system-ui; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #98A2B3; } .ds-delta { display: inline-flex; align-items: center; gap: 2px; padding: 2px 6px; border-radius: 5px; background: #DCFCE7; color: #166534; font-family: Archivo, ui-sans-serif, system-ui; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-stat-val { margin: 8px 0 0; font-family: Archivo, ui-sans-serif, system-ui; font-size: 28px; font-weight: 700; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: #101828; } .ds-stat-sub { margin: 8px 0 0; font-family: Archivo, ui-sans-serif, system-ui; font-size: 13px; color: #475467; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Boarding Pass",
+    "overview": "Every object an agent handles — a package, a proposal, a lead, a hotel result — is printed as a pass: a white sheet of card stock split by a dashed perforation into a MAIN panel that carries a strict grid of caps-labelled facts and a STUB that carries the price and the single action. The passes sit on a cool grey ground the way real tickets sit on a desk. Nothing floats, nothing glows; the depth in this world is the depth of paper on a counter.\n\nThe register is operational, not promotional. Density is high and deliberate: labels are 10.5px caps at 0.14em tracking, values are bold and truncating, numbers are tabular everywhere so columns line up down a list. Crimson is the carrier's colour — it appears as the stub of the search pass, the primary button, the active nav underline, and almost nowhere else. Amber is reserved for the one live cell on a screen (a live rate, an unattended count, an impersonation band). Ink navy carries hero bands and photo fallbacks.\n\nThe world refuses the travel-portal defaults it was built against: no card-and-table sprawl, no grey placeholder rectangles where a photo failed, no centred icon-and-sentence empty state, no entrance animation on a surface whose job is to be read. A task screen loads visible and finished.",
+    "keyCharacteristics": [
+      "Passes, not cards: main panel + perforation + stub, vertical on desktop, horizontal when stacked",
+      "Caps letterspaced label over a bold value — the only fact-presentation pattern",
+      "One accent voice (crimson) plus one alert voice (amber) on white and cool grey",
+      "Archivo for every UI voice; B612 Mono strictly for codes, PNRs, dates, times",
+      "Motion is state-only: hover lift, 150–250ms colour transitions, nothing on load"
+    ],
+    "rules": [
+      { "name": "The One Stripe Rule", "body": "Crimson is the carrier stripe, not a palette. One crimson mass per screen (the stub or the primary action) plus small crimson text links. If a second crimson block appears, one of them is wrong.", "section": "colors" },
+      { "name": "The Live Cell Rule", "body": "Amber marks exactly what is live or waiting right now. It is never decoration and never a brand colour; a screen with nothing urgent has no amber on it.", "section": "colors" },
+      { "name": "The Punched Notch Rule", "body": "Every perforation notch is filled with the page ground (#EEF0F3), never white. A pass laid on a non-canvas ground must have its notch fill changed to match, or the tear line is drawn without notches.", "section": "colors" },
+      { "name": "The Money-Is-Not-Mono Rule", "body": "Prices use Archivo bold tabular (.money), never B612 Mono. The mono comma is too wide for Indian lakh grouping (₹ 12,45,000) and breaks the number's shape. Mono is for codes, PNRs, dates and times only.", "section": "typography" },
+      { "name": "The Printed Date Rule", "body": "A date renders as mono display text (02 MAR 2026, uppercased) with a real, fully transparent <input type=\"date\"> stretched over it. The wrapper — not the input — carries the focus-within ring, because the control itself is invisible.", "section": "typography" },
+      { "name": "The No Kicker Rule", "body": "Headings carry their own weight. There is no eyebrow, kicker, or all-caps mini-heading above a page title; the caps-label treatment belongs to data cells only.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Surfaces sit on the ground with a hairline and a 1–3px shadow. Anything heavier is a response to state (hover, overlap, modal) or it is wrong.", "section": "elevation" },
+      { "name": "The Loads-Visible Rule", "body": "No entrance animation. .stagger ships as a no-op because a task surface must be readable the instant it paints. Motion is state-only and runs 150–250ms on the standard curve (cubic-bezier(0.2,0,0,1)); the only exceptions are the 180ms dialog/backdrop entrance and the skeleton pulse.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do present every fact as a caps label over a bold value; that pairing is the system's atomic unit.",
+      "Do put price and the single action on the stub, separated from the facts by a perforation.",
+      "Do set money in .money (Archivo 700 tabular) and codes, PNRs, dates and times in B612 Mono.",
+      "Do keep numerals tabular everywhere — the body sets font-feature-settings: 'tnum' and lists must line up.",
+      "Do fill perforation notches with the page ground colour so the tear reads as punched, not drawn.",
+      "Do declare interactive overlay components (CodeCell, HeroDate, the travellers cell) at module scope, never inside another component's body, so they don't remount and drop focus mid-typing.",
+      "Do draw fallbacks as ink plates carrying the item's own facts, and empty states as ghost passes.",
+      "Do keep motion to state changes at 150–250ms on cubic-bezier(0.2,0,0,1)."
+    ],
+    "donts": [
+      "Don't set prices in mono — the wide comma breaks Indian lakh grouping.",
+      "Don't add entrance, scroll-reveal, or staggered-list animation; a task surface loads finished.",
+      "Don't put an eyebrow or kicker above a heading; PageHeader accepts the prop and deliberately ignores it.",
+      "Don't use grey placeholder boxes for missing imagery, or a centred icon-and-sentence block for an empty list.",
+      "Don't let a second crimson mass onto a screen, or use amber for anything that isn't live or waiting.",
+      "Don't override .control's padding from a consuming component (same @layer — it won't win); write the field's own utility string.",
+      "Don't use glyph or emoji icons; icons are drawn with lucide. The one exception the build carries is the literal star character inside native <option> labels, where markup cannot hold an SVG.",
+      "Don't reach for .ambient or .stagger; both ship as no-ops and exist only so legacy markup stays harmless."
+    ]
+  }
+}
