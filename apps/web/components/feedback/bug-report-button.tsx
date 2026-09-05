@@ -87,11 +87,11 @@ export function BugReportButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-navy-900 text-white text-sm font-semibold shadow-lg hover:bg-crimson-900 transition-colors"
+        className="fixed bottom-5 right-5 z-40 inline-flex items-center justify-center gap-1.5 w-10 h-10 lg:w-auto lg:px-4 rounded-full bg-ink text-white text-sm font-bold shadow-lg hover:bg-crimson-700 transition-colors"
         title="Report an issue (⌘⇧B)"
         aria-label="Report an issue"
       >
-        <Bug className="w-4 h-4" />Report
+        <Bug className="w-4 h-4 shrink-0" /><span className="hidden lg:inline">Report</span>
       </button>
 
       <Dialog open={open} onClose={reset} title={done ? 'Report sent' : 'Report an issue'} size="md">

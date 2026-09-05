@@ -108,5 +108,31 @@ export function HeroChip({ active, onClick, children }: { active?: boolean; onCl
   );
 }
 
+/**
+ * Date cell: the pass's own mono date over the native control. The input stays
+ * a real <input type="date"> (calendar, keyboard, validation) but is made
+ * transparent and stretched over the printed value, so the cell reads as a pass
+ * date and still behaves as a date field.
+ */
+export function HeroDate({ value, min, onChange, label, sub }: { value: string; min?: string; onChange: (v: string) => void; label: string; sub?: string }) {
+  const d = value ? new Date(value + 'T00:00:00') : null;
+  return (
+    <div className="relative">
+      <div className="font-mono text-[19px] font-bold leading-none text-ink tnum">
+        {d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—'}
+      </div>
+      {sub && <div className="mt-1 text-[12px] text-[rgb(var(--text-secondary))]">{sub}{d ? ` · ${d.toLocaleDateString('en-GB', { weekday: 'long' })}` : ''}</div>}
+      <input
+        type="date"
+        value={value}
+        min={min}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={label}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+    </div>
+  );
+}
+
 /** Borderless control inside a HeroCell: bold value type. */
 export const heroControl = 'h-7 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-ink tnum placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0 rounded-none';

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CitySearchCombobox } from '@/components/common/city-search-combobox';
-import { HeroBar, HeroCell, HeroSubmit, heroControl } from '@/components/ui/hero-search';
+import { HeroBar, HeroCell, HeroSubmit, HeroDate, heroControl } from '@/components/ui/hero-search';
 
 interface Props {
   defaults: { city: string; from: string; to: string; adults: string };
@@ -24,8 +24,8 @@ export function ActivitySearchForm({ defaults }: Props) {
     <form onSubmit={submit}>
       <HeroBar>
         <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={setCity} placeholder="Search destination" /></HeroCell>
-        <HeroCell eyebrow="From"><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={heroControl} aria-label="From date" /></HeroCell>
-        <HeroCell eyebrow="To"><input type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} className={heroControl} aria-label="To date" /></HeroCell>
+        <HeroCell eyebrow="From"><HeroDate value={from} onChange={setFrom} label="From date" sub="First tour" /></HeroCell>
+        <HeroCell eyebrow="To"><HeroDate value={to} min={from} onChange={setTo} label="To date" sub="Last tour" /></HeroCell>
         <HeroCell eyebrow="Travellers">
           <select value={adults} onChange={(e) => setAdults(e.target.value)} className={heroControl} aria-label="Adults">
             {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}

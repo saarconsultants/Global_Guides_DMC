@@ -6,7 +6,7 @@ import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft, Search, Check } from 'lucide-react';
 import { AirportCombobox } from './airport-combobox';
-import { HeroBand, HeroTabs, HeroTab, HeroBar, HeroCell, HeroSubmit, HeroChip, heroControl } from '@/components/ui/hero-search';
+import { HeroBand, HeroTabs, HeroTab, HeroBar, HeroCell, HeroSubmit, HeroDate, HeroChip, heroControl } from '@/components/ui/hero-search';
 
 interface Props {
   defaults: { from: string; to: string; date: string; adults: string; cabin: string; rdate?: string };
@@ -82,11 +82,11 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Pro
             <AirportCombobox bare label="To" value={to} onChange={setTo} placeholder="City or airport" iconRotate />
           </HeroCell>
           <HeroCell eyebrow={roundTrip ? 'Depart' : 'Travel date'}>
-            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setDateError(null); }} className={heroControl} aria-label="Departure date" />
+            <HeroDate value={date} onChange={setDate} label="Travel date" sub="Depart" />
           </HeroCell>
           {roundTrip && (
             <HeroCell eyebrow="Return">
-              <input type="date" value={rdate} min={date} onChange={(e) => { setRdate(e.target.value); setDateError(null); }} className={heroControl} aria-label="Return date" />
+              <HeroDate value={rdate} min={date} onChange={setRdate} label="Return date" sub="Return" />
             </HeroCell>
           )}
           <HeroCell eyebrow="Travellers">

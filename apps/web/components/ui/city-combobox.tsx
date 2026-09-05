@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { searchCities, findCity, type CityEntry } from '@/lib/cities';
 import { cityByCode } from '@/lib/supported-cities';
 import { Pill } from '@/components/ui/pill';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -111,7 +111,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
                   </span>
                   <span className="text-[10px] font-mono text-[rgb(var(--text-tertiary))]">{c.code}</span>
                   {cityByCode(c.code) && <Pill variant="success" className="text-[9px]">LIVE</Pill>}
-                  {isCurrent && <span className="text-[10px] text-crimson-700 font-bold">✓</span>}
+                  {isCurrent && <Check className="w-3.5 h-3.5 text-crimson-700 flex-shrink-0" aria-label="Selected" />}
                 </li>
               );
             })}

@@ -52,7 +52,7 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
     <div ref={wrapRef} className="relative">
       {!bare && <label className="label block mb-1.5">{label}</label>}
       <div className="relative">
-        {!bare && <Plane className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))] ${iconRotate ? 'rotate-90' : ''}`} />}
+        {!bare && <Plane className={`pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))] z-10 ${iconRotate ? 'rotate-90' : ''}`} />}
         <input
           value={open ? query : displayWhenClosed}
           onChange={(e) => { setQuery(e.target.value); setActive(0); setOpen(true); }}
@@ -62,7 +62,7 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
           aria-label={bare ? label : undefined}
           className={bare
             ? 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
-            : 'control !pl-9'}
+            : 'control pl-10'}
           autoComplete="off"
         />
       </div>

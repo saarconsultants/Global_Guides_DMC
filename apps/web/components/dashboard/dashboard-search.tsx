@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import { Plane, Hotel, Ticket, Sparkles, ArrowLeftRight } from 'lucide-react';
 import { AirportCombobox } from '@/components/flights/airport-combobox';
 import { CitySearchCombobox } from '@/components/common/city-search-combobox';
-import { HeroCell, HeroSubmit, heroControl } from '@/components/ui/hero-search';
+import { HeroCell, HeroSubmit, HeroDate, heroControl } from '@/components/ui/hero-search';
+import { airportByIata } from '@/lib/airports';
+import { findCity } from '@/lib/cities';
 import { cn } from '@/lib/utils';
 
 type Tab = 'flights' | 'hotels' | 'activities' | 'ai';
@@ -51,10 +53,29 @@ export function DashboardSearch() {
     }
   }
 
-  const adultsSelect = (
-    <select value={adults} onChange={(e) => setAdults(e.target.value)} className={heroControl} aria-label="Adults">
-      {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
-    </select>
+  // The pass's own FROM/TO cell: 34px code over the city name, with the real
+  // combobox sitting invisibly on top so search and keyboard still work.
+  function CodeCell({ code, onPick, label, rotate }: { code: string; onPick: (v: string) => void; label: string; rotate?: boolean }) {
+    const a = airportByIata(code);
+    return (
+      <div className="relative">
+        <div className="font-mono text-[32px] font-bold leading-none tracking-[-0.02em] text-ink tnum">{code || '—'}</div>
+        <div className="mt-1.5 text-[12.5px] text-[rgb(var(--text-secondary))] truncate">{a ? `${a.city} · ${a.name}` : 'Pick an airport'}</div>
+        <div className="absolute inset-0 opacity-0 focus-within:opacity-100 focus-within:bg-surface transition-opacity">
+          <AirportCombobox bare label={label} value={code} onChange={onPick} placeholder="City or airport" iconRotate={rotate} />
+        </div>
+      </div>
+    );
+  }
+
+  const adultsCell = (
+    <div className="relative">
+      <div className="text-[19px] font-bold leading-none text-ink tnum">{adults} Adult{Number(adults) > 1 ? 's' : ''}</div>
+      <div className="mt-1 text-[12px] text-[rgb(var(--text-secondary))]">Economy · {rooms} room{Number(rooms) > 1 ? 's' : ''}</div>
+      <select value={adults} onChange={(e) => setAdults(e.target.value)} aria-label="Adults" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
+      </select>
+    </div>
   );
 
   return (
@@ -75,33 +96,33 @@ export function DashboardSearch() {
       <div className="bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch overflow-hidden">
         {tab === 'flights' && (
           <>
-            <HeroCell eyebrow="From" grow><AirportCombobox bare label="From" value={from} onChange={setFrom} placeholder="City or airport" /></HeroCell>
+            <HeroCell eyebrow="From" grow><CodeCell code={from} onPick={setFrom} label="From" /></HeroCell>
             <button type="button" onClick={() => { setFrom(to); setTo(from); }} aria-label="Swap origin and destination"
               className="hidden lg:flex absolute z-10 left-[calc(24px+27%)] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-700 hover:bg-crimson-50">
               <ArrowLeftRight className="w-3.5 h-3.5" />
             </button>
-            <HeroCell eyebrow="To" grow><AirportCombobox bare label="To" value={to} onChange={setTo} placeholder="City or airport" iconRotate /></HeroCell>
-            <HeroCell eyebrow="Depart"><input type="date" value={date} min={iso(0)} onChange={(e) => setDate(e.target.value)} className={heroControl} aria-label="Departure date" /></HeroCell>
-            <HeroCell eyebrow="Travellers">{adultsSelect}</HeroCell>
+            <HeroCell eyebrow="To" grow><CodeCell code={to} onPick={setTo} label="To" rotate /></HeroCell>
+            <HeroCell eyebrow="Depart"><HeroDate value={date} min={iso(0)} onChange={setDate} label="Departure date" sub="One-way" /></HeroCell>
+            <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
             <HeroSubmit caption="Tripjack · live fares">Search fares</HeroSubmit>
           </>
         )}
         {tab === 'hotels' && (
           <>
             <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={setCity} placeholder="Search destination" /></HeroCell>
-            <HeroCell eyebrow="Check-in"><input type="date" value={checkin} min={iso(0)} onChange={(e) => setCheckin(e.target.value)} className={heroControl} aria-label="Check-in" /></HeroCell>
-            <HeroCell eyebrow="Check-out"><input type="date" value={checkout} min={checkin} onChange={(e) => setCheckout(e.target.value)} className={heroControl} aria-label="Check-out" /></HeroCell>
+            <HeroCell eyebrow="Check-in"><HeroDate value={checkin} min={iso(0)} onChange={setCheckin} label="Check-in" sub="Arrive" /></HeroCell>
+            <HeroCell eyebrow="Check-out"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="Check-out" sub="Depart" /></HeroCell>
             <HeroCell eyebrow="Rooms"><select value={rooms} onChange={(e) => setRooms(e.target.value)} className={heroControl} aria-label="Rooms">{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n} Room{n > 1 ? 's' : ''}</option>)}</select></HeroCell>
-            <HeroCell eyebrow="Adults / room">{adultsSelect}</HeroCell>
+            <HeroCell eyebrow="Adults / room">{adultsCell}</HeroCell>
             <HeroSubmit caption="Hotelbeds · wholesale">Search rooms</HeroSubmit>
           </>
         )}
         {tab === 'activities' && (
           <>
             <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={setCity} placeholder="Search destination" /></HeroCell>
-            <HeroCell eyebrow="From"><input type="date" value={checkin} min={iso(0)} onChange={(e) => setCheckin(e.target.value)} className={heroControl} aria-label="From date" /></HeroCell>
-            <HeroCell eyebrow="To"><input type="date" value={checkout} min={checkin} onChange={(e) => setCheckout(e.target.value)} className={heroControl} aria-label="To date" /></HeroCell>
-            <HeroCell eyebrow="Travellers">{adultsSelect}</HeroCell>
+            <HeroCell eyebrow="From"><HeroDate value={checkin} min={iso(0)} onChange={setCheckin} label="From date" sub="First tour" /></HeroCell>
+            <HeroCell eyebrow="To"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="To date" sub="Last tour" /></HeroCell>
+            <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
             <HeroSubmit caption="Hotelbeds · live">Search tours</HeroSubmit>
           </>
         )}
@@ -109,8 +130,8 @@ export function DashboardSearch() {
           <>
             <HeroCell eyebrow="Destinations" grow className="lg:flex-[2]"><input value={dest} onChange={(e) => setDest(e.target.value)} className={heroControl} placeholder="e.g. Paris, Amsterdam, Zurich" aria-label="Destinations" /></HeroCell>
             <HeroCell eyebrow="Nights"><select value={nights} onChange={(e) => setNights(e.target.value)} className={heroControl} aria-label="Nights">{[3, 4, 5, 6, 7, 8, 9, 10, 12, 14].map((n) => <option key={n} value={n}>{n} nights</option>)}</select></HeroCell>
-            <HeroCell eyebrow="Depart"><input type="date" value={date} min={iso(0)} onChange={(e) => setDate(e.target.value)} className={heroControl} aria-label="Departure date" /></HeroCell>
-            <HeroCell eyebrow="Travellers">{adultsSelect}</HeroCell>
+            <HeroCell eyebrow="Depart"><HeroDate value={date} min={iso(0)} onChange={setDate} label="Departure date" sub="Start" /></HeroCell>
+            <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
             <HeroSubmit caption="Grounded in live inventory">Build with AI</HeroSubmit>
           </>
         )}

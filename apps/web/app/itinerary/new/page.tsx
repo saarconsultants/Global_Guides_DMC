@@ -127,7 +127,7 @@ function NewItineraryForm() {
   const totalAdults = rooms.reduce((s, r) => s + r.adults, 0);
   const totalChildren = rooms.reduce((s, r) => s + (r.children ?? 0), 0);
   const codes = destinations.map((d) => d.cityCode);
-  const departLabel = departureDate ? new Date(departureDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  const departLabel = departureDate ? new Date(departureDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10">
@@ -196,7 +196,11 @@ function NewItineraryForm() {
               </div>
               <div>
                 <Label required>Leaving on</Label>
-                <Input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} />
+                <div className="relative h-11 rounded-md border border-border bg-surface px-3.5 flex items-center hover:border-border-strong focus-within:border-crimson-700 focus-within:ring-2 focus-within:ring-crimson-700/15 transition-colors">
+                  <span className="font-mono text-[15px] font-bold text-ink tnum">{departLabel}</span>
+                  <Calendar className="w-4 h-4 ml-auto text-[rgb(var(--text-tertiary))]" />
+                  <input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} aria-label="Leaving on" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                </div>
               </div>
               <div>
                 <Label>Hotel standard</Label>
@@ -264,7 +268,7 @@ function NewItineraryForm() {
             </div>
             <div className="perf-x mx-4" />
             <div className="px-5 py-4 grid grid-cols-2 gap-3">
-              <div><div className="label inline-flex items-center gap-1"><Calendar className="w-3 h-3" />Depart</div><div className="mt-1 text-[14px] font-bold text-ink tnum">{departLabel}</div></div>
+              <div><div className="label inline-flex items-center gap-1"><Calendar className="w-3 h-3" />Depart</div><div className="mt-1 font-mono text-[14px] font-bold text-ink tnum">{departLabel}</div></div>
               <div><div className="label inline-flex items-center gap-1"><Users className="w-3 h-3" />Travellers</div><div className="mt-1 text-[14px] font-bold text-ink tnum">{totalAdults} adult{totalAdults !== 1 ? 's' : ''}{totalChildren ? `, ${totalChildren} child` : ''}</div></div>
               <div><div className="label inline-flex items-center gap-1"><Star className="w-3 h-3" />Hotels</div><div className="mt-1 text-[14px] font-bold text-ink">{starRating ? `${starRating} star` : 'Any standard'}</div></div>
               <div><div className="label inline-flex items-center gap-1"><Car className="w-3 h-3" />Transfers</div><div className="mt-1 text-[14px] font-bold text-ink">{addTransfers ? 'Private, included' : 'Not included'}</div></div>

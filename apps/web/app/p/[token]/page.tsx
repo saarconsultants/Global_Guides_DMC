@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { getProposalByToken, proposalToItinerary, recordProposalView } from '@/lib/db/share';
 import { formatDateShort } from '@/lib/utils';
 import { displayMoneyFor } from '@/lib/money-server';
-import { Check, Bed, ShieldCheck, FileText, Plane } from 'lucide-react';
+import { Check, Bed, ShieldCheck, FileText, Plane, Star } from 'lucide-react';
 import { ResponseButtons } from './response-buttons';
 import { ImageWithFallback } from '@/components/common/image-with-fallback';
 
@@ -192,7 +192,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-amber-500 text-sm">{'★'.repeat(d.stay.hotel.stars)}</span>
+                      <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
                       <p className="font-bold text-ink">{d.stay.hotel.name}</p>
                     </div>
                     <p className="text-xs text-[rgb(var(--text-secondary))]">{d.stay.hotel.address}</p>

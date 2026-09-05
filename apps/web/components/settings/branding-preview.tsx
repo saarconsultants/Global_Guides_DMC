@@ -1,4 +1,5 @@
 'use client';
+import { Check } from 'lucide-react';
 
 interface Props {
   agency: {
@@ -66,7 +67,7 @@ export function BrandingPreview({ agency }: Props) {
 
         {/* Body chip */}
         <div className="p-3 border-t border-border-subtle text-xs text-[rgb(var(--text-secondary))]">
-          <p>✓ Day-by-day plan · Hotels · Transfers</p>
+          <p className="inline-flex items-center gap-1.5"><Check className="w-3.5 h-3.5" />Day-by-day plan · Hotels · Transfers</p>
           <p className="mt-0.5 text-[10px] text-[rgb(var(--text-tertiary))]">Powered by Global Guides DMC</p>
         </div>
       </div>

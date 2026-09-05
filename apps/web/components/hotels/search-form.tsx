@@ -6,7 +6,7 @@ import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, SlidersHorizontal, Check } from 'lucide-react';
 import { CitySearchCombobox } from '@/components/common/city-search-combobox';
-import { HeroBand, HeroBar, HeroCell, HeroSubmit, HeroChip, heroControl } from '@/components/ui/hero-search';
+import { HeroBand, HeroBar, HeroCell, HeroSubmit, HeroChip, HeroDate, heroControl } from '@/components/ui/hero-search';
 
 interface Props {
   defaults: {
@@ -105,10 +105,10 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
             <CitySearchCombobox bare label="Going to" value={city} onChange={setCity} placeholder="Search destination" />
           </HeroCell>
           <HeroCell eyebrow="Check-in">
-            <input type="date" value={checkin} onChange={(e) => { setCheckin(e.target.value); setDateError(null); }} className={heroControl} aria-label="Check-in" />
+            <HeroDate value={checkin} onChange={(v) => { setCheckin(v); setDateError(null); }} label="Check-in" sub="Arrive" />
           </HeroCell>
           <HeroCell eyebrow="Check-out">
-            <input type="date" value={checkout} min={checkin} onChange={(e) => { setCheckout(e.target.value); setDateError(null); }} className={heroControl} aria-label="Check-out" />
+            <HeroDate value={checkout} min={checkin} onChange={(v) => { setCheckout(v); setDateError(null); }} label="Check-out" sub="Depart" />
           </HeroCell>
           <HeroCell eyebrow="Rooms">
             <select value={rooms} onChange={(e) => setRooms(e.target.value)} className={heroControl} aria-label="Rooms">

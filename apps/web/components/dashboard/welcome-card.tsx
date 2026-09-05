@@ -1,6 +1,5 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { dismissWelcomeAction } from '@/app/actions/onboarding';
 import { Sparkles, Check, X, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +31,7 @@ export function WelcomeCard({ firstName, steps }: Props) {
   }
 
   return (
-    <Card className="relative overflow-hidden">
+    <div className="relative rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
       <button
         type="button"
         aria-label="Dismiss welcome"
@@ -43,44 +42,43 @@ export function WelcomeCard({ firstName, steps }: Props) {
         <X className="w-4 h-4" />
       </button>
 
-      <CardContent className="relative pt-6 pb-7">
-        <div className="grid lg:grid-cols-[1fr_auto] items-start gap-6">
-          <div>
-            <h2 className="text-[22px] lg:text-[26px] font-extrabold leading-tight tracking-[-0.02em] text-ink inline-flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-crimson-700" />Hi {firstName}, let's ship your first quote.
-            </h2>
-            <p className="text-[rgb(var(--text-secondary))] text-sm mt-1.5 max-w-lg">Five quick steps to get you running. This checklist stays on your home page until you dismiss it.</p>
-
-            <div className="mt-4 flex items-center gap-3">
-              <div className="flex-1 max-w-xs h-1.5 rounded-full bg-navy-100 overflow-hidden">
-                <div className="h-full bg-amber-500 transition-all duration-500" style={{ width: `${pct}%` }} />
-              </div>
-              <span className="text-xs font-mono text-ink font-bold tnum">{completed} / {total}</span>
-            </div>
-          </div>
-
-          <button type="button" onClick={dismiss} disabled={pending} className="text-xs text-navy-500 hover:text-ink underline underline-offset-2 transition-colors hidden lg:inline mr-8">Dismiss for good</button>
+      <div className="flex flex-col lg:flex-row">
+        <div className="flex-1 min-w-0 p-5 lg:p-6">
+          <h2 className="text-[20px] lg:text-[22px] font-extrabold leading-tight tracking-[-0.02em] text-ink inline-flex items-center gap-2 pr-8">
+            <Sparkles className="w-5 h-5 text-crimson-700 shrink-0" />Hi {firstName}, let&apos;s ship your first quote.
+          </h2>
+          <ol className="mt-4 divide-y divide-dashed divide-border-subtle">
+            {steps.map((s, i) => (
+              <li key={i} className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 py-2.5">
+                {s.done ? (
+                  <span className="w-6 h-6 rounded-[5px] bg-success-100 text-success-600 inline-flex items-center justify-center shrink-0"><Check className="w-3.5 h-3.5" /></span>
+                ) : (
+                  <span className="w-6 h-6 rounded-[5px] bg-navy-50 text-navy-500 font-mono text-[11px] font-bold inline-flex items-center justify-center shrink-0 tnum">{i + 1}</span>
+                )}
+                <span className="min-w-0 flex-1 basis-[calc(100%-2.25rem)] sm:basis-auto">
+                  <span className={`block text-[14px] font-bold ${s.done ? 'text-navy-500 line-through' : 'text-ink'}`}>{s.title}</span>
+                  <span className="block text-[12.5px] text-[rgb(var(--text-secondary))] line-clamp-2 sm:truncate">{s.body}</span>
+                </span>
+                <Link href={s.cta.href as any} className="shrink-0 inline-flex items-center gap-1 text-[12.5px] font-bold text-crimson-700 hover:underline">
+                  {s.cta.label}<ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </li>
+            ))}
+          </ol>
         </div>
 
-        <ol className="mt-6 grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {steps.map((s, i) => (
-            <li key={i} className={`relative rounded-md p-3 border ${s.done ? 'border-amber-100 bg-amber-50' : 'border-border-subtle bg-surface-2'} transition-colors`}>
-              <div className="flex items-center gap-2 mb-1.5">
-                {s.done ? (
-                  <span className="w-5 h-5 rounded-[5px] bg-amber-500 text-ink inline-flex items-center justify-center"><Check className="w-3 h-3" /></span>
-                ) : (
-                  <span className="w-5 h-5 rounded-[5px] border border-border text-navy-500 bg-surface inline-flex items-center justify-center text-[10px] font-bold tnum">{i + 1}</span>
-                )}
-                <p className={`text-sm font-bold ${s.done ? 'text-navy-500 line-through' : 'text-ink'}`}>{s.title}</p>
-              </div>
-              <p className="text-xs text-[rgb(var(--text-secondary))] leading-snug mb-2">{s.body}</p>
-              <Link href={s.cta.href as any} className="inline-flex items-center gap-1 text-xs font-bold text-crimson-700 hover:underline">
-                {s.cta.label} <ArrowRight className="w-3 h-3" />
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </CardContent>
-    </Card>
+        <div aria-hidden className="lg:hidden perf-x mx-5" />
+        <div aria-hidden className="hidden lg:block perf-y self-stretch" />
+
+        <div className="lg:w-[230px] shrink-0 p-5 lg:p-6 flex flex-col justify-center gap-3">
+          <div className="label">Setup progress</div>
+          <div className="money text-[34px] text-ink leading-none">{completed}<span className="text-[rgb(var(--text-tertiary))] text-[22px]">/{total}</span></div>
+          <div className="h-1.5 rounded-full bg-navy-100 overflow-hidden">
+            <div className="h-full bg-amber-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
+          <button type="button" onClick={dismiss} disabled={pending} className="text-left text-[12px] font-bold text-navy-500 hover:text-ink underline underline-offset-2 transition-colors">Dismiss for good</button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -31,7 +31,7 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
       <Pass>
         <PassMain className="flex gap-4 lg:gap-5">
           <div className="w-[120px] h-[120px] lg:w-[136px] lg:h-[136px] shrink-0 rounded-md overflow-hidden">
-            <HotelPhoto thumb={h.thumb} allImages={h.allImages} hotelName={h.name} className="w-full h-full rounded-md" placeholder={<div className="w-full h-full rounded-md bg-[linear-gradient(135deg,#F2F4F7,#E4E7EC)] flex items-center justify-center text-navy-200"><HotelIcon className="w-8 h-8" /></div>} />
+            <HotelPhoto thumb={h.thumb} allImages={h.allImages} hotelName={h.name} className="w-full h-full rounded-md" placeholder={<div className="w-full h-full rounded-md bg-ink text-white flex flex-col items-center justify-center gap-2"><span className="inline-flex items-center gap-0.5 text-amber-500">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span><span className="font-mono text-[15px] font-bold tracking-[0.06em] tnum">{cityCode}</span></div>} />
           </div>
           <div className="min-w-0 flex-1">
             <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>

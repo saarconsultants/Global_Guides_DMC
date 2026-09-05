@@ -136,19 +136,19 @@ export default async function DashboardPage() {
 
       <div className="mx-auto max-w-7xl px-6 py-10 lg:py-12 space-y-12">
         {/* ── Ready to sell + your desk ── */}
-        <section className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr_320px]">
-          <div className="lg:col-span-3">
+        <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_320px]">
+          <div className="lg:col-span-3 min-w-0">
             <div className="flex items-end justify-between mb-4">
               <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Ready to sell</h2>
               <Link href="/suggested" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">All packages <ArrowRight className="w-3.5 h-3.5" /></Link>
             </div>
-            <div className="grid gap-5 md:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-3 min-w-0">
               {templates.map((t) => {
                 const dests = JSON.parse(t.destinations) as any[];
                 const codes = dests.map((d) => d.cityCode).filter(Boolean);
                 const src = t.hero ?? regionSrc(t.region);
                 return (
-                  <article key={t.id} className="group flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
+                  <article key={t.id} className="group flex flex-col min-w-0 rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
                     <div className="relative h-[150px] bg-navy-900">
                       {src && (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -159,21 +159,24 @@ export default async function DashboardPage() {
                     </div>
                     <div className="px-4 pt-3.5 pb-3">
                       <h3 className="text-[16px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors truncate">{t.title}</h3>
-                      <div className="mt-3 grid grid-cols-4 gap-2">
+                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 min-w-0">
                         <div><div className="label">Nights</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{t.totalNights}</div></div>
                         <div><div className="label">Cities</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{dests.length}</div></div>
                         <div><div className="label">Style</div><div className="mt-1 font-bold text-[13px] truncate">{t.category.charAt(0) + t.category.slice(1).toLowerCase()}</div></div>
                         <div><div className="label">Region</div><div className="mt-1 font-bold text-[13px] truncate">{REGION_LABEL[t.region] ?? t.region}</div></div>
                       </div>
                     </div>
-                    <div className="mt-auto border-t-2 border-dashed border-border-subtle px-4 py-3 flex items-center justify-between">
-                      <div>
-                        <div className="label">From, per adult</div>
-                        <div className="mt-0.5 money text-[19px] text-ink">{fmt(t.startingPricePaise)}</div>
+                    <div className="mt-auto">
+                      <div className="perf-x mx-4" />
+                      <div className="bg-surface-2 px-4 py-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="label">From, per adult</div>
+                          <div className="mt-0.5 money text-[19px] text-ink truncate">{fmt(t.startingPricePaise)}</div>
+                        </div>
+                        <form action={cloneAndRedirectAction.bind(null, t.id)} className="shrink-0">
+                          <Button type="submit" size="sm">Use this</Button>
+                        </form>
                       </div>
-                      <form action={cloneAndRedirectAction.bind(null, t.id)}>
-                        <Button type="submit" size="sm">Use this</Button>
-                      </form>
                     </div>
                   </article>
                 );
@@ -184,7 +187,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <aside className="lg:mt-[44px]">
+          <aside className="lg:mt-[44px] min-w-0">
             <Card className="h-full">
               <CardContent className="pt-4">
                 <div className="flex items-baseline justify-between">
