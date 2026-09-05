@@ -46,7 +46,7 @@ export function SelectFlightButton({ offer, returnTo, cabin, leg = 'outbound' }:
   }
 
   return (
-    <Button onClick={pick} disabled={busy} className="gap-1.5">
+    <Button onClick={pick} disabled={busy} className="gap-1.5 w-full mt-1">
       {busy ? <><Check className="w-4 h-4" />Selected</> : 'Select'}
     </Button>
   );

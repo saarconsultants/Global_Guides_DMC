@@ -47,7 +47,7 @@ export default async function AdminInventoryPage() {
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-semibold text-navy-900">{a.label}</p>
+                      <p className="font-semibold text-ink">{a.label}</p>
                       <p className="text-xs text-[rgb(var(--text-secondary))]">{a.provider}</p>
                     </div>
                   </div>
@@ -63,7 +63,7 @@ export default async function AdminInventoryPage() {
 
       <Card>
         <CardContent className="pt-6 text-xs text-[rgb(var(--text-secondary))] space-y-2">
-          <p className="text-navy-900 font-semibold text-sm">How status is determined</p>
+          <p className="text-ink font-semibold text-sm">How status is determined</p>
           <p>Each API is "live" when its credentials are present in this deployment's environment variables. A "LIVE" badge means "keys are configured", not "supplier is currently responding". For an actual round-trip check, click "Check now" on any card above — it makes a live call to that supplier's gateway and reports whether it's reachable, with the result cached ~5 minutes (so it won't hammer rate-limited suppliers like Tripjack).</p>
           <p className="pt-2">Env vars: <span className="font-mono">TRIPJACK_PROXY_TOKEN</span> (flights), <span className="font-mono">HOTELBEDS_HOTELS_API_KEY</span>, <span className="font-mono">HOTELBEDS_TRANSFERS_API_KEY</span>, <span className="font-mono">HOTELBEDS_ACTIVITIES_API_KEY</span> — each with its matching <span className="font-mono">_SECRET</span>.</p>
         </CardContent>

@@ -11,6 +11,7 @@ import { getDisplayMoney } from '@/lib/money-server';
 import { LeadActions } from '@/components/leads/lead-actions';
 import { ClipboardList, HelpCircle, Plus, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
+import { RouteCode } from '@/components/ui/pass';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My leads"
         description="Every enquiry, proposal request, and customer interaction in one place."
@@ -47,7 +48,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         }
       />
 
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {kpis.map((k) => <StatCard key={k.l} label={k.l} value={k.v} sub={k.s} />)}
       </div>
 
@@ -58,7 +59,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
               <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search by customer name, email, phone or destination…" className="pl-9" />
             </div>
-            <select name="status" defaultValue={sp.status ?? ''} className="h-10 rounded-sm border border-border bg-surface px-3 text-sm">
+            <select name="status" defaultValue={sp.status ?? ''} className="control">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
             </select>
@@ -80,18 +81,18 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-[13.5px] tnum">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100">
-                    <th className="py-3 pr-4 font-semibold">Customer</th>
-                    <th className="py-3 pr-4 font-semibold">Phone</th>
-                    <th className="py-3 pr-4 font-semibold">Created</th>
-                    <th className="py-3 pr-4 font-semibold">Destinations</th>
-                    <th className="py-3 pr-4 font-semibold">From</th>
-                    <th className="py-3 pr-4 font-semibold">Travel</th>
-                    <th className="py-3 pr-4 font-semibold">Nights</th>
-                    <th className="py-3 pr-4 font-semibold">Status</th>
-                    <th className="py-3 pr-4 font-semibold">Latest quote</th>
+                  <tr className="text-left label border-b border-border">
+                    <th className="py-3 pr-4 font-bold">Customer</th>
+                    <th className="py-3 pr-4 font-bold">Phone</th>
+                    <th className="py-3 pr-4 font-bold">Created</th>
+                    <th className="py-3 pr-4 font-bold">Destinations</th>
+                    <th className="py-3 pr-4 font-bold">From</th>
+                    <th className="py-3 pr-4 font-bold">Travel</th>
+                    <th className="py-3 pr-4 font-bold">Nights</th>
+                    <th className="py-3 pr-4 font-bold">Status</th>
+                    <th className="py-3 pr-4 font-bold">Latest quote</th>
                     <th className="py-3 pl-4 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
@@ -99,16 +100,16 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                   {rows.map((l) => {
                     const latest = l.proposals?.[0];
                     return (
-                      <tr key={l.id} className="border-b border-border-subtle/70 even:bg-surface-2/30 hover:bg-surface-2 transition-colors">
-                        <td className="py-3 pr-4 font-medium"><Link href={`/leads/${l.id}` as any} className="hover:text-crimson-700">{l.customerName}</Link></td>
+                      <tr key={l.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
+                        <td className="py-3 pr-4 font-bold text-ink"><Link href={`/leads/${l.id}` as any} className="hover:text-crimson-700">{l.customerName}</Link></td>
                         <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{l.customerPhone ?? '—'}</td>
                         <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(l.createdAt)}</td>
-                        <td className="py-3 pr-4 font-mono text-xs">{l.destinations}</td>
+                        <td className="py-3 pr-4"><RouteCode codes={l.destinations.split(',').map((c) => c.trim()).filter(Boolean)} /></td>
                         <td className="py-3 pr-4">{l.originCity ?? '—'}</td>
                         <td className="py-3 pr-4">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</td>
                         <td className="py-3 pr-4 font-mono">{l.nights ?? '—'}</td>
                         <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{l.status}</Pill></td>
-                        <td className="py-3 pr-4 font-mono text-xs">{latest ? `${latest.code} · ${fmt(latest.pricePaise)}` : '—'}</td>
+                        <td className="py-3 pr-4">{latest ? <span><span className="font-mono text-[12px] font-bold">{latest.code}</span> <span className="money">{fmt(latest.pricePaise)}</span></span> : <span className="text-[rgb(var(--text-tertiary))]">—</span>}</td>
                         <td className="py-3 pl-4">
                           <LeadActions
                             lead={{ id: l.id, customerName: l.customerName, customerEmail: l.customerEmail, customerPhone: l.customerPhone, status: l.status }}

@@ -13,7 +13,7 @@ export function HotelDetailGallery({ images, hotelName }: { images: string[]; ho
 
   return (
     <>
-      <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[340px] rounded-xl overflow-hidden">
+      <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[340px] rounded-lg overflow-hidden">
         {/* Hero — spans 2x2 */}
         <button onClick={() => openAt(0)} className="col-span-2 row-span-2 group relative overflow-hidden">
           <img src={hero} alt={hotelName} className="w-full h-full object-cover bg-navy-900 transition-transform group-hover:scale-105" />

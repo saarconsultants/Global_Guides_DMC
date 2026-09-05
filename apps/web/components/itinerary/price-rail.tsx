@@ -1,5 +1,4 @@
 'use client';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMoney } from '@/components/providers/currency-provider';
 import type { Itinerary } from '@/lib/itinerary/types';
@@ -30,42 +29,38 @@ export function PriceRail({ itinerary, onSave }: Props) {
   ];
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-0.5">
-          <h3 className="font-display text-lg font-semibold text-navy-900">Price summary</h3>
-          <Wallet className="w-4 h-4 text-[rgb(var(--text-tertiary))]" />
+    <div className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[16px] font-extrabold text-ink">Price summary</h3>
+          <a href="#trip-summary" className="inline-flex items-center gap-0.5 text-[12px] font-bold text-crimson-700 hover:underline">Full summary <ArrowRight className="w-3 h-3" /></a>
         </div>
-        <a href="#trip-summary" className="inline-flex items-center gap-0.5 text-xs font-semibold text-crimson-700 hover:underline underline-offset-4">View full trip summary <ArrowRight className="w-3 h-3" /></a>
-
-        <ul className="mt-4 space-y-2.5 text-sm">
+        <ul className="mt-3 divide-y divide-border-subtle text-[13.5px]">
           {rows.map((r) => (
-            <li key={r.label} className="flex items-center justify-between">
-              <span className={`inline-flex items-center gap-2 ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-[rgb(var(--text-primary))]'}`}>
-                <r.icon className={`w-4 h-4 ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-crimson-700/70'}`} />{r.label}
+            <li key={r.label} className="flex items-center justify-between py-2">
+              <span className={`inline-flex items-center gap-2 font-semibold ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-ink'}`}>
+                <r.icon className={`w-4 h-4 ${r.muted ? 'text-navy-200' : 'text-crimson-700'}`} />{r.label}
               </span>
-              <span className={`font-mono tabular-nums text-xs ${r.muted ? 'text-[rgb(var(--text-tertiary))]' : 'text-navy-900 font-medium'}`}>{r.muted ? 'Not added' : money(r.paise)}</span>
+              <span className={r.muted ? 'text-[12px] text-[rgb(var(--text-tertiary))]' : 'money text-ink'}>{r.muted ? 'Not added' : money(r.paise)}</span>
             </li>
           ))}
         </ul>
-
-        {/* Hero total block */}
-        <div className="mt-4 rounded-lg bg-surface-2 border border-border-subtle p-3.5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[rgb(var(--text-secondary))]">Per adult</span>
-            <span className="font-mono tabular-nums text-navy-900">{money(itinerary.pricePerAdultPaise)}</span>
-          </div>
-          <div className="mt-2.5 pt-2.5 border-t border-border-subtle flex items-end justify-between">
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Total price</p>
-              <p className="text-[10px] text-[rgb(var(--text-tertiary))]">all taxes included</p>
-            </div>
-            <span className="font-mono tabular-nums text-2xl font-bold text-navy-900 leading-none">{money(itinerary.pricePaise)}</span>
-          </div>
+      </div>
+      <div className="perf-x mx-4" />
+      <div className="bg-ink text-white px-5 py-4">
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="text-white/70">Per adult</span>
+          <span className="money">{money(itinerary.pricePerAdultPaise)}</span>
         </div>
-
-        <Button onClick={onSave} className="w-full mt-4">Save as proposal</Button>
-      </CardContent>
-    </Card>
+        <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-end justify-between gap-3">
+          <div>
+            <p className="label text-amber-500">Total price</p>
+            <p className="text-[11px] text-white/60 mt-0.5">all taxes included</p>
+          </div>
+          <span className="money text-[26px] leading-none">{money(itinerary.pricePaise)}</span>
+        </div>
+        <Button onClick={onSave} variant="accent" className="w-full mt-4">Save as proposal</Button>
+      </div>
+    </div>
   );
 }

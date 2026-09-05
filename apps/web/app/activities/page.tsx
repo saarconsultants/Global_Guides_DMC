@@ -62,15 +62,27 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   return (
     <div className="pb-12">
       <HeroBand
-        title="Experiences they'll"
-        accent="remember."
-        subtitle="Live tours, tickets & day trips — browse to quote, then add inside any itinerary"
-        ghost="explore"
+        title="Experiences they'll remember."
+        subtitle="Live tours, tickets and day trips. Browse to quote, then add them inside any itinerary."
         img={promoSrc('hero-activities.jpg')}
       />
+      <ActivitySearchForm defaults={{ city, from, to, adults }} />
 
-      <div className="mx-auto max-w-7xl px-6 -mt-12 relative space-y-6">
-        <ActivitySearchForm defaults={{ city, from, to, adults }} />
+      <div className="mx-auto max-w-7xl px-6 pt-6 relative space-y-6">
+
+      {!hasQuery && (
+        <section>
+          <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink mb-4">Browse by city</h2>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_CITIES.map((c) => (
+              <a key={c} href={`/activities?${new URLSearchParams({ city: c, from, to, adults })}`} className="inline-flex items-center gap-2 h-10 pl-2 pr-4 rounded-md bg-surface border border-border-subtle shadow-sm hover:border-border-strong transition-colors">
+                <span className="font-mono text-[11.5px] font-bold bg-ink text-white rounded-[5px] px-1.5 py-0.5">{c}</span>
+                <span className="text-[14px] font-bold text-ink">{CITY_BANK[c]?.name ?? c}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">{warning}</div>
@@ -79,7 +91,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
       {hasQuery && (
         <>
           <div className="flex items-center justify-between gap-3 text-sm text-[rgb(var(--text-secondary))]">
-            <span>Activities in <span className="font-semibold text-navy-900">{cityName}</span> · {from} → {to}</span>
+            <span>Activities in <span className="font-bold text-ink">{cityName}</span> · <span className="tnum">{from} → {to}</span></span>
             <Pill variant={badge.variant}>{badge.label}</Pill>
           </div>
           {activities.length === 0 ? (
@@ -87,13 +99,15 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           ) : (
             <ActivitiesBrowser activities={activities} cityName={cityName} />
           )}
-          <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-medium">+ Add Activity</span> on any day.</p>
+          <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-bold">Add activity</span> on any day.</p>
         </>
       )}
       </div>
     </div>
   );
 }
+
+const POPULAR_CITIES = ['PAR', 'DXB', 'BKK', 'SIN', 'ROM', 'LON', 'AMS', 'IST', 'DPS', 'ZRH'].filter((c) => !!CITY_BANK[c]);
 
 function nextWeekIso(offset = 0) {
   const d = new Date(); d.setDate(d.getDate() + 7 + offset); return d.toISOString().slice(0, 10);

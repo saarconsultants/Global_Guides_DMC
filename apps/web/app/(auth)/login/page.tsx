@@ -55,7 +55,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-8">
             <Link href="/dashboard" className="lg:hidden inline-block mb-6"><img src="/brand/ggdmc-logo.svg" alt="Global Guides DMC" className="h-10 w-auto" /></Link>
-            <h2 className="font-display text-2xl font-semibold text-navy-900">Welcome back</h2>
+            <h2 className="font-display text-2xl font-semibold text-ink">Welcome back</h2>
             <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Sign in to your agency workspace.</p>
             <form onSubmit={submit} className="mt-6 space-y-4">
               <div>

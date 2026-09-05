@@ -61,7 +61,7 @@ export function LeadNotesPanel({ leadId, notes, currentUserId, isOwner }: Props)
   return (
     <Card>
       <CardContent className="pt-6 space-y-4">
-        <h2 className="text-lg font-semibold text-navy-900">Notes &amp; activity</h2>
+        <h2 className="text-lg font-semibold text-ink">Notes &amp; activity</h2>
 
         <form onSubmit={submit} className="space-y-2">
           <div className="flex flex-wrap gap-1.5">

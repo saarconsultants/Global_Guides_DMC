@@ -54,11 +54,11 @@ export default async function MarketingPage() {
                       <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
                       <Pill variant="info">{t.category}</Pill>
                     </div>
-                    <h3 className="font-semibold text-navy-900">{t.title}</h3>
+                    <h3 className="font-semibold text-ink">{t.title}</h3>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-1 line-clamp-2">{t.blurb}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">{cities.join(' → ') || '—'}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">
-                      <span className="font-mono">{t.totalNights}N</span> · from <span className="font-mono font-bold text-navy-900">{fmt(t.startingPricePaise)}</span>
+                      <span className="font-mono">{t.totalNights}N</span> · from <span className="money text-ink">{fmt(t.startingPricePaise)}</span>
                     </p>
 
                     <div className="mt-4 pt-3 border-t border-border-subtle grid grid-cols-2 gap-2">
@@ -66,7 +66,7 @@ export default async function MarketingPage() {
                         href={`/api/flyer/${t.id}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-crimson-900 text-white text-sm font-semibold hover:bg-crimson-700 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-crimson-700 text-white text-sm font-semibold hover:bg-crimson-700 transition-colors"
                       >
                         <Download className="w-4 h-4" />Download PDF
                       </a>
@@ -90,7 +90,7 @@ export default async function MarketingPage() {
           <CardContent className="pt-6 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-navy-900 mb-1">Generate Leads widget</h2>
+                <h2 className="text-lg font-semibold text-ink mb-1">Generate Leads widget</h2>
                 <p className="text-sm text-[rgb(var(--text-secondary))]">An embeddable form for your own website. Drops captured enquiries straight into your <Link href="/leads" className="text-crimson-700 hover:underline font-medium">My Leads</Link> with the bell ringing in real-time.</p>
               </div>
               <Pill variant="success">Live</Pill>

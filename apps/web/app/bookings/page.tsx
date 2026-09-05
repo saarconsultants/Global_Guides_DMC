@@ -33,14 +33,14 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const totalSpend = rows.filter((b) => b.status === 'CONFIRMED').reduce((s, b) => s + b.paidPaise, 0n);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My bookings"
         description="Confirmed and pending bookings. Each row links back to the proposal it was converted from."
         actions={<Link href="/itinerary/new"><Button>New trip</Button></Link>}
       />
 
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total bookings" value={String(rows.length)} />
         <StatCard label="Confirmed" value={String(rows.filter((b) => b.status === 'CONFIRMED').length)} tone="success" />
         <StatCard label="Pending" value={String(rows.filter((b) => b.status === 'PENDING').length)} tone="warning" />
@@ -67,29 +67,29 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-[13.5px] tnum">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100">
-                    <th className="py-3 pr-4 font-semibold">Proposal #</th>
-                    <th className="py-3 pr-4 font-semibold">Customer</th>
-                    <th className="py-3 pr-4 font-semibold">Trip</th>
-                    <th className="py-3 pr-4 font-semibold">Travel</th>
-                    <th className="py-3 pr-4 font-semibold">Booked</th>
+                  <tr className="text-left label border-b border-border">
+                    <th className="py-3 pr-4 font-bold">Proposal #</th>
+                    <th className="py-3 pr-4 font-bold">Customer</th>
+                    <th className="py-3 pr-4 font-bold">Trip</th>
+                    <th className="py-3 pr-4 font-bold">Travel</th>
+                    <th className="py-3 pr-4 font-bold">Booked</th>
                     <th className="py-3 pr-4 font-semibold text-right">Paid</th>
-                    <th className="py-3 pr-4 font-semibold">Status</th>
-                    <th className="py-3 pr-4 font-semibold">PNRs</th>
+                    <th className="py-3 pr-4 font-bold">Status</th>
+                    <th className="py-3 pr-4 font-bold">PNRs</th>
                     <th className="py-3 pl-4 font-semibold text-right">Voucher</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((b) => (
-                    <tr key={b.id} className="border-b border-border-subtle/70 even:bg-surface-2/30 hover:bg-surface-2 transition-colors">
-                      <td className="py-3 pr-4 font-mono text-xs"><Link href={`/itinerary/${b.proposal.id}/customize` as any} className="text-crimson-700 hover:underline">{b.proposal.code}</Link></td>
+                    <tr key={b.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
+                      <td className="py-3 pr-4 font-mono text-[12.5px] font-bold"><Link href={`/itinerary/${b.proposal.id}/customize` as any} className="text-crimson-700 hover:underline">{b.proposal.code}</Link></td>
                       <td className="py-3 pr-4">{b.proposal.lead?.customerName ?? '—'}</td>
                       <td className="py-3 pr-4">{b.proposal.name}</td>
                       <td className="py-3 pr-4">{formatDateShort(b.proposal.travelDate)}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(b.bookedAt)}</td>
-                      <td className="py-3 pr-4 font-mono text-right">{fmt(b.paidPaise)}</td>
+                      <td className="py-3 pr-4 money text-right">{fmt(b.paidPaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
                       <td className="py-3 pl-4 text-right">
@@ -109,6 +109,6 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
 
 function FilterPill({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <Link href={href as any} className={`px-3 h-8 inline-flex items-center rounded-full text-xs font-medium border transition-colors cursor-pointer ${active ? 'bg-navy-900 text-white border-navy-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50'}`}>{label}</Link>
+    <Link href={href as any} className={`px-3 h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</Link>
   );
 }

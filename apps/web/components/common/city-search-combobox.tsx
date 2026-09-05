@@ -79,7 +79,7 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
             >
               <MapPin className="w-4 h-4 text-[rgb(var(--text-tertiary))] flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-navy-900 truncate">{c.name}</p>
+                <p className="text-sm font-medium text-ink truncate">{c.name}</p>
                 <p className="text-xs text-[rgb(var(--text-secondary))] truncate">{c.country}</p>
               </div>
             </button>

@@ -56,8 +56,8 @@ export default function HolidaysPage() {
                 </div>
                 <Pill variant={pill.variant}>{pill.label}</Pill>
               </div>
-              <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{eyebrow}</p>
-              <h2 className="text-lg font-bold text-navy-900">{title}</h2>
+              <p className="label">{eyebrow}</p>
+              <h2 className="text-lg font-bold text-ink">{title}</h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>
               <Link href={href as any} className="inline-flex">
                 <Button variant="ghost" className="gap-1.5 group-hover:text-crimson-700 px-0">{cta}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></Button>

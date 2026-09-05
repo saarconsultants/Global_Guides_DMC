@@ -122,7 +122,7 @@ export function BugReportButton() {
 
             <div>
               <Label>Category</Label>
-              <select value={category} onChange={(e) => setCategory(e.target.value as Category)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={category} onChange={(e) => setCategory(e.target.value as Category)} className="control">
                 {CATEGORIES.map((c) => <option key={c.v} value={c.v}>{c.label}</option>)}
               </select>
             </div>

@@ -147,7 +147,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
                 <img src={a.thumb} alt="" loading="lazy" className="w-24 h-24 rounded-md object-cover bg-navy-900 flex-shrink-0" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-navy-900 text-sm inline-flex items-center gap-2">
+                <p className="font-semibold text-ink text-sm inline-flex items-center gap-2">
                   {a.name}
                   {a.id.startsWith('ACT-') && <Pill variant="success">LIVE</Pill>}
                 </p>
@@ -161,7 +161,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
                 <span className="mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium text-crimson-700">View details <ChevronRight className="w-3 h-3" /></span>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-mono font-semibold text-navy-900">{money(a.pricePaise)}</p>
+                <p className="font-mono font-semibold text-ink">{money(a.pricePaise)}</p>
                 <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); onPick(a); onClose(); }} disabled={a.id === currentId}>
                   {a.id === currentId ? 'Added' : 'Add'}
                 </Button>
@@ -195,7 +195,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
       )}
 
       <div>
-        <h3 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
           {a.name}
           {a.id.startsWith('ACT-') && <Pill variant="success">LIVE</Pill>}
         </h3>
@@ -207,7 +207,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
 
       {a.description ? (
         <div>
-          <p className="text-[11px] uppercase tracking-wider text-[rgb(var(--text-tertiary))] font-bold mb-1">About this experience</p>
+          <p className="label mb-1">About this experience</p>
           <ExpandableText text={a.description} maxChars={300} className="text-sm text-[rgb(var(--text-primary))]" />
         </div>
       ) : (
@@ -217,7 +217,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
       <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
         <div>
           <p className="text-[11px] text-[rgb(var(--text-secondary))]">Price (per person)</p>
-          <p className="font-mono font-bold text-xl text-navy-900">{money(a.pricePaise)}</p>
+          <p className="money text-xl text-ink">{money(a.pricePaise)}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={onBack}>Back</Button>

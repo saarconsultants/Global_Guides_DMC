@@ -30,17 +30,17 @@ export default async function InviteAcceptPage({ params }: { params: Promise<{ t
         <div className="w-full max-w-md rounded-lg bg-surface border border-border-subtle shadow-sm p-8">
           {expired ? (
             <>
-              <h2 className="text-2xl font-bold text-navy-900">Invite expired</h2>
+              <h2 className="text-2xl font-bold text-ink">Invite expired</h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">This invite link is more than 7 days old. Ask {invite.agency.name} to send you a fresh one.</p>
             </>
           ) : accepted ? (
             <>
-              <h2 className="text-2xl font-bold text-navy-900">Invite already accepted</h2>
+              <h2 className="text-2xl font-bold text-ink">Invite already accepted</h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">This invite has been used. <a href="/login" className="text-crimson-700 hover:underline font-medium">Sign in</a> with your email and password instead.</p>
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-navy-900">Welcome to the team</h2>
+              <h2 className="text-2xl font-bold text-ink">Welcome to the team</h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">Set a password to finish creating your account. We've pre-filled your email.</p>
               <InviteAcceptForm token={token} email={invite.email} agencyName={invite.agency.name} role={invite.role} />
             </>

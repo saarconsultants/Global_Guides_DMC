@@ -38,11 +38,11 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
 
   return (
     <div className="flex items-center justify-end gap-1">
-      <Link href={`/leads/${lead.id}` as any} title="View lead" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-navy-900">
+      <Link href={`/leads/${lead.id}` as any} title="View lead" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Eye className="w-4 h-4" />
       </Link>
       {latestProposalId ? (
-        <a href={`/api/proposal-pdf/${latestProposalId}`} target="_blank" rel="noreferrer" title="Download latest proposal PDF" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-navy-900">
+        <a href={`/api/proposal-pdf/${latestProposalId}`} target="_blank" rel="noreferrer" title="Download latest proposal PDF" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
           <FileDown className="w-4 h-4" />
         </a>
       ) : (
@@ -50,7 +50,7 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
           <FileDown className="w-4 h-4" />
         </span>
       )}
-      <button type="button" onClick={() => setEditOpen(true)} title="Edit lead" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-navy-900">
+      <button type="button" onClick={() => setEditOpen(true)} title="Edit lead" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Pencil className="w-4 h-4" />
       </button>
 
@@ -66,7 +66,7 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
           </div>
           <div>
             <Label>Status</Label>
-            <select name="status" defaultValue={lead.status} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+            <select name="status" defaultValue={lead.status} className="control">
               {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>

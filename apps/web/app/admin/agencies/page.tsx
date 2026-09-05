@@ -41,8 +41,8 @@ export default async function AdminAgenciesPage() {
         ].map((k) => (
           <Card key={k.l} className="lift">
             <CardContent className="pt-5">
-              <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">{k.l}</p>
-              <p className={`mt-1 text-3xl font-bold tracking-tight text-navy-900 ${k.mono ? 'font-mono' : ''}`}>{k.v}</p>
+              <p className="label">{k.l}</p>
+              <p className={`mt-1 text-3xl font-bold tracking-tight text-ink ${k.mono ? 'font-mono' : ''}`}>{k.v}</p>
               <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{k.s}</p>
             </CardContent>
           </Card>

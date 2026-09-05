@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 export function SelectHotelButton({ hotelName }: { hotelName: string }) {
   return (
     <Button
-      className="mt-3 w-full gap-1.5"
+      className="mt-2 w-full gap-1.5"
       onClick={() =>
         toast.info(
           'Hotel noted',

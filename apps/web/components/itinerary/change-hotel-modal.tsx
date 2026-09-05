@@ -124,14 +124,14 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 text-gold-500 text-sm">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-gold-500" />)}</div>
-                <h4 className="font-semibold text-navy-900 mt-1 flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1 text-amber-500 text-sm">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</div>
+                <h4 className="font-semibold text-ink mt-1 flex items-center gap-2 flex-wrap">
                   {h.name}
                   {h.id.startsWith('HB-') && <Pill variant="success">LIVE</Pill>}
                 </h4>
                 <p className="text-xs text-[rgb(var(--text-secondary))]">{h.address}</p>
                 <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
-                  {h.rating && <span className="inline-flex items-center px-2 py-0.5 rounded bg-crimson-900 text-white font-semibold">{h.rating.score}</span>}
+                  {h.rating && <span className="inline-flex items-center px-2 py-0.5 rounded bg-crimson-700 text-white font-semibold">{h.rating.score}</span>}
                   {h.rating && <span className="text-[rgb(var(--text-secondary))]">{h.rating.label} · {h.rating.reviewCount} ratings</span>}
                   {h.refundable && <Pill variant="success">Refundable</Pill>}
                   <Pill variant="neutral">{h.mealPlan}</Pill>
@@ -139,7 +139,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-xs text-[rgb(var(--text-secondary))]">per night</p>
-                <p className="font-mono font-bold text-lg text-navy-900">{money(h.pricePerNightPaise)}</p>
+                <p className="money text-lg text-ink">{money(h.pricePerNightPaise)}</p>
                 <Button size="sm" className="mt-2" onClick={() => { onPick(h); onClose(); }} disabled={h.id === currentHotelId}>
                   {h.id === currentHotelId ? 'Selected' : 'Select'}
                 </Button>

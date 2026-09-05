@@ -11,9 +11,9 @@ export default function AdhocGroupPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
-        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-navy-900">Holidays</Link>
+        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-ink">Holidays</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
-        <span className="text-navy-900 font-medium">Ad-hoc group</span>
+        <span className="text-ink font-medium">Ad-hoc group</span>
       </div>
       <PageHeader
         eyebrow="Ad-hoc group"
@@ -50,7 +50,7 @@ export default function AdhocGroupPage() {
             </div>
             <div>
               <Label>Group type</Label>
-              <select name="groupType" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select name="groupType" className="control">
                 <option>Corporate offsite</option>
                 <option>Wedding / family event</option>
                 <option>College / school tour</option>
@@ -72,7 +72,7 @@ export default function AdhocGroupPage() {
 
       <Card>
         <CardContent className="pt-5 text-xs text-[rgb(var(--text-secondary))]">
-          <strong className="text-navy-900 inline-flex items-center gap-1.5"><CalendarRange className="w-3.5 h-3.5" />What happens next</strong>
+          <strong className="text-ink inline-flex items-center gap-1.5"><CalendarRange className="w-3.5 h-3.5" />What happens next</strong>
           <ol className="mt-2 space-y-1 list-decimal list-inside">
             <li>Ops cross-checks net rates from our DMC network in the destination.</li>
             <li>You get a costed quote sheet (per-pax in twin / single / extra-bed).</li>

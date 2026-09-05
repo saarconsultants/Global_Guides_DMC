@@ -35,14 +35,14 @@ export default async function StatementPage() {
           <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-amber-300/10 blur-3xl" />
           <CardContent className="relative pt-6">
             <p className="text-[11px] uppercase tracking-widest text-amber-300 font-bold inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>
-            <p className="mt-2 text-5xl font-bold font-mono tabular-nums">{fmt(balance)}</p>
+            <p className="mt-2 text-5xl font-bold money">{fmt(balance)}</p>
             <p className="text-sm text-white/75 mt-2 max-w-md">Top up via ICICI Virtual Account once Razorpay is wired (Phase 2). Until then, manually credit via the admin DB tool.</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">This month</p>
-            <p className="mt-2 text-3xl font-bold text-navy-900">{txns.length}</p>
+            <p className="label">This month</p>
+            <p className="mt-2 text-3xl font-bold text-ink">{txns.length}</p>
             <p className="text-sm text-[rgb(var(--text-secondary))] mt-0.5">transactions</p>
           </CardContent>
         </Card>

@@ -82,7 +82,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                     </div>
                   </div>
                   <CardContent className="pt-5 flex-1 flex flex-col">
-                    <h3 className="text-lg font-semibold text-navy-900 group-hover:text-crimson-700 transition-colors">{t.title}</h3>
+                    <h3 className="text-lg font-semibold text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h3>
                     <p className="text-sm text-[rgb(var(--text-secondary))] mt-1 flex-1">{t.blurb}</p>
                     <div className="mt-3 flex items-center gap-1.5 text-xs text-[rgb(var(--text-secondary))]">
                       <MapPin className="w-3.5 h-3.5" />
@@ -90,8 +90,8 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                     </div>
                     <div className="mt-4 flex items-center justify-between pt-3 border-t border-border-subtle">
                       <div>
-                        <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Starting from</p>
-                        <p className="font-mono font-bold text-navy-900">{fmt(t.startingPricePaise)}</p>
+                        <p className="label">Starting from</p>
+                        <p className="money text-ink">{fmt(t.startingPricePaise)}</p>
                       </div>
                       <form action={cloneAndRedirectAction.bind(null, t.id)}>
                         <Button type="submit" size="sm">Use this</Button>

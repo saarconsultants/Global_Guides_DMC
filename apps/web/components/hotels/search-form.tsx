@@ -49,10 +49,10 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
   }
 
   const filterPanel = (bare: boolean) => (
-    <div className={bare ? 'grid gap-4 sm:grid-cols-4 rounded-xl border border-border-subtle bg-surface p-4 shadow-sm' : 'grid gap-4 sm:grid-cols-4 pt-1 border-t border-border-subtle'}>
+    <div className={bare ? 'grid gap-4 sm:grid-cols-4 rounded-lg border border-border-subtle bg-surface p-4 shadow-sm' : 'grid gap-4 sm:grid-cols-4 pt-1 border-t border-border-subtle'}>
       <div>
         <Label>Star rating</Label>
-        <select value={star} onChange={(e) => setStar(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+        <select value={star} onChange={(e) => setStar(e.target.value)} className="control">
           <option value="">Any</option>
           <option value="5">5★ only</option>
           <option value="4">4★ only</option>
@@ -62,7 +62,7 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
       </div>
       <div>
         <Label>Board</Label>
-        <select value={board} onChange={(e) => setBoard(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+        <select value={board} onChange={(e) => setBoard(e.target.value)} className="control">
           <option value="">Any</option>
           <option value="Room Only">Room Only</option>
           <option value="Breakfast Included">Breakfast Included</option>
@@ -73,7 +73,7 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
       </div>
       <div>
         <Label>Sort by</Label>
-        <select value={sort} onChange={(e) => setSort(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+        <select value={sort} onChange={(e) => setSort(e.target.value)} className="control">
           <option value="price-asc">Price: low → high</option>
           <option value="price-desc">Price: high → low</option>
           <option value="stars-desc">Stars: high → low</option>
@@ -168,19 +168,19 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
           <div className="grid gap-4 sm:grid-cols-3 max-w-lg">
             <div>
               <Label>Rooms</Label>
-              <select value={rooms} onChange={(e) => setRooms(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={rooms} onChange={(e) => setRooms(e.target.value)} className="control">
                 {[1,2,3,4].map((n) => <option key={n} value={n}>{n} room{n > 1 ? 's' : ''}</option>)}
               </select>
             </div>
             <div>
               <Label>Adults / room</Label>
-              <select value={adults} onChange={(e) => setAdults(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={adults} onChange={(e) => setAdults(e.target.value)} className="control">
                 {[1,2,3,4].map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
               <Label>Children / room</Label>
-              <select value={children} onChange={(e) => setChildren(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={children} onChange={(e) => setChildren(e.target.value)} className="control">
                 {[0,1,2,3].map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>

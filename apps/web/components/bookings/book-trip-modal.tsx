@@ -62,7 +62,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
       <Dialog open={open} onClose={() => setOpen(false)} title={`Confirm booking — ${code}`} size="sm">
         <div className="space-y-4">
           <p className="text-sm text-[rgb(var(--text-secondary))]">
-            Convert <span className="font-medium text-navy-900">{tripName}</span>{customerName ? <> for <span className="font-medium text-navy-900">{customerName}</span></> : null} into a confirmed booking. Your wallet is debited the supplier net cost; your markup stays as margin.
+            Convert <span className="font-medium text-ink">{tripName}</span>{customerName ? <> for <span className="font-medium text-ink">{customerName}</span></> : null} into a confirmed booking. Your wallet is debited the supplier net cost; your markup stays as margin.
           </p>
 
           {!accepted && (
@@ -104,7 +104,7 @@ function Row({ label, value, bold, danger }: { label: string; value: string; bol
   return (
     <div className="flex items-center justify-between px-3 py-2">
       <span className="text-[rgb(var(--text-secondary))]">{label}</span>
-      <span className={`font-mono tabular-nums ${bold ? 'font-bold text-navy-900' : danger ? 'text-danger-500' : 'text-navy-900'}`}>{value}</span>
+      <span className={`money ${bold ? 'font-bold text-ink' : danger ? 'text-danger-500' : 'text-ink'}`}>{value}</span>
     </div>
   );
 }

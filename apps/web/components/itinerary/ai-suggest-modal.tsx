@@ -176,7 +176,7 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
           </div>
           <div className="rounded-md bg-gradient-to-r from-crimson-900 to-crimson-700 text-white px-4 py-3 flex items-center justify-between">
             <span className="text-xs uppercase tracking-widest font-bold text-amber-300">Complete trip total</span>
-            <span className="font-mono font-bold text-lg">{fmt(trip.itinerary.pricePaise)}</span>
+            <span className="money text-lg">{fmt(trip.itinerary.pricePaise)}</span>
           </div>
           {trip.warnings.length > 0 && (
             <div className="rounded-md bg-warning-100 text-warning-500 px-3 py-2 text-xs space-y-1">
@@ -202,7 +202,7 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Total nights</Label>
-              <select value={totalNights} onChange={(e) => setTotalNights(parseInt(e.target.value, 10))} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={totalNights} onChange={(e) => setTotalNights(parseInt(e.target.value, 10))} className="control">
                 {nightOptions.map((n) => <option key={n} value={n}>{n} nights</option>)}
               </select>
             </div>
@@ -215,13 +215,13 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
             <AirportCombobox label="Flying from" value={originIATA} onChange={setOriginIATA} placeholder="Origin city" />
             <div>
               <Label>Adults</Label>
-              <select value={adults} onChange={(e) => setAdults(parseInt(e.target.value, 10))} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={adults} onChange={(e) => setAdults(parseInt(e.target.value, 10))} className="control">
                 {[1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
             <div>
               <Label>Budget tier</Label>
-              <select value={budget} onChange={(e) => setBudget(e.target.value as any)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select value={budget} onChange={(e) => setBudget(e.target.value as any)} className="control">
                 <option value="standard">Standard</option>
                 <option value="premium">Premium</option>
                 <option value="luxury">Luxury</option>
@@ -254,10 +254,10 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
           <div className="space-y-2">
             {result.cities.map((c, i) => (
               <div key={c.cityCode} className="flex items-start gap-3 p-3 rounded-md bg-surface border border-border-subtle">
-                <div className="w-7 h-7 rounded-full bg-crimson-900 text-white inline-flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</div>
+                <div className="w-7 h-7 rounded-full bg-crimson-700 text-white inline-flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-navy-900">{c.cityName}</p>
+                    <p className="font-semibold text-ink">{c.cityName}</p>
                     <Pill variant="neutral">{c.cityCode}</Pill>
                     <Pill variant="info">{c.nights} night{c.nights !== 1 ? 's' : ''}</Pill>
                   </div>

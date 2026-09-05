@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { useMoney } from '@/components/providers/currency-provider';
@@ -57,69 +56,71 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
                 : null;
   const points = missing ? 2 : 0;
 
+  const dateObj = new Date(day.date);
+  const dow = dateObj.toLocaleDateString('en-GB', { weekday: 'short' });
+  const dm = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+
   return (
     <>
-      <Card className="overflow-hidden">
-        <CardContent className="pt-5 pb-5">
-          <header className="flex items-center justify-between mb-1">
-            <h3 className="text-base font-bold text-navy-900">Day {day.dayNo}: {fmtDate(day.date)}</h3>
-            {points > 0 && <Pill variant="danger">{points} Points to Note</Pill>}
-          </header>
-          <p className="text-sm font-semibold text-navy-700 mb-3">{heading(day)}</p>
+      <article className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
+        <header className="flex items-center gap-4 px-5 pt-4 pb-3">
+          <div className="w-14 shrink-0 rounded-md bg-ink text-white text-center py-1.5">
+            <div className="label text-white/60">Day</div>
+            <div className="font-mono text-[20px] font-bold leading-none tnum">{String(day.dayNo).padStart(2, '0')}</div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[16px] font-extrabold text-ink tracking-[-0.01em] truncate">{heading(day)}</p>
+            <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum">{dow}, {dm} · {day.cityName}</p>
+          </div>
+          {points > 0 && <Pill variant="warning">{points} points to note</Pill>}
+        </header>
 
+        <div className="px-5 pb-4">
           {missing && (
-            <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm flex items-center justify-between mb-3">
-              <span className="font-medium">{missing}</span>
-              <Button size="sm" variant="brick" onClick={() => setFlightOpen(true)} className="gap-1.5">
-                <Plane className="w-3.5 h-3.5" />
-                Update {day.type === 'arrival' ? 'Arrival' : 'Departure'} Details
+            <div className="rounded-md bg-amber-50 border border-amber-100 text-amber-900 px-3.5 py-2.5 text-sm flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span className="font-semibold">{missing}</span>
+              <Button size="sm" onClick={() => setFlightOpen(true)} className="gap-1.5">
+                <Plane className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} details
               </Button>
             </div>
           )}
-
-          {/* Filled-in flight details (after the user saves them) */}
           {!missing && day.type === 'arrival' && day.arrivalDetails && (
-            <div className="rounded-md bg-success-100 text-success-500 px-3 py-2 text-sm flex items-center justify-between mb-3">
-              <span className="font-medium inline-flex items-center gap-2">
-                <Plane className="w-3.5 h-3.5" />
-                Arriving on <span className="font-mono">{day.arrivalDetails.flightNumber}</span> at {day.arrivalDetails.arrivalTime}
-              </span>
-              <button onClick={() => setFlightOpen(true)} className="text-xs underline hover:no-underline">Edit</button>
+            <div className="rounded-md bg-success-100 text-success-600 px-3.5 py-2.5 text-sm flex items-center justify-between mb-3">
+              <span className="font-semibold inline-flex items-center gap-2"><Plane className="w-3.5 h-3.5" />Arriving on <span className="font-mono">{day.arrivalDetails.flightNumber}</span> at <span className="tnum">{day.arrivalDetails.arrivalTime}</span></span>
+              <button onClick={() => setFlightOpen(true)} className="text-xs font-bold underline hover:no-underline">Edit</button>
             </div>
           )}
           {!missing && day.type === 'departure' && day.departureDetails && (
-            <div className="rounded-md bg-success-100 text-success-500 px-3 py-2 text-sm flex items-center justify-between mb-3">
-              <span className="font-medium inline-flex items-center gap-2">
-                <Plane className="w-3.5 h-3.5" />
-                Departing on <span className="font-mono">{day.departureDetails.flightNumber}</span> at {day.departureDetails.departureTime}
-              </span>
-              <button onClick={() => setFlightOpen(true)} className="text-xs underline hover:no-underline">Edit</button>
+            <div className="rounded-md bg-success-100 text-success-600 px-3.5 py-2.5 text-sm flex items-center justify-between mb-3">
+              <span className="font-semibold inline-flex items-center gap-2"><Plane className="w-3.5 h-3.5" />Departing on <span className="font-mono">{day.departureDetails.flightNumber}</span> at <span className="tnum">{day.departureDetails.departureTime}</span></span>
+              <button onClick={() => setFlightOpen(true)} className="text-xs font-bold underline hover:no-underline">Edit</button>
             </div>
           )}
 
-          <p className={`text-sm text-[rgb(var(--text-secondary))] mb-4 ${expanded ? '' : 'line-clamp-2'}`}>{day.narrative}</p>
+          <p className={`text-[13.5px] text-[rgb(var(--text-secondary))] leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>{day.narrative}</p>
           {day.narrative.length > 130 && (
-            <button className="text-xs text-crimson-700 hover:underline mb-3 inline-flex items-center gap-1" onClick={() => setExpanded(!expanded)}>
+            <button className="mt-1 text-xs font-bold text-crimson-700 hover:underline inline-flex items-center gap-1" onClick={() => setExpanded(!expanded)}>
               {expanded ? 'Show less' : 'Show more'} <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           )}
 
-          {/* Slots */}
+          {/* Slots: filled cells and ghost cells share one geometry. */}
           {day.type !== 'transit' && (
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-3 gap-2.5 mt-4">
               {(['morning','afternoon','evening'] as const).map((s) => {
                 const act = day[s];
                 return (
                   <button
                     key={s}
+                    type="button"
                     onClick={() => setSlotOpen(s)}
-                    className={`text-left rounded-lg border px-3 py-2.5 transition-colors cursor-pointer min-h-[3.75rem] ${act ? 'border-border-subtle bg-surface hover:border-crimson-300' : 'border-dashed border-border bg-surface-2/40 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
+                    className={`text-left rounded-md px-3 py-2.5 min-h-[64px] transition-colors cursor-pointer ${act ? 'border border-border-subtle bg-surface hover:border-crimson-300' : 'border-2 border-dashed border-border bg-surface-2/60 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
                   >
-                    <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-0.5">{s}</p>
+                    <span className="label">{s}</span>
                     {act ? (
-                      <span className="text-xs text-navy-900 font-medium line-clamp-2 leading-snug">{act.name}</span>
+                      <span className="mt-1 block text-[13px] text-ink font-bold line-clamp-2 leading-snug">{act.name}</span>
                     ) : (
-                      <span className="text-xs text-crimson-700 font-medium inline-flex items-center gap-1"><Plus className="w-3 h-3" /> Add</span>
+                      <span className="mt-1 block text-[13px] text-crimson-700 font-bold inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Add</span>
                     )}
                   </button>
                 );
@@ -127,64 +128,46 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
             </div>
           )}
 
-          {/* Inclusions */}
           {day.inclusions.length > 0 && (
-            <div className="space-y-2">
+            <ul className="mt-4 divide-y divide-dashed divide-border-subtle">
               {day.inclusions.map((inc, i) => {
-                if (inc.kind === 'transfer') {
-                  const t = inc.transfer;
-                  return (
-                    <div key={t.id + i} className="flex items-start gap-2 text-sm py-1.5">
-                      <Check className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-navy-900">
-                          {t.kind === 'arrival' ? 'One-way Transfer from ' : t.kind === 'departure' ? 'Airport Departure Transfer : ' : 'Inter-city Transfer from '}
-                          {t.fromName}
-                          {t.kind === 'departure' ? ' to ' : t.kind === 'arrival' ? ' to Hotel - ' : ' to '}
-                          {t.toName}
-                          {t.kind === 'arrival' ? ' - Private Premium' : ''}
-                        </p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <Pill variant="neutral">{vehicleLabel(t.vehicle)}</Pill>
-                          <Pill variant="neutral">🧳 {t.bagsAllowed} Bags</Pill>
-                          <span className="text-xs text-[rgb(var(--text-tertiary))] font-mono ml-auto">{money(t.pricePaise)}</span>
-                          <button onClick={() => onRemoveTransfer(t.id)} className="ml-1 text-[rgb(var(--text-tertiary))] hover:text-danger-500" aria-label="Remove transfer">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
+                if (inc.kind !== 'transfer') return null;
+                const t = inc.transfer;
+                return (
+                  <li key={t.id + i} className="flex items-center gap-3 py-2.5 text-sm">
+                    <span className="w-8 h-8 rounded-md bg-navy-50 text-navy-700 inline-flex items-center justify-center shrink-0"><Car className="w-4 h-4" /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-bold text-ink text-[13.5px] truncate">{t.kind === 'arrival' ? 'Airport pickup' : t.kind === 'departure' ? 'Airport drop-off' : 'Inter-city transfer'} · {t.fromName} → {t.toName}</span>
+                      <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{vehicleLabel(t.vehicle)} · {t.bagsAllowed} bags</span>
+                    </span>
+                    <span className="money text-[13.5px] text-ink">{money(t.pricePaise)}</span>
+                    <button onClick={() => onRemoveTransfer(t.id)} className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-tertiary))] hover:text-danger-500 hover:bg-danger-100" aria-label="Remove transfer"><X className="w-4 h-4" /></button>
+                  </li>
+                );
               })}
-            </div>
+            </ul>
           )}
 
           {hotelNameForOvernight && (
-            <div className="mt-3 inline-flex items-center gap-1.5 text-xs bg-surface-2 px-2.5 py-1 rounded-md text-navy-700">
-              <Bed className="w-3.5 h-3.5" /> Overnight stay at {hotelNameForOvernight}
+            <div className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-semibold bg-surface-2 border border-border-subtle px-2.5 py-1 rounded-md text-navy-700">
+              <Bed className="w-3.5 h-3.5" /> Overnight at {hotelNameForOvernight}
             </div>
           )}
+        </div>
 
-          <footer className="mt-4 flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="secondary" onClick={() => toast.info('Coming in next release', 'You\'ll be able to swap a city or change nights on this day.')}>Change Day</Button>
-            {day.type === 'stay' && (
-              <Button size="sm" variant="brick" onClick={() => setSlotOpen('morning')}>Add Activity in {day.cityName}</Button>
-            )}
-            {day.type === 'departure' && (
-              <Button size="sm" variant="brick" onClick={() => setFlightOpen(true)} className="gap-1.5">
-                <Plane className="w-3.5 h-3.5" />Update Departure from {day.cityName}
-              </Button>
-            )}
-            {showAddTransfer && (
-              <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5">
-                <Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer
-              </Button>
-            )}
-          </footer>
-        </CardContent>
-      </Card>
+        <footer className="border-t-2 border-dashed border-border-subtle bg-surface-2/50 px-5 py-3 flex flex-wrap items-center gap-2">
+          {day.type === 'stay' && (
+            <Button size="sm" onClick={() => setSlotOpen('morning')} className="gap-1.5"><Plus className="w-3.5 h-3.5" />Add activity in {day.cityName}</Button>
+          )}
+          {day.type === 'departure' && (
+            <Button size="sm" onClick={() => setFlightOpen(true)} className="gap-1.5"><Plane className="w-3.5 h-3.5" />Departure details</Button>
+          )}
+          {showAddTransfer && (
+            <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => toast.info('Coming in the next release', 'You will be able to swap a city or change nights on this day.')}>Change day</Button>
+        </footer>
+      </article>
 
       {slotOpen && (
         <AddActivityModal

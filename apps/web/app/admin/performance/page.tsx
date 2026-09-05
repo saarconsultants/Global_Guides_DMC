@@ -39,7 +39,7 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
               <Link
                 key={w.key}
                 href={`/admin/performance?d=${w.key}` as any}
-                className={`px-3 py-1.5 text-sm transition-colors ${w.key === win.key ? 'bg-crimson-900 text-white' : 'bg-surface text-[rgb(var(--text-secondary))] hover:bg-surface-2'}`}
+                className={`px-3 py-1.5 text-sm transition-colors ${w.key === win.key ? 'bg-crimson-700 text-white' : 'bg-surface text-[rgb(var(--text-secondary))] hover:bg-surface-2'}`}
               >
                 {w.label}
               </Link>
@@ -58,7 +58,7 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
 
       <Card>
         <CardContent className="pt-6">
-          <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2 mb-4"><BarChart3 className="w-4 h-4 text-crimson-700" />By agency</h2>
+          <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2 mb-4"><BarChart3 className="w-4 h-4 text-crimson-700" />By agency</h2>
 
           {!hasData ? (
             <EmptyState dense icon={<BarChart3 className="w-7 h-7 text-[rgb(var(--text-tertiary))]" />} title="No proposals in this window" body="Pick a wider time range or wait for agencies to start quoting." />
@@ -80,29 +80,29 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
                   {rows.map((r) => (
                     <tr key={r.agencyId} className="border-b border-border-subtle/60">
                       <td className="py-2.5 pr-3">
-                        <Link href={`/admin/agencies` as any} className="font-medium text-navy-900 hover:text-crimson-700">{r.agencyName}</Link>
+                        <Link href={`/admin/agencies` as any} className="font-medium text-ink hover:text-crimson-700">{r.agencyName}</Link>
                         <span className="ml-2 text-[10px] font-mono text-[rgb(var(--text-tertiary))]">{r.code}</span>
                       </td>
                       <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.counsellors}</td>
                       <td className="py-2.5 px-3 text-right tabular-nums">{r.sent}</td>
-                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-navy-900">{r.won}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-ink">{r.won}</td>
                       <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.booked}</td>
                       <td className="py-2.5 px-3 text-right">
                         {r.sent === 0 ? <span className="text-[rgb(var(--text-tertiary))]">—</span> : <Pill variant={(r.conversionPct >= 40 ? 'success' : r.conversionPct >= 20 ? 'warning' : 'neutral') as any}>{r.conversionPct}%</Pill>}
                       </td>
-                      <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{formatINR(r.revenuePaise)}</td>
+                      <td className="py-2.5 pl-3 text-right money">{formatINR(r.revenuePaise)}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-border-subtle font-semibold text-navy-900">
+                  <tr className="border-t-2 border-border-subtle font-semibold text-ink">
                     <td className="py-2.5 pr-3">Platform total</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.counsellors}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.sent}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.won}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.booked}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.conversionPct}%</td>
-                    <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{formatINR(totals.revenuePaise)}</td>
+                    <td className="py-2.5 pl-3 text-right money">{formatINR(totals.revenuePaise)}</td>
                   </tr>
                 </tfoot>
               </table>

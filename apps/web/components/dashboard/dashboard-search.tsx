@@ -102,7 +102,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="From"><input type="date" value={checkin} min={iso(0)} onChange={(e) => setCheckin(e.target.value)} className={heroControl} aria-label="From date" /></HeroCell>
             <HeroCell eyebrow="To"><input type="date" value={checkout} min={checkin} onChange={(e) => setCheckout(e.target.value)} className={heroControl} aria-label="To date" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsSelect}</HeroCell>
-            <HeroSubmit caption="Tours · tickets · day trips">Search tours</HeroSubmit>
+            <HeroSubmit caption="Hotelbeds · live">Search tours</HeroSubmit>
           </>
         )}
         {tab === 'ai' && (

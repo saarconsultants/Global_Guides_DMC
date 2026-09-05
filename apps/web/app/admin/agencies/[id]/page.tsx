@@ -42,7 +42,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
 
   return (
     <div className="p-8 space-y-6">
-      <Link href="/admin/agencies" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-navy-900"><ArrowLeft className="w-4 h-4" />Back to agencies</Link>
+      <Link href="/admin/agencies" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-ink"><ArrowLeft className="w-4 h-4" />Back to agencies</Link>
 
       <PageHeader
         eyebrow={agency.code}
@@ -70,9 +70,9 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><UsersIcon className="w-4 h-4 text-crimson-700" />Account status</h3>
+            <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><UsersIcon className="w-4 h-4 text-crimson-700" />Account status</h3>
             <ActionForm action={setAgencyStatusAction.bind(null, agency.id)} success="Status updated" className="space-y-2">
-              <select name="status" defaultValue={agency.status} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select name="status" defaultValue={agency.status} className="control">
                 <option value="ACTIVE">ACTIVE — full access</option>
                 <option value="PENDING">PENDING — onboarding</option>
                 <option value="SUSPENDED">SUSPENDED — login blocked</option>
@@ -83,7 +83,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
         </Card>
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h3>
+            <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h3>
             <ActionForm action={updateAgencyMarkupAction.bind(null, agency.id)} success="Markup saved" className="space-y-2">
               <div className="flex items-center gap-2">
                 <Input type="number" name="markupPct" defaultValue={agency.markupPct} step={0.5} min={0} max={100} className="flex-1" />
@@ -95,7 +95,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
         </Card>
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><Wallet className="w-4 h-4 text-crimson-700" />Wallet credit</h3>
+            <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><Wallet className="w-4 h-4 text-crimson-700" />Wallet credit</h3>
             <ActionForm action={creditAgencyWalletAction.bind(null, agency.id)} confirm="Credit this agency's wallet?" success="Wallet credited" className="space-y-2">
               <Input type="number" name="rupees" placeholder="₹ amount" min={1} step={500} />
               <Input type="text" name="note" placeholder="Note (optional)" />
@@ -108,8 +108,8 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
 
       {/* Agency-specific commission overrides */}
       <section>
-        <h2 className="text-xl font-semibold text-navy-900 mb-1 inline-flex items-center gap-2"><Coins className="w-5 h-5 text-crimson-700" />Commission overrides</h2>
-        <p className="text-sm text-[rgb(var(--text-secondary))] mb-3">Rules set here apply only to <span className="font-medium text-navy-900">{agency.name}</span> and take priority over platform defaults. Product types without an override fall back to the platform rule.</p>
+        <h2 className="text-xl font-semibold text-ink mb-1 inline-flex items-center gap-2"><Coins className="w-5 h-5 text-crimson-700" />Commission overrides</h2>
+        <p className="text-sm text-[rgb(var(--text-secondary))] mb-3">Rules set here apply only to <span className="font-medium text-ink">{agency.name}</span> and take priority over platform defaults. Product types without an override fall back to the platform rule.</p>
         <Card><CardContent className="pt-5 space-y-5">
           {commissionRules.length > 0 ? (
             <div className="overflow-x-auto">
@@ -118,7 +118,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
                 <tbody>
                   {commissionRules.map((r) => (
                     <tr key={r.id} className="border-b border-border-subtle/60">
-                      <td className="py-2 pr-4 font-medium text-navy-900">{r.productType}</td>
+                      <td className="py-2 pr-4 font-medium text-ink">{r.productType}</td>
                       <td className="py-2 pr-4 font-mono">{r.percent != null ? `${r.percent}%` : ''}{r.flatPaise ? ` +₹${Number(r.flatPaise) / 100}` : ''}{r.percent == null && !r.flatPaise ? '—' : ''}</td>
                       <td className="py-2 pr-4">{r.appliesTo}</td>
                       <td className="py-2 pr-4"><Pill variant={r.active ? 'success' : 'neutral'}>{r.active ? 'Active' : 'Inactive'}</Pill></td>
@@ -143,7 +143,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             <input type="hidden" name="active" value="on" />
             <div>
               <Label>Product</Label>
-              <select name="productType" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select name="productType" className="control">
                 {PRODUCT_TYPES.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
@@ -153,7 +153,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             </div>
             <div>
               <Label>Applies to</Label>
-              <select name="appliesTo" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select name="appliesTo" className="control">
                 {APPLIES_TO.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
@@ -166,7 +166,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-navy-900 mb-3">Team ({agency.users.length})</h2>
+        <h2 className="text-xl font-semibold text-ink mb-3">Team ({agency.users.length})</h2>
         <Card><CardContent className="pt-2">
           {agency.users.length === 0 ? (
             <EmptyState dense icon={<UsersIcon className="w-7 h-7" />} title="No users yet" body="The owner can invite team members from Settings → Team." />
@@ -186,7 +186,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-navy-900 mb-3">Recent proposals</h2>
+        <h2 className="text-xl font-semibold text-ink mb-3">Recent proposals</h2>
         <Card><CardContent className="pt-2">
           {agency.proposals.length === 0 ? (
             <EmptyState dense icon={<FileText className="w-7 h-7" />} title="No proposals yet" body="Once this agency creates proposals, the most recent 10 show up here." />

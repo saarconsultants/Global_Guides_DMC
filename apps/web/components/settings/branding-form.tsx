@@ -72,7 +72,7 @@ export function BrandingForm({ initial }: Props) {
       <div className="space-y-6">
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <h2 className="text-lg font-semibold text-navy-900">Agency profile</h2>
+            <h2 className="text-lg font-semibold text-ink">Agency profile</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div><Label required>Agency name</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
               <div><Label>Tagline</Label><Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Smarter outbound trips, faster." /></div>
@@ -85,7 +85,7 @@ export function BrandingForm({ initial }: Props) {
 
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <h2 className="text-lg font-semibold text-navy-900">White-label branding</h2>
+            <h2 className="text-lg font-semibold text-ink">White-label branding</h2>
             <p className="text-xs text-[rgb(var(--text-secondary))]">Your logo and colours show on every customer-facing proposal page. The platform brand disappears from your customer's view.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -121,7 +121,7 @@ export function BrandingForm({ initial }: Props) {
 
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <h2 className="text-lg font-semibold text-navy-900">Markup default</h2>
+            <h2 className="text-lg font-semibold text-ink">Markup default</h2>
             <div className="grid sm:grid-cols-3 gap-4">
               <div>
                 <Label>Default markup %</Label>

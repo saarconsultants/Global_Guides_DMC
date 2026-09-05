@@ -21,9 +21,9 @@ export default async function FITPackagesPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
-        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-navy-900">Holidays</Link>
+        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-ink">Holidays</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
-        <span className="text-navy-900 font-medium">FIT packages</span>
+        <span className="text-ink font-medium">FIT packages</span>
       </div>
       <PageHeader
         eyebrow="Free Independent Traveller"
@@ -48,7 +48,7 @@ export default async function FITPackagesPage() {
                   <Pill variant="neutral">{t.totalNights}N</Pill>
                   <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{t.destinations}</span>
                 </div>
-                <h3 className="text-base font-semibold text-navy-900">{t.title}</h3>
+                <h3 className="text-base font-semibold text-ink">{t.title}</h3>
                 <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">A handpicked itinerary you can clone and customise.</p>
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                   <span className="font-mono text-sm font-bold text-crimson-900">From {fmt(t.startingPricePaise)}</span>

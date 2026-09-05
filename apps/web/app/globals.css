@@ -47,6 +47,8 @@
 @layer utilities {
   /* Caps letterspaced label — the pass's FROM / TO / DEPART vocabulary. */
   .label { @apply text-[10.5px] font-bold uppercase tracking-[0.14em] text-[rgb(var(--text-tertiary))]; }
+  /* Native select / control in the pass grammar (pairs with <Input>). */
+  .control { @apply h-11 w-full rounded-md border border-border bg-surface px-3.5 text-[15px] font-medium text-ink transition-colors duration-150 hover:border-border-strong focus:border-crimson-700 focus:outline-none focus:ring-2 focus:ring-crimson-700/15 disabled:bg-surface-2 disabled:cursor-not-allowed; }
   /* Tabular numerals for money, dates, codes. */
   .tnum { font-variant-numeric: tabular-nums; }
   /* Money: the UI face, bold, tabular. (Mono is for codes only — its wide comma breaks lakh grouping.) */

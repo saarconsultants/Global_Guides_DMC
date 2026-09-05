@@ -46,7 +46,7 @@ export default function SignupPage() {
       <main className="flex items-center justify-center p-6 lg:p-12">
         <Card className="w-full max-w-md">
           <CardContent className="pt-8">
-            <h2 className="font-display text-2xl font-semibold text-navy-900">Create your agency</h2>
+            <h2 className="font-display text-2xl font-semibold text-ink">Create your agency</h2>
             <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">You'll be the agency owner. Add team members later.</p>
             <form onSubmit={submit} className="mt-6 space-y-4">
               <div><Label required>Agency name</Label><Input value={agencyName} onChange={(e) => setAgencyName(e.target.value)} required placeholder="e.g. Wandermark Travels Pvt Ltd" /></div>

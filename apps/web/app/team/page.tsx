@@ -45,7 +45,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
               <Link
                 key={w.key}
                 href={`/team?d=${w.key}` as any}
-                className={`px-3 py-1.5 text-sm transition-colors ${w.key === win.key ? 'bg-crimson-900 text-white' : 'bg-surface text-[rgb(var(--text-secondary))] hover:bg-surface-2'}`}
+                className={`px-3 py-1.5 text-sm transition-colors ${w.key === win.key ? 'bg-crimson-700 text-white' : 'bg-surface text-[rgb(var(--text-secondary))] hover:bg-surface-2'}`}
               >
                 {w.label}
               </Link>
@@ -64,7 +64,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
 
       <Card>
         <CardContent className="pt-6">
-          <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2 mb-4"><Users2 className="w-4 h-4 text-crimson-700" />By counsellor</h2>
+          <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2 mb-4"><Users2 className="w-4 h-4 text-crimson-700" />By counsellor</h2>
 
           {!hasData ? (
             <EmptyState
@@ -95,8 +95,8 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
                       <tr key={r.userId} className={`border-b border-border-subtle/60 ${isMe ? 'bg-amber-50/50' : ''}`}>
                         <td className="py-2.5 pr-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-navy-900">{r.name}</span>
-                            {isLeader && <Crown className="w-3.5 h-3.5 text-gold-500" aria-label="Top performer" />}
+                            <span className="font-medium text-ink">{r.name}</span>
+                            {isLeader && <Crown className="w-3.5 h-3.5 text-amber-500" aria-label="Top performer" />}
                             {isMe && <Pill variant="neutral">You</Pill>}
                             <span className="text-[10px] uppercase tracking-wide text-[rgb(var(--text-tertiary))]">{ROLE_LABEL[r.role] ?? r.role}</span>
                           </div>
@@ -104,24 +104,24 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
                         <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.drafts}</td>
                         <td className="py-2.5 px-3 text-right tabular-nums">{r.sent}</td>
                         <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.viewed}</td>
-                        <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-navy-900">{r.won}</td>
+                        <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-ink">{r.won}</td>
                         <td className="py-2.5 px-3 text-right">
                           <ConvBadge pct={r.conversionPct} sent={r.sent} />
                         </td>
-                        <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{fmt(r.revenuePaise)}</td>
+                        <td className="py-2.5 pl-3 text-right money">{fmt(r.revenuePaise)}</td>
                       </tr>
                     );
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-border-subtle font-semibold text-navy-900">
+                  <tr className="border-t-2 border-border-subtle font-semibold text-ink">
                     <td className="py-2.5 pr-3">Team total</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.drafts}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.sent}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.viewed}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.won}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.conversionPct}%</td>
-                    <td className="py-2.5 pl-3 text-right font-mono tabular-nums">{fmt(totals.revenuePaise)}</td>
+                    <td className="py-2.5 pl-3 text-right money">{fmt(totals.revenuePaise)}</td>
                   </tr>
                 </tfoot>
               </table>

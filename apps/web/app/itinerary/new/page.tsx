@@ -1,7 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { composeItineraryAction } from '@/app/actions/compose-itinerary';
@@ -12,7 +11,9 @@ import { AiSuggestModal } from '@/components/itinerary/ai-suggest-modal';
 import { SortableDestinationRow } from '@/components/itinerary/sortable-destination-row';
 import { AirportCombobox } from '@/components/flights/airport-combobox';
 import { airportByIata } from '@/lib/airports';
-import { Sparkles, Plus, X } from 'lucide-react';
+import { Sparkles, Plus, X, Calendar, Users, Star, Car } from 'lucide-react';
+import { RouteCode } from '@/components/ui/pass';
+import { Stepper } from '@/components/itinerary/stepper';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
@@ -21,7 +22,12 @@ let _idCounter = 0;
 const newId = () => `d${++_idCounter}`;
 
 export default function NewItineraryPage() {
+  return <Suspense fallback={null}><NewItineraryForm /></Suspense>;
+}
+
+function NewItineraryForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const upsert = useItineraryStore((s) => s.upsert);
 
   const [destinations, setDestinations] = useState<DestRow[]>([
@@ -37,6 +43,23 @@ export default function NewItineraryPage() {
   const [error, setError] = useState<string | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiUsed, setAiUsed] = useState(false);
+
+  // Arriving from the home-page pass (?ai=1&dest=&nights=&date=&adults=&from=):
+  // prefill what we can and open the AI sheet straight away.
+  const paramDefaults = useMemo(() => ({
+    destinationsText: params.get('dest') || undefined,
+    totalNights: params.get('nights') ? parseInt(params.get('nights')!, 10) : undefined,
+    departureDate: params.get('date') || undefined,
+    originIATA: params.get('from') || undefined,
+    adults: params.get('adults') ? parseInt(params.get('adults')!, 10) : undefined,
+  }), [params]);
+  useEffect(() => {
+    if (paramDefaults.departureDate) setDepartureDate(paramDefaults.departureDate);
+    if (paramDefaults.originIATA) setLeavingFromCode(paramDefaults.originIATA);
+    if (paramDefaults.adults) setRooms([{ adults: paramDefaults.adults, children: 0 }]);
+    if (params.get('ai') === '1') setAiOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -101,34 +124,34 @@ export default function NewItineraryPage() {
   const totalNights = destinations.reduce((s, d) => s + d.nights, 0);
   const usedCodes = destinations.map((d) => d.cityCode);
 
+  const totalAdults = rooms.reduce((s, r) => s + r.adults, 0);
+  const totalChildren = rooms.reduce((s, r) => s + (r.children ?? 0), 0);
+  const codes = destinations.map((d) => d.cityCode);
+  const departLabel = departureDate ? new Date(departureDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
   return (
-    <div className="ambient">
-    <div className="mx-auto max-w-3xl px-6 py-10 space-y-6">
-      <div>
-        <p className="text-[11px] uppercase tracking-widest text-crimson-700 font-bold">Step 1 of 2</p>
-        <h1 className="text-3xl font-bold text-navy-900 tracking-tight mt-1">Create your trip</h1>
-        <p className="text-sm text-[rgb(var(--text-secondary))] mt-1.5">Tell us where they're going. We'll handle hotels, transfers, and the day-by-day plan.</p>
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10">
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+        <div>
+          <Stepper step={1} />
+          <h1 className="mt-3 text-[28px] leading-[1.1] font-extrabold tracking-[-0.02em] text-ink">Where are they going?</h1>
+          <p className="mt-2 text-[14.5px] text-[rgb(var(--text-secondary))] max-w-xl">Cities and nights first. We fetch live rooms, transfers and a day-by-day plan; you tune it in the builder.</p>
+        </div>
+        <Button variant="outline" type="button" onClick={() => setAiOpen(true)} className="gap-1.5"><Sparkles className="w-4 h-4" />Build it with AI</Button>
       </div>
 
-      <form onSubmit={submit}>
-      <Card plain>
-        <CardContent className="pt-6 space-y-5">
-          <section>
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Destinations</p>
-                <p className="text-sm text-[rgb(var(--text-secondary))]">Drag to reorder. Search 130+ cities &mdash; <span className="text-success-500 font-medium">LIVE</span> tag = full hotel inventory.</p>
-              </div>
-              <Button variant="brick" size="sm" className="gap-1" type="button" onClick={() => setAiOpen(true)}>
-                <Sparkles className="w-3.5 h-3.5" />Suggest itinerary
-              </Button>
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px] items-start">
+        <form onSubmit={submit} className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
+          <section className="p-5 lg:p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[16px] font-extrabold text-ink">Destinations</h2>
+              <p className="text-[12.5px] text-[rgb(var(--text-secondary))]">Drag to reorder · <span className="text-success-600 font-bold">Live</span> = full hotel inventory</p>
             </div>
             {aiUsed && (
-              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-crimson-900 bg-crimson-50 px-2.5 py-1 rounded-full">
-                <Sparkles className="w-3 h-3" /> Suggested by AI &mdash; adjust as needed
+              <div className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold text-crimson-700 bg-crimson-50 px-2.5 py-1 rounded-md">
+                <Sparkles className="w-3 h-3" /> Routed by AI. Adjust as needed.
               </div>
             )}
-
             <div className="mt-3">
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={destinations.map((d) => d.id)} strategy={verticalListSortingStrategy}>
@@ -149,26 +172,25 @@ export default function NewItineraryPage() {
                 </SortableContext>
               </DndContext>
             </div>
-
             <div className="mt-2 flex items-center justify-between">
-              <button type="button" onClick={addDest} className="text-sm text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1">
+              <button type="button" onClick={addDest} className="text-[13.5px] font-bold text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1">
                 <Plus className="w-3.5 h-3.5" />Add another city
               </button>
-              <p className="text-xs text-[rgb(var(--text-secondary))]">{destinations.length} city · {totalNights} night{totalNights !== 1 ? 's' : ''} total</p>
+              <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum">{destinations.length} {destinations.length === 1 ? 'city' : 'cities'} · {totalNights} night{totalNights !== 1 ? 's' : ''}</p>
             </div>
           </section>
 
-          <hr className="border-border-subtle" />
+          <div className="perf-x mx-5" />
 
-          <section>
-            <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-3">Trip details</p>
+          <section className="p-5 lg:p-6">
+            <h2 className="text-[16px] font-extrabold text-ink mb-4">Trip details</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <AirportCombobox value={leavingFromCode} onChange={setLeavingFromCode} label="Leaving from" placeholder="City or airport" />
               </div>
               <div>
                 <Label required>Nationality</Label>
-                <select value={nationality} onChange={(e) => setNationality(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                <select value={nationality} onChange={(e) => setNationality(e.target.value)} className="control">
                   <option value="IN">India</option><option value="US">United States</option><option value="GB">United Kingdom</option><option value="AE">United Arab Emirates</option>
                 </select>
               </div>
@@ -177,59 +199,93 @@ export default function NewItineraryPage() {
                 <Input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} />
               </div>
               <div>
-                <Label>Star rating</Label>
-                <select value={starRating ?? ''} onChange={(e) => setStarRating(e.target.value ? Number(e.target.value) as StarRating : undefined)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
-                  <option value="">Any</option><option value="3">3 Star</option><option value="4">4 Star</option><option value="5">5 Star</option>
+                <Label>Hotel standard</Label>
+                <select value={starRating ?? ''} onChange={(e) => setStarRating(e.target.value ? Number(e.target.value) as StarRating : undefined)} className="control">
+                  <option value="">Any</option><option value="3">3 star</option><option value="4">4 star</option><option value="5">5 star</option>
                 </select>
               </div>
               <div className="sm:col-span-2">
                 <Label required>Travellers</Label>
-                <div className="space-y-2 mt-1">
+                <div className="space-y-2">
                   {rooms.map((r, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_auto_auto_24px] items-center gap-3 px-3 py-2 bg-surface-2 rounded-md">
-                      <span className="text-xs text-[rgb(var(--text-secondary))]">Room {i + 1}</span>
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <span className="text-xs text-[rgb(var(--text-secondary))]">Adults</span>
+                    <div key={i} className="grid grid-cols-[1fr_auto_auto_28px] items-center gap-3 px-3.5 py-2.5 bg-surface-2 rounded-md border border-border-subtle">
+                      <span className="label">Room {i + 1}</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">Adults</span>
                         <Stepper2 value={r.adults} min={1} onChange={(v) => updateRoom(i, { adults: v })} />
                       </div>
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <span className="text-xs text-[rgb(var(--text-secondary))]">Children</span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">Children</span>
                         <Stepper2 value={r.children} min={0} max={4} onChange={(v) => updateRoom(i, { children: v })} />
                       </div>
-                      <button type="button" onClick={() => removeRoom(i)} className="text-[rgb(var(--text-tertiary))] hover:text-danger-500" aria-label="Remove room">
+                      <button type="button" onClick={() => removeRoom(i)} disabled={rooms.length <= 1} className="text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 w-7 h-7 inline-flex items-center justify-center rounded-md" aria-label="Remove room">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
-                  {rooms.length < 5 && <button type="button" onClick={addRoom} className="text-sm text-crimson-700 hover:underline cursor-pointer flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add room</button>}
+                  {rooms.length < 5 && <button type="button" onClick={addRoom} className="text-[13.5px] font-bold text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add room</button>}
                 </div>
               </div>
-              <label className="self-end inline-flex items-center gap-2 text-sm pb-2.5 cursor-pointer">
-                <input type="checkbox" checked={addTransfers} onChange={(e) => setAddTransfers(e.target.checked)} />
-                Add transfers
+              <label className="sm:col-span-2 inline-flex items-center gap-2.5 text-[14px] font-semibold text-ink cursor-pointer select-none">
+                <input type="checkbox" checked={addTransfers} onChange={(e) => setAddTransfers(e.target.checked)} className="w-4 h-4 rounded border-border accent-[#A8172E]" />
+                Include private transfers between airport, hotels and cities
               </label>
             </div>
+            {error && <div className="mt-4 rounded-md bg-danger-100 text-danger-500 px-3.5 py-2.5 text-sm font-semibold" role="alert">{error}</div>}
           </section>
 
-          {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
+          <div className="bg-surface-2 border-t-2 border-dashed border-border px-5 lg:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[13px] text-[rgb(var(--text-secondary))] tnum"><span className="font-bold text-ink">{destinations.length} {destinations.length === 1 ? 'city' : 'cities'}</span> · {totalNights} nights · {totalAdults} adult{totalAdults !== 1 ? 's' : ''}{totalChildren ? ` · ${totalChildren} child${totalChildren !== 1 ? 'ren' : ''}` : ''} · from {leavingFromCode}</p>
+            <Button type="submit" disabled={composing} size="lg" className="gap-2">{composing ? 'Fetching live rooms…' : 'Continue to builder'}</Button>
+          </div>
+        </form>
 
-          <div className="flex justify-end pt-2"><Button type="submit" disabled={composing} className="gap-2">{composing ? <>Fetching live hotels…</> : 'Create proposal'}</Button></div>
-        </CardContent>
-      </Card>
-      </form>
+        {/* Live pass preview: the object being built, updating as they type. */}
+        <aside className="lg:sticky lg:top-24">
+          <div className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
+            <div className="bg-ink text-white px-5 py-4 flex items-center justify-between">
+              <span className="label text-white/60">Trip pass · draft</span>
+              <img src="/brand/ggdmc-logo-white.svg" alt="" className="h-5 w-auto opacity-90" />
+            </div>
+            <div className="px-5 py-4">
+              <RouteCode codes={[leavingFromCode, ...codes]} />
+              <ul className="mt-4 space-y-2.5">
+                {destinations.map((d, i) => {
+                  const c = findCity(d.cityCode);
+                  return (
+                    <li key={d.id} className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-[5px] bg-navy-50 text-navy-700 font-mono text-[11px] font-bold inline-flex items-center justify-center tnum">{i + 1}</span>
+                      <span className="flex-1 min-w-0"><span className="block text-[14px] font-bold text-ink truncate">{c?.name ?? d.cityCode}</span><span className="block text-[12px] text-[rgb(var(--text-secondary))]">{c?.country ?? ''}</span></span>
+                      <span className="font-mono text-[12.5px] font-bold text-ink tnum">{d.nights}N</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <div className="perf-x mx-4" />
+            <div className="px-5 py-4 grid grid-cols-2 gap-3">
+              <div><div className="label inline-flex items-center gap-1"><Calendar className="w-3 h-3" />Depart</div><div className="mt-1 text-[14px] font-bold text-ink tnum">{departLabel}</div></div>
+              <div><div className="label inline-flex items-center gap-1"><Users className="w-3 h-3" />Travellers</div><div className="mt-1 text-[14px] font-bold text-ink tnum">{totalAdults} adult{totalAdults !== 1 ? 's' : ''}{totalChildren ? `, ${totalChildren} child` : ''}</div></div>
+              <div><div className="label inline-flex items-center gap-1"><Star className="w-3 h-3" />Hotels</div><div className="mt-1 text-[14px] font-bold text-ink">{starRating ? `${starRating} star` : 'Any standard'}</div></div>
+              <div><div className="label inline-flex items-center gap-1"><Car className="w-3 h-3" />Transfers</div><div className="mt-1 text-[14px] font-bold text-ink">{addTransfers ? 'Private, included' : 'Not included'}</div></div>
+            </div>
+            <div className="bg-surface-2 px-5 py-3 text-[12px] text-[rgb(var(--text-secondary))] border-t border-border-subtle">Prices appear in the builder once live rooms are fetched. Nothing is booked until you confirm.</div>
+          </div>
+        </aside>
+      </div>
 
       <AiSuggestModal
         open={aiOpen}
         onClose={() => setAiOpen(false)}
-        /* Inherit whatever the agent already filled in on this page. */
+        /* Inherit whatever the agent already filled in on this page (home-page pass params win). */
         defaults={{
-          destinationsText: destinations.map((d) => findCity(d.cityCode)?.name ?? d.cityCode).join(", "),
-          totalNights: destinations.reduce((s, d) => s + d.nights, 0),
+          destinationsText: paramDefaults.destinationsText ?? destinations.map((d) => findCity(d.cityCode)?.name ?? d.cityCode).join(', '),
+          totalNights: paramDefaults.totalNights ?? destinations.reduce((s, d) => s + d.nights, 0),
           departureDate,
           originIATA: leavingFromCode,
-          adults: rooms.reduce((s, r) => s + r.adults, 0),
-          children: rooms.reduce((s, r) => s + (r.children ?? 0), 0),
-          budget: starRating === 5 ? "luxury" : starRating === 4 ? "premium" : "standard",
+          adults: totalAdults,
+          children: totalChildren,
+          budget: starRating === 5 ? 'luxury' : starRating === 4 ? 'premium' : 'standard',
         }}
         onApply={(cities) => {
           setDestinations(cities.map((c) => ({ id: newId(), cityCode: c.cityCode, nights: c.nights })));
@@ -241,16 +297,15 @@ export default function NewItineraryPage() {
         }}
       />
     </div>
-    </div>
   );
 }
 
 function Stepper2({ value, onChange, min = 0, max = 9 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
-    <div className="inline-flex items-center bg-surface rounded border border-border">
-      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="w-7 h-7 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30" disabled={value <= min}>−</button>
-      <span className="w-6 text-center font-mono text-sm tabular-nums">{value}</span>
-      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="w-7 h-7 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30" disabled={value >= max}>+</button>
+    <div className="inline-flex items-center bg-surface rounded-md border border-border overflow-hidden">
+      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="w-8 h-8 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30 font-bold" disabled={value <= min} aria-label="Decrease">−</button>
+      <span className="w-7 text-center font-mono text-[13px] font-bold tnum">{value}</span>
+      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="w-8 h-8 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30 font-bold" disabled={value >= max} aria-label="Increase">+</button>
     </div>
   );
 }

@@ -23,7 +23,7 @@ export function AdminSidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="lg:hidden sticky top-0 z-40 bg-crimson-900 text-white px-4 h-16 flex items-center justify-between border-b border-white/10">
+      <header className="lg:hidden sticky top-0 z-40 bg-crimson-700 text-white px-4 h-16 flex items-center justify-between border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-2">
           <img src="/brand/ggdmc-logo-white.svg" alt="Global Guides DMC" className="h-8 w-auto" />
           <span className="text-[10px] uppercase tracking-widest text-amber-300 font-bold ml-1">Admin</span>
@@ -36,7 +36,7 @@ export function AdminSidebar() {
       {open && <div onClick={() => setOpen(false)} className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />}
 
       <aside className={cn(
-        'bg-crimson-900 text-white w-[260px] flex flex-col',
+        'bg-crimson-700 text-white w-[260px] flex flex-col',
         'lg:sticky lg:top-0 lg:self-start lg:min-h-screen',
         'fixed inset-y-0 left-0 z-50 transition-transform lg:translate-x-0',
         open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',

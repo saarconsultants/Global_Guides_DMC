@@ -26,9 +26,9 @@ export default async function TeamSettingsPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
-        <Link href="/settings" className="text-[rgb(var(--text-secondary))] hover:text-navy-900">Settings</Link>
+        <Link href="/settings" className="text-[rgb(var(--text-secondary))] hover:text-ink">Settings</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
-        <span className="text-navy-900 font-medium">Team</span>
+        <span className="text-ink font-medium">Team</span>
       </div>
 
       <PageHeader
@@ -44,11 +44,11 @@ export default async function TeamSettingsPage() {
       {isOwner && (
         <Card>
           <CardContent className="pt-6 space-y-3">
-            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><MailPlus className="w-4 h-4 text-crimson-700" />Invite a team member</h2>
+            <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><MailPlus className="w-4 h-4 text-crimson-700" />Invite a team member</h2>
             <ActionForm action={createInviteAction} success="Invite created" resetOnSuccess className="grid sm:grid-cols-[1fr_180px_120px] gap-2">
               <div><Label>Email</Label><Input name="email" type="email" required placeholder="counsellor@youragency.com" /></div>
               <div><Label>Role</Label>
-                <select name="role" defaultValue="COUNSELLOR" className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                <select name="role" defaultValue="COUNSELLOR" className="control">
                   <option value="COUNSELLOR">Counsellor</option>
                   <option value="OPS">Ops</option>
                   <option value="AGENCY_OWNER">Co-owner</option>
@@ -62,7 +62,7 @@ export default async function TeamSettingsPage() {
       )}
 
       <section>
-        <h2 className="text-lg font-semibold text-navy-900 mb-3">Pending invites ({invites.length})</h2>
+        <h2 className="text-lg font-semibold text-ink mb-3">Pending invites ({invites.length})</h2>
         <Card><CardContent className="pt-2">
           {invites.length === 0 ? (
             <EmptyState dense icon={<MailPlus className="w-7 h-7" />} title="No pending invites" body="When you invite a teammate, the link appears here so you can copy and share it." />
@@ -96,7 +96,7 @@ export default async function TeamSettingsPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-navy-900 mb-3">Team ({users.length})</h2>
+        <h2 className="text-lg font-semibold text-ink mb-3">Team ({users.length})</h2>
         <Card><CardContent className="pt-2">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

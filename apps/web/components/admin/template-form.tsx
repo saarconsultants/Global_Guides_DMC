@@ -88,7 +88,7 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
       <div className="space-y-6">
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <h2 className="text-lg font-semibold text-navy-900">Basics</h2>
+            <h2 className="text-lg font-semibold text-ink">Basics</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <Label required>Title</Label>
@@ -104,13 +104,13 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
               </div>
               <div>
                 <Label required>Region</Label>
-                <select name="region" value={region} onChange={(e) => setRegion(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                <select name="region" value={region} onChange={(e) => setRegion(e.target.value)} className="control">
                   {REGIONS.map((r) => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
                 </select>
               </div>
               <div>
                 <Label required>Category</Label>
-                <select name="category" value={category} onChange={(e) => setCategory(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+                <select name="category" value={category} onChange={(e) => setCategory(e.target.value)} className="control">
                   {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
@@ -133,7 +133,7 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
 
         <Card>
           <CardContent className="pt-6 space-y-3">
-            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-crimson-700" />Destinations</h2>
+            <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-crimson-700" />Destinations</h2>
             <p className="text-xs text-[rgb(var(--text-secondary))]">Add the cities this trip visits and the nights in each — just like the itinerary builder. <span className="font-medium">LIVE</span> cities have real hotel &amp; activity inventory.</p>
             <input type="hidden" name="destinations" value={destinationsJson} />
 
@@ -180,7 +180,7 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
         <Card>
           <CardContent className="pt-6 space-y-3">
             <details>
-              <summary className="cursor-pointer text-sm font-semibold text-navy-900">Advanced JSON (daysJson, visaJson, insuranceJson)</summary>
+              <summary className="cursor-pointer text-sm font-semibold text-ink">Advanced JSON (daysJson, visaJson, insuranceJson)</summary>
               <div className="mt-3 space-y-3">
                 <div><Label>Days</Label><textarea name="daysJson" value={daysJson} onChange={(e) => setDaysJson(e.target.value)} className="h-24 w-full rounded-sm border border-border bg-surface-2 px-3 py-2 text-xs font-mono" /></div>
                 <div><Label>Visa</Label><textarea name="visaJson" value={visaJson} onChange={(e) => setVisaJson(e.target.value)} className="h-16 w-full rounded-sm border border-border bg-surface-2 px-3 py-2 text-xs font-mono" /></div>
@@ -210,7 +210,7 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
       </div>
 
       <aside className="space-y-3 sticky top-24 self-start">
-        <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Card preview</p>
+        <p className="label">Card preview</p>
         <Card className="lift overflow-hidden">
           <div className="relative h-32 bg-gradient-to-br from-crimson-500 to-crimson-900">
             {hero ? <img src={hero} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
@@ -224,13 +224,13 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
             </div>
           </div>
           <CardContent className="pt-4">
-            <p className="font-semibold text-navy-900">{title || 'Template title'}</p>
+            <p className="font-semibold text-ink">{title || 'Template title'}</p>
             <p className="text-xs text-[rgb(var(--text-secondary))] mt-1 line-clamp-2">{blurb || 'Your one-line pitch will appear here.'}</p>
             <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">{parsedDestinations.map((d) => d.cityName).filter(Boolean).join(' → ') || '—'}</p>
             <div className="mt-3 pt-3 border-t border-border-subtle flex items-center justify-between">
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">From</p>
-                <p className="font-mono font-bold text-navy-900">₹ {Number(priceRupees).toLocaleString('en-IN')}</p>
+                <p className="label">From</p>
+                <p className="money text-ink">₹ {Number(priceRupees).toLocaleString('en-IN')}</p>
               </div>
               <span className="text-xs text-crimson-700 font-semibold inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />Use this</span>
             </div>

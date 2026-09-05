@@ -34,7 +34,7 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
   return (
     <Card>
       <CardContent className="pt-6 space-y-4">
-        <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
           <Calculator className="w-4 h-4 text-crimson-700" />Live margin calculator
         </h2>
         <p className="text-xs text-[rgb(var(--text-secondary))]">
@@ -47,23 +47,23 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
           </div>
           <div>
             <Label>Product type</Label>
-            <select value={product} onChange={(e) => setProduct(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+            <select value={product} onChange={(e) => setProduct(e.target.value)} className="control">
               {PRODUCTS.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
             </select>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 rounded-md border border-border-subtle bg-surface-2 p-4 text-center">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Markup applied</p>
-            <p className="font-mono text-lg font-bold text-navy-900 mt-1">{effectivePct}%</p>
+            <p className="label">Markup applied</p>
+            <p className="font-mono text-lg font-bold text-ink mt-1">{effectivePct}%</p>
             <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-0.5">{overrides[product] != null ? 'override' : 'default'}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Your margin</p>
+            <p className="label">Your margin</p>
             <p className="font-mono text-lg font-bold text-success-500 mt-1">{fmt(margin)}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Customer total</p>
+            <p className="label">Customer total</p>
             <p className="font-mono text-lg font-bold text-crimson-900 mt-1">{fmt(customerTotal)}</p>
           </div>
         </div>

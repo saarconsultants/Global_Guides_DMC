@@ -107,7 +107,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
           {alternatives.map((t) => (
             <div key={t.id} className="p-4 rounded-md border border-border-subtle bg-surface flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-navy-900 inline-flex items-center gap-2">
+                <p className="font-semibold text-ink inline-flex items-center gap-2">
                   <Car className="w-4 h-4 text-crimson-700" />
                   {vehicleLabel(t.vehicle)}
                   {t.id.startsWith('TR-') && <Pill variant="success">LIVE</Pill>}
@@ -115,7 +115,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
                 <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Up to {t.bagsAllowed} bags · {kind === 'arrival' ? 'Airport pickup' : 'Hotel pickup'} on {pickupDate}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-mono font-semibold text-navy-900">{money(t.pricePaise)}</p>
+                <p className="font-mono font-semibold text-ink">{money(t.pricePaise)}</p>
                 <Button size="sm" className="mt-2" onClick={() => { onPick(t); onClose(); }}>Select</Button>
               </div>
             </div>

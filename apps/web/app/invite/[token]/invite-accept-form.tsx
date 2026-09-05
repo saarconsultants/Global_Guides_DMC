@@ -28,7 +28,7 @@ export function InviteAcceptForm({ token, email, agencyName, role }: { token: st
   return (
     <form onSubmit={submit} className="mt-6 space-y-4">
       <div className="rounded-md bg-surface-2 px-3 py-2 text-xs text-[rgb(var(--text-secondary))]">
-        Joining <strong className="text-navy-900">{agencyName}</strong> as <strong className="text-navy-900">{role.toLowerCase()}</strong>
+        Joining <strong className="text-ink">{agencyName}</strong> as <strong className="text-ink">{role.toLowerCase()}</strong>
       </div>
       <div><Label>Email</Label><Input value={email} readOnly className="font-mono text-sm bg-surface-2" /></div>
       <div><Label required>Your name</Label><Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Priya Sharma" /></div>

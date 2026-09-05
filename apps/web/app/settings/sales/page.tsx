@@ -35,9 +35,9 @@ export default async function SalesSettingsPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
-        <Link href="/settings" className="text-[rgb(var(--text-secondary))] hover:text-navy-900">Settings</Link>
+        <Link href="/settings" className="text-[rgb(var(--text-secondary))] hover:text-ink">Settings</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
-        <span className="text-navy-900 font-medium">Sales &amp; markup</span>
+        <span className="text-ink font-medium">Sales &amp; markup</span>
       </div>
       <PageHeader
         eyebrow="Settings"
@@ -48,10 +48,10 @@ export default async function SalesSettingsPage() {
       <ActionForm action={saveSalesSettingsAction} success="Sales settings saved" className="space-y-6">
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><Globe className="w-4 h-4 text-crimson-700" />Display currency</h2>
+            <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><Globe className="w-4 h-4 text-crimson-700" />Display currency</h2>
             <p className="text-xs text-[rgb(var(--text-secondary))]">Quote your customers in this currency. Live exchange rates convert supplier costs automatically — your internal books stay in INR.</p>
             <div className="max-w-xs">
-              <select name="currency" defaultValue={agency.currency ?? 'INR'} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+              <select name="currency" defaultValue={agency.currency ?? 'INR'} className="control">
                 {SUPPORTED_CURRENCIES.map((c) => (
                   <option key={c.code} value={c.code}>{c.code} · {c.name} ({c.symbol})</option>
                 ))}
@@ -62,7 +62,7 @@ export default async function SalesSettingsPage() {
 
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h2>
+            <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h2>
             <p className="text-xs text-[rgb(var(--text-secondary))]">Applied across all products unless an override below kicks in.</p>
             <div className="flex items-center gap-3 max-w-xs">
               <Input name="markupPct" type="number" defaultValue={agency.markupPct} step={0.5} min={0} max={100} required />
@@ -74,7 +74,7 @@ export default async function SalesSettingsPage() {
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div>
-              <h2 className="text-lg font-semibold text-navy-900">Per-product overrides</h2>
+              <h2 className="text-lg font-semibold text-ink">Per-product overrides</h2>
               <p className="text-xs text-[rgb(var(--text-secondary))]">Leave a field empty to use the default markup for that product. Values are %. Suggested values shown as placeholders.</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -96,7 +96,7 @@ export default async function SalesSettingsPage() {
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div>
-              <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2"><CalendarRange className="w-4 h-4 text-crimson-700" />Destination &amp; season rules</h2>
+              <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><CalendarRange className="w-4 h-4 text-crimson-700" />Destination &amp; season rules</h2>
               <p className="text-xs text-[rgb(var(--text-secondary))]">Charge more (or less) for specific destinations or travel dates. The most specific matching rule wins; otherwise the default markup applies. Used automatically when you save a proposal.</p>
             </div>
             <MarkupRulesEditor initial={markupRules} defaultPct={agency.markupPct} />
@@ -107,7 +107,7 @@ export default async function SalesSettingsPage() {
 
         <Card>
           <CardContent className="pt-6 text-xs text-[rgb(var(--text-secondary))]">
-            <strong className="text-navy-900 block mb-1">How this works</strong>
+            <strong className="text-ink block mb-1">How this works</strong>
             <p>When you save a proposal, each line item (hotel, transfer, activity, etc.) is priced at supplier net cost plus the markup % that applies to it. The customer sees only the marked-up total. Your wallet is debited at net cost when the booking is confirmed.</p>
           </CardContent>
         </Card>

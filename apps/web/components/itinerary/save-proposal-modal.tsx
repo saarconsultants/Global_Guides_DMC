@@ -86,9 +86,9 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-border-subtle/40">
-              <div><p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Net cost</p><p className="font-mono text-sm text-navy-900">₹ {(netPaise / 100).toLocaleString('en-IN')}</p></div>
-              <div><p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Margin</p><p className="font-mono text-sm text-success-500">₹ {(margin / 100).toLocaleString('en-IN')}</p></div>
-              <div><p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Customer total</p><p className="font-mono text-sm font-bold text-crimson-900">₹ {(previewTotal / 100).toLocaleString('en-IN')}</p></div>
+              <div><p className="label">Net cost</p><p className="font-mono text-sm text-ink">₹ {(netPaise / 100).toLocaleString('en-IN')}</p></div>
+              <div><p className="label">Margin</p><p className="font-mono text-sm text-success-500">₹ {(margin / 100).toLocaleString('en-IN')}</p></div>
+              <div><p className="label">Customer total</p><p className="font-mono text-sm font-bold text-crimson-900">₹ {(previewTotal / 100).toLocaleString('en-IN')}</p></div>
             </div>
             {Math.abs(previewTotal - currentTotalPaise) > 100 && (
               <p className="text-[11px] text-warning-500">Heads up &mdash; this differs from the price shown in the builder ({(currentTotalPaise / 100).toLocaleString('en-IN')}). The saved proposal will use the customer total above.</p>

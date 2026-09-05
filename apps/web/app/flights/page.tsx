@@ -3,7 +3,8 @@ import { FlightResults } from '@/components/flights/results';
 import { searchFlights } from '@gg/tripjack';
 import { Pill } from '@/components/ui/pill';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ArrowRight } from 'lucide-react';
+import { RouteCode } from '@/components/ui/pass';
 import { PageHeader } from '@/components/ui/page-header';
 import { promoSrc } from '@/lib/promos';
 
@@ -63,6 +64,28 @@ export default async function FlightsPage({ searchParams }: PageProps) {
           </>
         )}
 
+        {!hasQuery && !sp.returnTo && (
+          <section className="pt-6">
+            <div className="flex items-end justify-between mb-4">
+              <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Popular routes this season</h2>
+              <p className="text-sm text-[rgb(var(--text-secondary))]">One click loads the fare search</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {POPULAR.map((r) => (
+                <Link key={r.from + r.to} href={`/flights?${new URLSearchParams({ from: r.from, to: r.to, date: nextMonthIso(), adults: '2', cabin: 'ECONOMY' })}` as any}
+                  className="group flex items-center gap-4 rounded-lg bg-surface border border-border-subtle shadow-sm px-4 py-3.5 lift">
+                  <RouteCode codes={[r.from, r.to]} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[14px] font-bold text-ink truncate">{r.fromName} → {r.toName}</span>
+                    <span className="block text-[12px] text-[rgb(var(--text-secondary))]">{r.note}</span>
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-crimson-700 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {results && !('error' in results) && (
           <div className="flex justify-end">
             <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
@@ -72,38 +95,38 @@ export default async function FlightsPage({ searchParams }: PageProps) {
         )}
 
         {results && 'error' in results && (
-        <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm space-y-2">
-          <div className="font-medium">{results.error}</div>
-          {String(results.error).includes('rate-limited') && (
-            <div className="text-xs text-danger-500/80">
-              Cache will deduplicate further identical searches for 90s, so a quick retry won't add load.
+          <div className="rounded-lg bg-surface border border-border-subtle shadow-sm p-5 flex flex-col md:flex-row md:items-center gap-4" role="alert">
+            <span className="w-11 h-11 rounded-md bg-danger-100 text-danger-500 inline-flex items-center justify-center shrink-0"><RefreshCw className="w-5 h-5" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-bold text-ink">Live fares are unavailable right now</p>
+              <p className="text-[13px] text-[rgb(var(--text-secondary))] mt-0.5">The fare supplier did not answer this search. Nothing was charged. {String(results.error).includes('rate-limited') ? 'Identical searches are deduplicated for 90 seconds, so a quick retry will not add load.' : 'Try again in a moment, or adjust the route or date.'}</p>
+              <details className="mt-2"><summary className="cursor-pointer text-[12px] font-bold text-navy-500 hover:text-ink select-none">Technical detail</summary><pre className="mt-1.5 text-[11px] font-mono text-[rgb(var(--text-secondary))] whitespace-pre-wrap break-all bg-surface-2 rounded-md p-2.5 border border-border-subtle">{String(results.error)}</pre></details>
             </div>
-          )}
-          {(results as any).upstream && (
-            <Link
-              href={`/flights?${new URLSearchParams({ from: sp.from ?? '', to: sp.to ?? '', date: sp.date ?? '', adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', ...(sp.directOnly ? { directOnly: sp.directOnly } : {}), ...(sp.rdate ? { rdate: sp.rdate } : {}), ...(sp.returnTo ? { returnTo: sp.returnTo } : {}), ...(sp.leg ? { leg: sp.leg } : {}) }).toString()}` as any}
-              className="inline-flex items-center gap-1.5 rounded-md border border-danger-500/40 bg-surface px-3 h-8 text-xs font-semibold text-danger-500 hover:bg-danger-100 transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />Try again
-            </Link>
-          )}
-        </div>
-      )}
+            {(results as any).upstream && (
+              <Link
+                href={`/flights?${new URLSearchParams({ from: sp.from ?? '', to: sp.to ?? '', date: sp.date ?? '', adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', ...(sp.directOnly ? { directOnly: sp.directOnly } : {}), ...(sp.rdate ? { rdate: sp.rdate } : {}), ...(sp.returnTo ? { returnTo: sp.returnTo } : {}), ...(sp.leg ? { leg: sp.leg } : {}) }).toString()}` as any}
+                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-crimson-700 text-white px-4 h-10 text-sm font-bold hover:bg-crimson-900 transition-colors shrink-0"
+              >
+                <RefreshCw className="w-4 h-4" />Try again
+              </Link>
+            )}
+          </div>
+        )}
 
       {results && !('error' in results) && (
         <div className="space-y-3">
-          {isRoundTrip && <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2">Outbound <span className="text-sm font-normal text-[rgb(var(--text-secondary))]">{sp.from?.toUpperCase()} → {sp.to?.toUpperCase()} · {sp.date}</span></h2>}
+          {isRoundTrip && <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3">Outbound <RouteCode codes={[sp.from!.toUpperCase(), sp.to!.toUpperCase()]} /><span className="text-sm font-medium text-[rgb(var(--text-secondary))] tnum">{sp.date}</span></h2>}
           <FlightResults result={results} returnTo={sp.returnTo} cabin={(sp.cabin as any) ?? 'ECONOMY'} leg={sp.leg} />
         </div>
       )}
 
       {isRoundTrip && returnResults && 'error' in returnResults && (
-        <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm">Return search failed: {returnResults.error}</div>
+        <div className="rounded-lg bg-surface border border-border-subtle shadow-sm p-4 text-sm text-ink" role="alert"><span className="font-bold">Return fares unavailable:</span> <span className="text-[rgb(var(--text-secondary))]">{returnResults.error}</span></div>
       )}
 
         {isRoundTrip && returnResults && !('error' in returnResults) && (
           <div className="space-y-3 pt-2">
-            <h2 className="text-lg font-semibold text-navy-900 inline-flex items-center gap-2">Return <span className="text-sm font-normal text-[rgb(var(--text-secondary))]">{sp.to?.toUpperCase()} → {sp.from?.toUpperCase()} · {sp.rdate}</span></h2>
+            <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3">Return <RouteCode codes={[sp.to!.toUpperCase(), sp.from!.toUpperCase()]} /><span className="text-sm font-medium text-[rgb(var(--text-secondary))] tnum">{sp.rdate}</span></h2>
             <FlightResults result={returnResults} cabin={(sp.cabin as any) ?? 'ECONOMY'} />
           </div>
         )}
@@ -111,6 +134,15 @@ export default async function FlightsPage({ searchParams }: PageProps) {
     </div>
   );
 }
+
+const POPULAR = [
+  { from: 'DEL', to: 'DXB', fromName: 'New Delhi', toName: 'Dubai', note: 'Non-stop · 3h 45m' },
+  { from: 'BOM', to: 'DXB', fromName: 'Mumbai', toName: 'Dubai', note: 'Non-stop · 3h 15m' },
+  { from: 'DEL', to: 'BKK', fromName: 'New Delhi', toName: 'Bangkok', note: 'Non-stop · 4h 20m' },
+  { from: 'DEL', to: 'SIN', fromName: 'New Delhi', toName: 'Singapore', note: 'Non-stop · 5h 40m' },
+  { from: 'DEL', to: 'CDG', fromName: 'New Delhi', toName: 'Paris', note: 'Non-stop · 9h 10m' },
+  { from: 'BOM', to: 'MLE', fromName: 'Mumbai', toName: 'Maldives', note: 'Non-stop · 2h 45m' },
+];
 
 function nextMonthIso() {
   const d = new Date();

@@ -155,7 +155,7 @@ function DestinationPicker({ codes, onChange }: { codes: string[]; onChange: (co
               className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-surface-2">
               <MapPin className="w-4 h-4 text-[rgb(var(--text-tertiary))] flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-navy-900 truncate">{c.name}</p>
+                <p className="text-sm font-medium text-ink truncate">{c.name}</p>
                 <p className="text-xs text-[rgb(var(--text-secondary))] truncate">{c.country}</p>
               </div>
             </button>

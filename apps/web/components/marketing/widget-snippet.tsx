@@ -24,7 +24,7 @@ export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }
             {copied === 'iframe' ? <><Check className="w-3 h-3" />Copied</> : <><Copy className="w-3 h-3" />Copy</>}
           </button>
         </div>
-        <pre className="text-xs font-mono bg-surface-2 border border-border-subtle rounded-md p-3 overflow-x-auto whitespace-pre-wrap break-all text-navy-900">{iframe}</pre>
+        <pre className="text-xs font-mono bg-surface-2 border border-border-subtle rounded-md p-3 overflow-x-auto whitespace-pre-wrap break-all text-ink">{iframe}</pre>
       </div>
 
       <div>
@@ -34,7 +34,7 @@ export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }
             {copied === 'link' ? <><Check className="w-3 h-3" />Copied</> : <><Copy className="w-3 h-3" />Copy</>}
           </button>
         </div>
-        <pre className="text-xs font-mono bg-surface-2 border border-border-subtle rounded-md p-3 overflow-x-auto text-navy-900">{link}</pre>
+        <pre className="text-xs font-mono bg-surface-2 border border-border-subtle rounded-md p-3 overflow-x-auto text-ink">{link}</pre>
       </div>
 
       <div className="flex justify-end">

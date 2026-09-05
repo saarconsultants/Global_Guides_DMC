@@ -89,12 +89,12 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   return (
     <div className="bg-canvas min-h-screen">
       {/* sticky stepper bar */}
-      <div className="sticky top-16 lg:top-[92px] z-20 bg-canvas border-b border-border-subtle">
+      <div className="sticky top-16 z-20 bg-canvas/95 backdrop-blur border-b border-border-subtle">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4">
           <Stepper step={2} />
           <div className="text-right">
-            <p className="text-xs text-[rgb(var(--text-secondary))]">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room · {adults} adult{adults !== 1 ? 's' : ''}</p>
-            <p className="font-mono font-bold text-navy-900">{money(itinerary.pricePaise)}</p>
+            <p className="text-[12px] text-[rgb(var(--text-secondary))] tnum">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room · {adults} adult{adults !== 1 ? 's' : ''}</p>
+            <p className="money text-[18px] text-ink leading-tight">{money(itinerary.pricePaise)}</p>
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         <div className="space-y-8">
           {/* Flights */}
           <section id="section-flights">
-            <h2 className="text-xl font-semibold text-navy-900 mb-3 flex items-center gap-2"><Plane className="w-4 h-4 text-crimson-700" />Flights</h2>
+            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><Plane className="w-4 h-4 text-crimson-700" />Flights</h2>
             <Card>
               <CardContent className="pt-5">
                 {(() => {
@@ -128,7 +128,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                   if (!itinerary.flights) {
                     return (
                       <>
-                        <p className="font-semibold text-navy-900 text-sm mb-1">Add flights to my trip — {itinerary.intake.leavingFromName} to {firstDest?.cityName}</p>
+                        <p className="font-semibold text-ink text-sm mb-1">Add flights to my trip — {itinerary.intake.leavingFromName} to {firstDest?.cityName}</p>
                         <p className="text-crimson-700 text-sm mb-3">No flight included yet{!fromIATA && <span className="ml-1 text-[rgb(var(--text-secondary))]">(we'll let you type the origin airport on the next page)</span>}</p>
                         <Link href={outboundSearchHref as any}>
                           <Button className="gap-1.5"><Plane className="w-4 h-4" />Add outbound flight</Button>
@@ -140,7 +140,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                   return (
                     <div className="space-y-4">
                       <div>
-                        <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-2">Outbound · {fromIATA || itinerary.intake.leavingFromName} → {firstDest?.cityName}</p>
+                        <p className="label mb-2">Outbound · {fromIATA || itinerary.intake.leavingFromName} → {firstDest?.cityName}</p>
                         <SelectedFlightCard
                           flight={itinerary.flights}
                           searchHref={outboundSearchHref}
@@ -150,7 +150,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
                       {itinerary.flights.return ? (
                         <div className="pt-4 border-t border-border-subtle">
-                          <p className="text-[10px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold mb-2">Return · {lastDest?.cityName} → {itinerary.intake.leavingFromName}</p>
+                          <p className="label mb-2">Return · {lastDest?.cityName} → {itinerary.intake.leavingFromName}</p>
                           <SelectedFlightCard
                             flight={{ ...itinerary.flights.return }}
                             searchHref={returnSearchHref}
@@ -160,7 +160,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                       ) : (
                         <div className="pt-4 border-t border-border-subtle">
                           <p className="text-sm text-[rgb(var(--text-secondary))] mb-2">
-                            <span className="font-semibold text-navy-900">Return flight not added yet</span> — {lastDest?.cityName} → {itinerary.intake.leavingFromName} on {new Date(returnDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.
+                            <span className="font-semibold text-ink">Return flight not added yet</span> — {lastDest?.cityName} → {itinerary.intake.leavingFromName} on {new Date(returnDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.
                           </p>
                           <Link href={returnSearchHref as any}>
                             <Button variant="secondary" className="gap-1.5"><Plane className="w-4 h-4 -scale-x-100" />Add return flight</Button>
@@ -194,8 +194,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
           {/* Day-by-day */}
           <section>
-            <h2 className="text-xl font-semibold text-navy-900 mb-3">Day by day</h2>
-            <div className="space-y-4 stagger">
+            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3">Day by day</h2>
+            <div className="space-y-4">
               {itinerary.days.map((d) => {
                 const hotel = itinerary.destinations.find((x) => x.cityCode === d.cityCode)?.stay?.hotel;
                 const overnight = d.overnightAtHotelId && hotel ? hotel.name : undefined;
@@ -237,13 +237,13 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
           {/* Visa */}
           <section>
-            <h2 className="text-xl font-semibold text-navy-900 mb-3 flex items-center gap-2"><FileText className="w-4 h-4 text-crimson-700" />Visa</h2>
+            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><FileText className="w-4 h-4 text-crimson-700" />Visa</h2>
             <Card>
               <CardContent className="pt-5 space-y-3">
                 {itinerary.visa.map((v) => (
                   <div key={v.countryCode} className="flex items-center justify-between gap-4 py-2">
                     <div>
-                      <p className="text-sm font-medium text-navy-900">{v.description}</p>
+                      <p className="text-sm font-medium text-ink">{v.description}</p>
                       <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{v.included ? 'Included' : 'Not Included'}</p>
                     </div>
                     <Button size="sm" variant={v.included ? 'secondary' : 'outline'} onClick={() => toggleVisa(itinerary.id, v.countryCode, !v.included)}>
@@ -258,11 +258,11 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
           {/* Insurance */}
           <section id="section-ins">
-            <h2 className="text-xl font-semibold text-navy-900 mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-crimson-700" />Travel Insurance</h2>
+            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-crimson-700" />Travel Insurance</h2>
             <Card>
               <CardContent className="pt-5 flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-navy-900">{itinerary.insurance.description}</p>
+                  <p className="text-sm font-medium text-ink">{itinerary.insurance.description}</p>
                   <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? `Included — ${money(itinerary.insurance.pricePaise)}` : 'Not Included'}</p>
                 </div>
                 <Button size="sm" variant={itinerary.insurance.included ? 'secondary' : 'outline'} onClick={() => toggleInsurance(itinerary.id, !itinerary.insurance.included)}>
@@ -274,7 +274,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         </div>
 
         {/* Sticky rails */}
-        <aside id="section-price" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[170px] self-start">
+        <aside id="section-price" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[132px] self-start">
           <PriceRail itinerary={itinerary} onSave={() => setSaveOpen(true)} />
           <TripSummaryRail itinerary={itinerary} />
         </aside>
@@ -327,7 +327,7 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Pill variant="success" className="inline-flex items-center gap-1.5"><Check className="w-3 h-3" />Flight attached</Pill>
-        <p className="font-mono text-lg font-bold text-navy-900">{money(flight.totalPaise)}</p>
+        <p className="font-mono text-lg font-bold text-ink">{money(flight.totalPaise)}</p>
       </div>
       <div className="rounded-md border border-border-subtle bg-surface-2 p-4">
         <div className="flex items-center gap-3 mb-3">
@@ -335,20 +335,20 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
             <Plane className="w-4 h-4" />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-navy-900 text-sm">{first.airlineName}</p>
+            <p className="font-semibold text-ink text-sm">{first.airlineName}</p>
             <p className="text-xs text-[rgb(var(--text-secondary))] font-mono">{flight.segments.map((s) => `${s.airlineCode} ${s.flightNumber}`).join(' · ')} · {flight.cabin}</p>
           </div>
           <Pill variant={stops === 0 ? 'success' : 'neutral'}>{stops === 0 ? 'Non-stop' : `${stops} stop${stops > 1 ? 's' : ''}`}</Pill>
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-sm">
           <div>
-            <p className="text-xl font-bold text-navy-900 font-mono">{depT}</p>
+            <p className="text-xl font-bold text-ink font-mono">{depT}</p>
             <p className="text-xs font-semibold text-navy-700">{first.fromIATA}</p>
             <p className="text-[10px] text-[rgb(var(--text-secondary))]">{depD}</p>
           </div>
           <div className="text-center text-xs text-[rgb(var(--text-secondary))]">→</div>
           <div className="text-right">
-            <p className="text-xl font-bold text-navy-900 font-mono">{arrT}</p>
+            <p className="text-xl font-bold text-ink font-mono">{arrT}</p>
             <p className="text-xs font-semibold text-navy-700">{last.toIATA}</p>
             <p className="text-[10px] text-[rgb(var(--text-secondary))]">arrival</p>
           </div>

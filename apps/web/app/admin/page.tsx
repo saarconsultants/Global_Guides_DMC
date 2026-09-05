@@ -40,7 +40,7 @@ export default async function AdminOverview() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-navy-900 mb-3">Latest proposals across all agencies</h2>
+        <h2 className="text-xl font-semibold text-ink mb-3">Latest proposals across all agencies</h2>
         <Card>
           <CardContent className="pt-2">
             {recent.length === 0 ? (

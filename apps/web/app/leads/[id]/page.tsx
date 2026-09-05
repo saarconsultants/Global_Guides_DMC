@@ -63,7 +63,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
-      <Link href="/leads" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-navy-900"><ArrowLeft className="w-4 h-4" />Back to leads</Link>
+      <Link href="/leads" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-ink"><ArrowLeft className="w-4 h-4" />Back to leads</Link>
 
       <PageHeader
         eyebrow="Lead"
@@ -87,15 +87,15 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           {/* KPI strip */}
           <div className="grid gap-3 grid-cols-3 stagger">
             <Card className="lift"><CardContent className="pt-5">
-              <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Proposals</p>
-              <p className="mt-1 text-3xl font-bold text-navy-900">{lead.proposals.length}</p>
+              <p className="label">Proposals</p>
+              <p className="mt-1 text-3xl font-bold text-ink">{lead.proposals.length}</p>
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
-              <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Total quoted</p>
-              <p className="mt-1 text-2xl font-bold text-navy-900 font-mono tabular-nums">{fmt(BigInt(totalQuoted))}</p>
+              <p className="label">Total quoted</p>
+              <p className="mt-1 text-2xl font-bold text-ink money">{fmt(BigInt(totalQuoted))}</p>
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
-              <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Status</p>
+              <p className="label">Status</p>
               <p className="mt-1.5"><Pill variant={statusVariant[lead.status] ?? 'neutral'}>{lead.status}</Pill></p>
             </CardContent></Card>
           </div>
@@ -103,7 +103,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           {/* Trip request summary */}
           <Card>
             <CardContent className="pt-6 space-y-2">
-              <h2 className="text-lg font-semibold text-navy-900">Trip request</h2>
+              <h2 className="text-lg font-semibold text-ink">Trip request</h2>
               <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 <div><dt className="text-[rgb(var(--text-secondary))] text-xs uppercase tracking-widest font-bold">Destinations</dt><dd className="mt-0.5 font-mono">{lead.destinations || '—'}</dd></div>
                 <div><dt className="text-[rgb(var(--text-secondary))] text-xs uppercase tracking-widest font-bold">From</dt><dd className="mt-0.5">{lead.originCity ?? '—'}</dd></div>
@@ -118,7 +118,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
           {/* Proposals */}
           <section>
-            <h2 className="text-xl font-semibold text-navy-900 mb-3">Proposals ({lead.proposals.length})</h2>
+            <h2 className="text-xl font-semibold text-ink mb-3">Proposals ({lead.proposals.length})</h2>
             <Card><CardContent className="pt-2">
               {lead.proposals.length === 0 ? (
                 <EmptyState dense icon={<FileText className="w-7 h-7" />} title="No proposals yet" body="Build a trip and save it — it'll be linked to this lead." primary={{ label: 'Build a proposal', href: '/itinerary/new' }} />
@@ -151,7 +151,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         <aside className="space-y-4">
           <Card>
             <CardContent className="pt-6 space-y-3">
-              <h3 className="text-sm font-semibold text-navy-900">Reach the customer</h3>
+              <h3 className="text-sm font-semibold text-ink">Reach the customer</h3>
               <div className="space-y-2 text-sm">
                 {lead.customerEmail && (
                   <a href={`mailto:${lead.customerEmail}`} className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-navy-50 transition-colors">
@@ -181,12 +181,12 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           {/* Activity timeline */}
           <Card>
             <CardContent className="pt-6">
-              <h3 className="text-sm font-semibold text-navy-900 mb-3">Activity</h3>
+              <h3 className="text-sm font-semibold text-ink mb-3">Activity</h3>
               <ol className="relative border-l-2 border-crimson-500/20 pl-4 space-y-3">
                 {events.map((e, i) => (
                   <li key={i} className="relative">
                     <span className="absolute -left-[19px] top-1 w-3 h-3 rounded-full bg-crimson-700 border-2 border-canvas" />
-                    <p className="text-xs text-navy-900 font-medium">{e.title}</p>
+                    <p className="text-xs text-ink font-medium">{e.title}</p>
                     {e.sub && <p className="text-[11px] text-[rgb(var(--text-secondary))]">{e.sub}</p>}
                     <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-0.5">{e.at.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
                   </li>

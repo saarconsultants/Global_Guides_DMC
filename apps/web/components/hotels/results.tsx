@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { Input } from '@/components/ui/input';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Pass, PassMain, PassStub, Perforation } from '@/components/ui/pass';
 import { useMoney } from '@/components/providers/currency-provider';
 import type { Hotel } from '@/lib/itinerary/types';
-import { Star, Search } from 'lucide-react';
+import { Star, Search, Hotel as HotelIcon } from 'lucide-react';
 import Link from 'next/link';
 import { SelectHotelButton } from './select-hotel-button';
 import { HotelPhoto } from './hotel-photo';
@@ -15,16 +16,22 @@ interface Props {
   nights: number;
 }
 
+/** Photo slot when the supplier sent none: the property drawn as a ghost, not a grey box. */
+function PhotoGhost() {
+  return (
+    <div aria-hidden className="w-full h-full rounded-md bg-[linear-gradient(135deg,#F2F4F7,#E4E7EC)] flex flex-col items-center justify-center gap-1.5 text-navy-200">
+      <HotelIcon className="w-8 h-8" />
+      <span className="label text-navy-200">No photo</span>
+    </div>
+  );
+}
+
 export function HotelResults({ hotels, nights }: Props) {
   const money = useMoney();
   const [q, setQ] = useState('');
 
   if (!hotels.length) {
-    return (
-      <Card>
-        <CardContent className="py-16 text-center text-[rgb(var(--text-secondary))]">No hotels found for this city.</CardContent>
-      </Card>
-    );
+    return <EmptyState icon={<HotelIcon className="w-5 h-5" />} title="No rooms in this city for these dates" body="Try shifting the dates by a day, or widen the star and board filters." />;
   }
 
   const query = q.trim().toLowerCase();
@@ -37,86 +44,64 @@ export function HotelResults({ hotels, nights }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by hotel name or area…" className="pl-9" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by hotel name or area" className="pl-9" />
         </div>
-        <p className="text-sm text-[rgb(var(--text-secondary))]">{filtered.length}{query ? ` of ${hotels.length}` : ''} options · {nights} night{nights !== 1 ? 's' : ''}</p>
+        <p className="text-sm text-[rgb(var(--text-secondary))]"><span className="font-bold text-ink tnum">{filtered.length}</span>{query ? ` of ${hotels.length}` : ''} properties · <span className="tnum">{nights}</span> night{nights !== 1 ? 's' : ''}</p>
       </div>
       {filtered.length === 0 && (
-        <Card><CardContent className="py-10 text-center text-sm text-[rgb(var(--text-secondary))]">No hotels match “{q}”. <button onClick={() => setQ('')} className="text-crimson-700 hover:underline">Clear</button></CardContent></Card>
+        <EmptyState dense title={`Nothing matches “${q}”`} body="Try a shorter name or the neighbourhood." secondary={{ label: 'Clear filter', onClick: () => setQ('') }} />
       )}
       {filtered.map((h) => (
-        <Card key={h.id} className="lift">
-          <CardContent className="pt-5">
-            <div className="grid gap-4 md:grid-cols-[140px_1fr_auto]">
-              <HotelPhoto
-                thumb={h.thumb}
-                allImages={h.allImages}
-                hotelName={h.name}
-                className="w-[140px] h-[140px] rounded-md"
-                placeholder={<div className="w-[140px] h-[140px] rounded-md bg-gradient-to-br from-navy-500 to-navy-900 text-white/60 text-xs flex items-center justify-center">Hotel photo</div>}
-              />
-              <div>
-                <div className="flex items-center gap-1 text-gold-500">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-gold-500" />)}</div>
-                <h3 className="font-semibold text-navy-900 text-lg mt-0.5 inline-flex items-center gap-2">
-                  {h.id.startsWith('HB-') ? (
-                    <Link href={`/hotels/${h.id}` as any} className="hover:text-crimson-700 hover:underline underline-offset-2">{h.name}</Link>
-                  ) : (
-                    h.name
-                  )}
-                  {h.id.startsWith('HB-') && <Pill variant="success">LIVE</Pill>}
-                </h3>
-                <p className="text-xs text-[rgb(var(--text-secondary))]">{h.address}</p>
-                {h.rating && (
-                  <div className="mt-2 flex items-center gap-2 text-sm">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-crimson-900 text-white font-semibold text-xs">{h.rating.score}</span>
-                    <span className="text-[rgb(var(--text-secondary))] text-xs">{h.rating.label} · {h.rating.reviewCount} ratings</span>
-                  </div>
-                )}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {h.refundable && <Pill variant="success">Fully refundable</Pill>}
-                  <Pill variant="neutral">{h.mealPlan}</Pill>
-                  <Pill variant="neutral">{h.room.name}</Pill>
-                </div>
-              </div>
-              <div className="md:text-right md:border-l md:border-border-subtle md:pl-6">
-                <p className="text-xs text-[rgb(var(--text-secondary))]">from / night</p>
-                <p className="text-2xl font-bold text-navy-900 font-mono tabular-nums">{money(h.pricePerNightPaise)}</p>
-                <p className="text-xs text-[rgb(var(--text-secondary))]">Total: {money(h.pricePerNightPaise * nights)}</p>
-                <SelectHotelButton hotelName={h.name} />
-              </div>
+        <Pass key={h.id} className="lift">
+          <PassMain className="flex gap-4 lg:gap-5">
+            <div className="w-[128px] h-[128px] lg:w-[150px] lg:h-[150px] shrink-0 rounded-md overflow-hidden">
+              <HotelPhoto thumb={h.thumb} allImages={h.allImages} hotelName={h.name} className="w-full h-full rounded-md" placeholder={<PhotoGhost />} />
             </div>
-
-            {h.roomOptions && h.roomOptions.length > 1 && (
-              <details className="mt-3 group/rooms">
-                <summary className="cursor-pointer text-xs font-medium text-crimson-700 hover:underline select-none">
-                  View {h.roomOptions.length} room &amp; board options
-                </summary>
-                <div className="mt-2 overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="text-left text-[10px] uppercase tracking-wider text-[rgb(var(--text-secondary))] border-b border-border-subtle">
-                        <th className="py-1.5 pr-3 font-semibold">Room</th>
-                        <th className="py-1.5 pr-3 font-semibold">Board</th>
-                        <th className="py-1.5 pr-3 font-semibold">Cancellation</th>
-                        <th className="py-1.5 pr-3 font-semibold text-right">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {h.roomOptions.map((r, i) => (
-                        <tr key={i} className="border-b border-border-subtle/50">
-                          <td className="py-1.5 pr-3">{r.roomName}</td>
-                          <td className="py-1.5 pr-3">{r.board}</td>
-                          <td className="py-1.5 pr-3">{r.refundable ? <span className="text-success-500">Refundable</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}</td>
-                          <td className="py-1.5 pr-3 text-right font-mono">{money(r.totalPaise)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
+                {h.id.startsWith('HB-') && <Pill variant="live">Live</Pill>}
+              </div>
+              <h3 className="mt-1 text-[17px] font-bold text-ink tracking-[-0.01em] leading-tight">
+                {h.id.startsWith('HB-') ? <Link href={`/hotels/${h.id}` as any} className="hover:text-crimson-700">{h.name}</Link> : h.name}
+              </h3>
+              <p className="mt-0.5 text-[12.5px] text-[rgb(var(--text-secondary))] truncate">{h.address}</p>
+              {h.rating && (
+                <div className="mt-2 flex items-center gap-2 text-[13px]">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] bg-ink text-white font-bold text-[12px] tnum">{h.rating.score}</span>
+                  <span className="text-[rgb(var(--text-secondary))]">{h.rating.label} · <span className="tnum">{h.rating.reviewCount}</span> ratings</span>
                 </div>
-              </details>
-            )}
-          </CardContent>
-        </Card>
+              )}
+              <div className="mt-3 grid grid-cols-3 gap-3 max-w-md">
+                <div><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.mealPlan}</div></div>
+                <div><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.room.name}</div></div>
+                <div><div className="label">Cancellation</div><div className={`mt-0.5 text-[13px] font-bold truncate ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`}>{h.refundable ? 'Fully refundable' : 'Non-refundable'}</div></div>
+              </div>
+              {h.roomOptions && h.roomOptions.length > 1 && (
+                <details className="mt-3 group/rooms">
+                  <summary className="cursor-pointer text-[12.5px] font-bold text-crimson-700 hover:underline select-none">{h.roomOptions.length} room and board options</summary>
+                  <div className="mt-2 overflow-x-auto">
+                    <table className="gg-table text-[12.5px]">
+                      <thead><tr><th>Room</th><th>Board</th><th>Cancellation</th><th className="text-right">Total</th></tr></thead>
+                      <tbody>
+                        {h.roomOptions.map((r, i) => (
+                          <tr key={i}><td>{r.roomName}</td><td>{r.board}</td><td>{r.refundable ? <span className="text-success-600 font-semibold">Refundable</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}</td><td className="text-right money">{money(r.totalPaise)}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              )}
+            </div>
+          </PassMain>
+          <Perforation />
+          <PassStub>
+            <div className="label">Per night</div>
+            <div className="money text-[24px] text-ink leading-none">{money(h.pricePerNightPaise)}</div>
+            <div className="text-[12px] text-[rgb(var(--text-secondary))] tnum">{money(h.pricePerNightPaise * nights)} for {nights} night{nights !== 1 ? 's' : ''}</div>
+            <SelectHotelButton hotelName={h.name} />
+          </PassStub>
+        </Pass>
       ))}
     </div>
   );

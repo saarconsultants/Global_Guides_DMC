@@ -98,23 +98,23 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
           </CardContent>
         </Card>
         <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Entries</p>
-          <p className="font-mono text-3xl font-bold mt-1 text-navy-900">{filtered.length}</p>
+          <p className="label">Entries</p>
+          <p className="font-mono text-3xl font-bold mt-1 text-ink">{filtered.length}</p>
         </CardContent></Card>
         <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Avg per entry</p>
-          <p className="font-mono text-3xl font-bold mt-1 text-navy-900">{formatINR(filtered.length ? totalWindow / BigInt(filtered.length) : 0n)}</p>
+          <p className="label">Avg per entry</p>
+          <p className="font-mono text-3xl font-bold mt-1 text-ink">{formatINR(filtered.length ? totalWindow / BigInt(filtered.length) : 0n)}</p>
         </CardContent></Card>
         <Card className="lift"><CardContent className="pt-5">
-          <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Earning agencies</p>
-          <p className="font-mono text-3xl font-bold mt-1 text-navy-900">{byAgency.size}</p>
+          <p className="label">Earning agencies</p>
+          <p className="font-mono text-3xl font-bold mt-1 text-ink">{byAgency.size}</p>
         </CardContent></Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-navy-900 mb-3 inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-crimson-700" />Top earning agencies</h3>
+            <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-crimson-700" />Top earning agencies</h3>
             {topAgencies.length === 0 ? (
               <EmptyState dense title="No earnings yet" body="Commission entries appear here as agencies save proposals." />
             ) : (
@@ -124,7 +124,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                   return (
                     <li key={id}>
                       <div className="flex items-baseline justify-between text-sm mb-1">
-                        <Link href={`/admin/agencies/${id}` as any} className="font-medium text-navy-900 hover:text-crimson-700 truncate max-w-[60%]">{a.name}</Link>
+                        <Link href={`/admin/agencies/${id}` as any} className="font-medium text-ink hover:text-crimson-700 truncate max-w-[60%]">{a.name}</Link>
                         <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{formatINR(a.amount)} <span className="text-[rgb(var(--text-tertiary))]">· {a.count}</span></span>
                       </div>
                       <div className="h-1.5 rounded-full bg-surface-2 overflow-hidden"><div className="h-full bg-gradient-to-r from-crimson-700 to-amber-500" style={{ width: `${Math.max(2, pct)}%` }} /></div>
@@ -137,7 +137,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-navy-900 mb-3">Where it came from</h3>
+            <h3 className="text-sm font-semibold text-ink mb-3">Where it came from</h3>
             {topProducts.length === 0 ? (
               <EmptyState dense title="No breakdown yet" body="Commission by product type appears once you have entries." />
             ) : (
@@ -147,7 +147,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
                   return (
                     <li key={cat}>
                       <div className="flex items-baseline justify-between text-sm mb-1">
-                        <Link href={`/admin/revenue?days=${days}&product=${cat}` as any} className="font-medium text-navy-900 hover:text-crimson-700">{cat}</Link>
+                        <Link href={`/admin/revenue?days=${days}&product=${cat}` as any} className="font-medium text-ink hover:text-crimson-700">{cat}</Link>
                         <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{formatINR(amt)}</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-surface-2 overflow-hidden"><div className="h-full bg-amber-500" style={{ width: `${Math.max(2, pct)}%` }} /></div>
@@ -200,6 +200,6 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
 
 function FilterPill({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <Link href={href as any} className={`px-3 h-8 inline-flex items-center rounded-full text-xs font-medium border transition-colors cursor-pointer ${active ? 'bg-crimson-900 text-white border-crimson-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50'}`}>{label}</Link>
+    <Link href={href as any} className={`px-3 h-8 inline-flex items-center rounded-full text-xs font-medium border transition-colors cursor-pointer ${active ? 'bg-crimson-700 text-white border-crimson-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50'}`}>{label}</Link>
   );
 }

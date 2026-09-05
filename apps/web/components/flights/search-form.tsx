@@ -129,7 +129,7 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Pro
                   key={t}
                   type="button"
                   onClick={() => setRoundTrip(t === 'round')}
-                  className={`px-3 h-8 rounded-full text-xs font-medium border transition-colors ${active ? 'bg-crimson-900 text-white border-crimson-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50'}`}
+                  className={`px-3 h-8 rounded-full text-xs font-medium border transition-colors ${active ? 'bg-crimson-700 text-white border-crimson-900' : 'bg-surface text-navy-700 border-border hover:bg-navy-50'}`}
                 >
                   {t === 'round' ? 'Round-trip' : 'One-way'}
                 </button>
@@ -155,13 +155,13 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Pro
           )}
           <div>
             <Label>Adults</Label>
-            <select value={adults} onChange={(e) => setAdults(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+            <select value={adults} onChange={(e) => setAdults(e.target.value)} className="control">
               {[1,2,3,4,5,6,7,8,9].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
             <Label>Cabin</Label>
-            <select value={cabin} onChange={(e) => setCabin(e.target.value)} className="h-10 w-full rounded-sm border border-border bg-surface px-3 text-sm">
+            <select value={cabin} onChange={(e) => setCabin(e.target.value)} className="control">
               <option value="ECONOMY">Economy</option>
               <option value="PREMIUM_ECONOMY">Premium Economy</option>
               <option value="BUSINESS">Business</option>

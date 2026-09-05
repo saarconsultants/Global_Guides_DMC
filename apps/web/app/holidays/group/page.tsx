@@ -22,9 +22,9 @@ export default function GroupToursPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
-        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-navy-900">Holidays</Link>
+        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-ink">Holidays</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
-        <span className="text-navy-900 font-medium">Group tours</span>
+        <span className="text-ink font-medium">Group tours</span>
       </div>
       <PageHeader
         eyebrow="Group departures"
@@ -51,7 +51,7 @@ export default function GroupToursPage() {
                     <Pill variant={remaining < 5 ? 'warning' : 'success'}>{remaining} seats left</Pill>
                     <span className="font-mono text-[10px] text-[rgb(var(--text-secondary))]">{d.code}</span>
                   </div>
-                  <h3 className="text-base font-bold text-navy-900">{d.dest}</h3>
+                  <h3 className="text-base font-bold text-ink">{d.dest}</h3>
                   <div className="flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span>{d.date} · {d.nights} nights</span>

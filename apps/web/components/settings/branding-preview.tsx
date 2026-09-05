@@ -28,8 +28,8 @@ export function BrandingPreview({ agency }: Props) {
 
   return (
     <div className="space-y-3 sticky top-24">
-      <p className="text-[11px] uppercase tracking-widest text-[rgb(var(--text-secondary))] font-bold">Customer preview</p>
-      <div className="rounded-xl overflow-hidden shadow-lg border border-border-subtle bg-surface">
+      <p className="label">Customer preview</p>
+      <div className="rounded-lg overflow-hidden shadow-lg border border-border-subtle bg-surface">
         {/* Faux browser chrome */}
         <div className="bg-navy-50 px-3 py-2 flex items-center gap-1.5 border-b border-border-subtle">
           <span className="w-2.5 h-2.5 rounded-full bg-danger-500/60" />

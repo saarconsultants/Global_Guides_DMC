@@ -38,7 +38,7 @@ export default async function AdminCommissionsPage() {
               <ShieldAlert className="w-4 h-4" />
             </div>
             <div className="text-sm">
-              <p className="font-semibold text-navy-900">Platform commission ≠ agency markup</p>
+              <p className="font-semibold text-ink">Platform commission ≠ agency markup</p>
               <p className="text-[rgb(var(--text-secondary))] mt-1 leading-relaxed">
                 What you set here is the cut <strong>Global Guides</strong> earns from each agency's bookings — agencies cannot see or change this. Agencies set their own customer-facing <strong>markup</strong> in their <span className="font-mono text-xs">Settings → Sales &amp; markup</span> page, which is independent.
               </p>
@@ -52,7 +52,7 @@ export default async function AdminCommissionsPage() {
 
       <Card>
         <CardContent className="pt-6">
-          <h2 className="text-lg font-semibold text-navy-900 mb-1">Add a new rule</h2>
+          <h2 className="text-lg font-semibold text-ink mb-1">Add a new rule</h2>
           <p className="text-xs text-[rgb(var(--text-secondary))] mb-4">Pick a scope (platform or a single agency), a product type, then either a percent or a flat fee.</p>
           <RuleForm agencies={agencies} />
         </CardContent>
@@ -66,7 +66,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
     <section>
       <div className="flex items-baseline justify-between mb-3">
         <div>
-          <h2 className="text-xl font-semibold text-navy-900">{title}</h2>
+          <h2 className="text-xl font-semibold text-ink">{title}</h2>
           <p className="text-xs text-[rgb(var(--text-secondary))]">{subtitle}</p>
         </div>
         <span className="text-xs text-[rgb(var(--text-secondary))]">{rows.length} rule{rows.length !== 1 ? 's' : ''}</span>
@@ -170,12 +170,12 @@ function RuleForm({ agencies }: { agencies: any[] }) {
         <option value="">Platform-wide (default)</option>
         {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
       </select>
-      <select name="productType" className="h-10 rounded-sm border border-border bg-surface px-3 text-sm" defaultValue="HOTEL">
+      <select name="productType" className="control" defaultValue="HOTEL">
         {productTypes.map((p) => <option key={p}>{p}</option>)}
       </select>
       <Input name="percent" placeholder="% e.g. 5" type="number" step="0.1" />
       <Input name="flatPaise" placeholder="Flat (paise)" type="number" />
-      <select name="appliesTo" className="h-10 rounded-sm border border-border bg-surface px-3 text-sm" defaultValue="TOTAL">
+      <select name="appliesTo" className="control" defaultValue="TOTAL">
         {appliesToOpts.map((p) => <option key={p}>{p}</option>)}
       </select>
       <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="active" defaultChecked /> Active</label>

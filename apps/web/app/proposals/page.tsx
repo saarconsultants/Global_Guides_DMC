@@ -31,7 +31,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
   ]);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My proposals"
         description="Quotes you've prepared. Click a row to open it. Customer views update status automatically."
@@ -45,7 +45,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
               <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
             </div>
-            <select name="status" defaultValue={sp.status ?? ''} className="h-10 rounded-sm border border-border bg-surface px-3 text-sm">
+            <select name="status" defaultValue={sp.status ?? ''} className="control">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
             </select>
@@ -67,31 +67,31 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-[13.5px] tnum">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-wider text-crimson-700 font-bold border-b-[1.5px] border-crimson-100">
-                    <th className="py-3 pr-4 font-semibold">Proposal #</th>
-                    <th className="py-3 pr-4 font-semibold">Customer</th>
-                    <th className="py-3 pr-4 font-semibold">Trip</th>
-                    <th className="py-3 pr-4 font-semibold">Travel</th>
-                    <th className="py-3 pr-4 font-semibold">Created</th>
+                  <tr className="text-left label border-b border-border">
+                    <th className="py-3 pr-4 font-bold">Proposal #</th>
+                    <th className="py-3 pr-4 font-bold">Customer</th>
+                    <th className="py-3 pr-4 font-bold">Trip</th>
+                    <th className="py-3 pr-4 font-bold">Travel</th>
+                    <th className="py-3 pr-4 font-bold">Created</th>
                     <th className="py-3 pr-4 font-semibold text-right">Price</th>
-                    <th className="py-3 pr-4 font-semibold">Status</th>
-                    <th className="py-3 pr-4 font-semibold">Share</th>
+                    <th className="py-3 pr-4 font-bold">Status</th>
+                    <th className="py-3 pr-4 font-bold">Share</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((p) => (
-                    <tr key={p.id} className="border-b border-border-subtle/70 even:bg-surface-2/30 hover:bg-surface-2 transition-colors group">
-                      <td className="py-3 pr-4 font-mono text-xs">
+                    <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">
+                      <td className="py-3 pr-4 font-mono text-[12.5px] font-bold">
                         <Link href={`/itinerary/${p.id}/customize` as any} className="text-crimson-700 hover:underline">{p.code}</Link>
                         {(p as any).version > 1 && <span className="ml-1.5 text-[10px] text-[rgb(var(--text-tertiary))]">v{(p as any).version}</span>}
                       </td>
-                      <td className="py-3 pr-4">{p.lead?.customerName ?? '—'}</td>
-                      <td className="py-3 pr-4">{p.name}</td>
+                      <td className="py-3 pr-4 font-bold text-ink">{p.lead?.customerName ?? '—'}</td>
+                      <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{p.name}</td>
                       <td className="py-3 pr-4">{formatDateShort(p.travelDate)}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(p.createdAt)}</td>
-                      <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
+                      <td className="py-3 pr-4 money text-right">{fmt(p.pricePaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-3">

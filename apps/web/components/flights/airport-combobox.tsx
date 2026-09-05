@@ -81,7 +81,7 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
             >
               <Plane className="w-4 h-4 text-[rgb(var(--text-tertiary))] flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-navy-900 truncate">{a.city} <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">({a.iata})</span></p>
+                <p className="text-sm font-medium text-ink truncate">{a.city} <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">({a.iata})</span></p>
                 <p className="text-xs text-[rgb(var(--text-secondary))] truncate">{a.name} · {a.country}</p>
               </div>
             </button>

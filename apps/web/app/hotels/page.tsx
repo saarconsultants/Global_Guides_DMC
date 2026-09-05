@@ -6,6 +6,8 @@ import { searchHotels, isLive } from '@gg/hotelbeds';
 import { captureException } from '@/lib/observability';
 import type { Hotel } from '@/lib/itinerary/types';
 import { promoSrc } from '@/lib/promos';
+import Link from 'next/link';
+import { RouteCode } from '@/components/ui/pass';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,10 +113,35 @@ export default async function HotelsPage({ searchParams }: PageProps) {
           </div>
         )}
 
+        {!hasQuery && (
+          <section>
+            <div className="flex items-end justify-between mb-4">
+              <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Where are they staying?</h2>
+              <p className="text-sm text-[rgb(var(--text-secondary))]">Wholesale rates on 250k+ properties</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {HOTEL_CITIES.map((d) => {
+                const src = promoSrc(d.img);
+                return (
+                  <Link key={d.code} href={`/hotels?${new URLSearchParams({ city: d.code, checkin, checkout, adults, rooms: '1', children: '0' })}` as any} className="relative aspect-[4/5] rounded-lg overflow-hidden group bg-navy-900 lift">
+                    {src && <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
+                    <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                      <p className="font-extrabold text-[17px] leading-tight tracking-[-0.01em]">{d.city}</p>
+                      <p className="text-[12px] text-white/75">{d.country}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {hasQuery && !dateInvalid && (
           <>
             <div className="flex items-center justify-between gap-3 text-sm text-[rgb(var(--text-secondary))]">
-              <span>Hotels in <span className="font-semibold text-navy-900">{cityName}</span> · {checkin} → {checkout}{filteredOut > 0 && <span className="text-xs ml-2">({filteredOut} hidden by filters)</span>}</span>
+              <span>Hotels in <span className="font-bold text-ink">{cityName}</span> · <span className="tnum">{checkin} → {checkout}</span>{filteredOut > 0 && <span className="text-xs ml-2">({filteredOut} hidden by filters)</span>}</span>
               <Pill variant={badge.variant}>{badge.label}</Pill>
             </div>
             <HotelResults hotels={hotels} nights={nights} />
@@ -124,6 +151,15 @@ export default async function HotelsPage({ searchParams }: PageProps) {
     </div>
   );
 }
+
+const HOTEL_CITIES = [
+  { city: 'Paris', country: 'France', code: 'PAR', img: 'paris.jpg' },
+  { city: 'Dubai', country: 'UAE', code: 'DXB', img: 'dubai.jpg' },
+  { city: 'Bali', country: 'Indonesia', code: 'DPS', img: 'bali.jpg' },
+  { city: 'Singapore', country: 'Singapore', code: 'SIN', img: 'singapore.jpg' },
+  { city: 'Zurich', country: 'Switzerland', code: 'ZRH', img: 'alps.jpg' },
+  { city: 'Bangkok', country: 'Thailand', code: 'BKK', img: 'bangkok.jpg' },
+];
 
 function nextWeekIso(offset = 0) {
   const d = new Date(); d.setDate(d.getDate() + 7 + offset); return d.toISOString().slice(0, 10);
