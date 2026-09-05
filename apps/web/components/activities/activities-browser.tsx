@@ -8,9 +8,14 @@ import { useMoney } from '@/components/providers/currency-provider';
 import { Clock, MapPin, Tag, Ticket } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
 
+/**
+ * No supplier photo: the same ink plate the stay card uses, so the two
+ * fallbacks agree across the surface family.
+ */
 const ImgFallback = (
-  <div className="w-full h-full flex items-center justify-center bg-[linear-gradient(135deg,#F2F4F7,#E4E7EC)] text-navy-200">
-    <Ticket className="w-9 h-9" />
+  <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-ink text-white">
+    <Ticket className="w-7 h-7 text-amber-500" />
+    <span className="label text-white/50">Tour</span>
   </div>
 );
 
