@@ -117,7 +117,7 @@ export function HeroChip({ active, onClick, children }: { active?: boolean; onCl
 export function HeroDate({ value, min, onChange, label, sub }: { value: string; min?: string; onChange: (v: string) => void; label: string; sub?: string }) {
   const d = value ? new Date(value + 'T00:00:00') : null;
   return (
-    <div className="relative">
+    <div className="relative rounded-md -m-1 p-1 focus-within:ring-2 focus-within:ring-crimson-700/25 focus-within:bg-crimson-50/40 transition-colors">
       <div className="font-mono text-[19px] font-bold leading-none text-ink tnum">
         {d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—'}
       </div>

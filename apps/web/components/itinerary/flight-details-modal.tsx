@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plane } from 'lucide-react';
+import { Plane, Check } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -61,7 +61,7 @@ export function FlightDetailsModal({ open, onClose, kind, cityName, initial, pre
 
         {prefilled ? (
           <div className="rounded-md bg-success-500/10 border border-success-500/30 px-3 py-2 text-xs text-success-600">
-            ✓ Pre-filled from the flight you attached via Flights search. Edit if the customer is on a different flight.
+            <Check className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />Pre-filled from the flight you attached via Flights search. Edit if the customer is on a different flight.
           </div>
         ) : (
           <div className="rounded-md bg-surface-2 border border-border-subtle px-3 py-2 text-xs text-[rgb(var(--text-secondary))]">

@@ -121,7 +121,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                 )}
                 <p className="label">{d.nights} night{d.nights !== 1 ? 's' : ''} in</p>
                 <p className="text-lg font-bold text-ink">{d.cityName}</p>
-                <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">{d.stay.hotel.stars}★ {d.stay.hotel.name}</p>
+                <p className="text-sm text-[rgb(var(--text-secondary))] mt-1 inline-flex items-center gap-1.5"><span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-500" />)}</span>{d.stay.hotel.name}</p>
               </div>
             ))}
           </div>

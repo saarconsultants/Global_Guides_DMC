@@ -159,7 +159,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="px-4 pt-3.5 pb-3">
                       <h3 className="text-[16px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors truncate">{t.title}</h3>
-                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 min-w-0">
+                      <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5 min-w-0">
                         <div><div className="label">Nights</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{t.totalNights}</div></div>
                         <div><div className="label">Cities</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{dests.length}</div></div>
                         <div><div className="label">Style</div><div className="mt-1 font-bold text-[13px] truncate">{t.category.charAt(0) + t.category.slice(1).toLowerCase()}</div></div>

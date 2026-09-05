@@ -22,6 +22,39 @@ const TABS: Array<{ id: Tab; label: string; icon: React.ComponentType<{ classNam
   { id: 'ai', label: 'Full trip with AI', icon: Sparkles },
 ];
 
+/**
+ * FROM / TO cell: the pass's 32px code over the airport line, with the real
+ * combobox layered on top so typing, search and the keyboard still work.
+ * Declared at module scope — inside the component body it remounted on every
+ * render and dropped the combobox's own query and focus state.
+ */
+function CodeCell({ code, onPick, label, rotate }: { code: string; onPick: (v: string) => void; label: string; rotate?: boolean }) {
+  const a = airportByIata(code);
+  return (
+    <div className="relative">
+      <div className="font-mono text-[32px] font-bold leading-none tracking-[-0.02em] text-ink tnum">{code || '—'}</div>
+      <div className="mt-1.5 text-[12.5px] text-[rgb(var(--text-secondary))] truncate">{a ? `${a.city} · ${a.name}` : 'Pick an airport'}</div>
+      <div className="absolute inset-0 opacity-0 focus-within:opacity-100 focus-within:bg-surface transition-opacity">
+        <AirportCombobox bare label={label} value={code} onChange={onPick} placeholder="City or airport" iconRotate={rotate} />
+      </div>
+    </div>
+  );
+}
+
+/** Swap control, centred on the divider between the FROM and TO cells. */
+function SwapButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Swap origin and destination"
+      className="hidden lg:flex absolute z-20 left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-700 hover:bg-crimson-50 transition-colors"
+    >
+      <ArrowLeftRight className="w-3.5 h-3.5" />
+    </button>
+  );
+}
+
 /** The pass-shaped unified search on the agent home page. */
 export function DashboardSearch() {
   const router = useRouter();
@@ -53,21 +86,6 @@ export function DashboardSearch() {
     }
   }
 
-  // The pass's own FROM/TO cell: 34px code over the city name, with the real
-  // combobox sitting invisibly on top so search and keyboard still work.
-  function CodeCell({ code, onPick, label, rotate }: { code: string; onPick: (v: string) => void; label: string; rotate?: boolean }) {
-    const a = airportByIata(code);
-    return (
-      <div className="relative">
-        <div className="font-mono text-[32px] font-bold leading-none tracking-[-0.02em] text-ink tnum">{code || '—'}</div>
-        <div className="mt-1.5 text-[12.5px] text-[rgb(var(--text-secondary))] truncate">{a ? `${a.city} · ${a.name}` : 'Pick an airport'}</div>
-        <div className="absolute inset-0 opacity-0 focus-within:opacity-100 focus-within:bg-surface transition-opacity">
-          <AirportCombobox bare label={label} value={code} onChange={onPick} placeholder="City or airport" iconRotate={rotate} />
-        </div>
-      </div>
-    );
-  }
-
   const adultsCell = (
     <div className="relative">
       <div className="text-[19px] font-bold leading-none text-ink tnum">{adults} Adult{Number(adults) > 1 ? 's' : ''}</div>
@@ -97,11 +115,10 @@ export function DashboardSearch() {
         {tab === 'flights' && (
           <>
             <HeroCell eyebrow="From" grow><CodeCell code={from} onPick={setFrom} label="From" /></HeroCell>
-            <button type="button" onClick={() => { setFrom(to); setTo(from); }} aria-label="Swap origin and destination"
-              className="hidden lg:flex absolute z-10 left-[calc(24px+27%)] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-700 hover:bg-crimson-50">
-              <ArrowLeftRight className="w-3.5 h-3.5" />
-            </button>
-            <HeroCell eyebrow="To" grow><CodeCell code={to} onPick={setTo} label="To" rotate /></HeroCell>
+            <HeroCell eyebrow="To" grow>
+              <SwapButton onClick={() => { setFrom(to); setTo(from); }} />
+              <CodeCell code={to} onPick={setTo} label="To" rotate />
+            </HeroCell>
             <HeroCell eyebrow="Depart"><HeroDate value={date} min={iso(0)} onChange={setDate} label="Departure date" sub="One-way" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
             <HeroSubmit caption="Tripjack · live fares">Search fares</HeroSubmit>
