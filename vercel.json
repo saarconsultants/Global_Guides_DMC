@@ -3,6 +3,19 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["bom1"],
-  "git": { "deploymentEnabled": { "main": true } }
+  "regions": [
+    "bom1"
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "experimentalServices": {
+    "tripjack-proxy": {
+      "root": "services/tripjack-proxy",
+      "entrypoint": "src/index.ts",
+      "routePrefix": "/"
+    }
+  }
 }
