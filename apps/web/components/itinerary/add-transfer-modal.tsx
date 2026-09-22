@@ -18,6 +18,10 @@ interface Props {
   airportName?: string;
   hotelAtlasCode?: string;          // Hotelbeds hotel code from HB- prefix
   hotelName: string;
+  /** Supplier coordinates of the hotel — lets Leamigo quote this leg. */
+  hotel?: { address?: string; latitude?: number; longitude?: number };
+  /** HH:mm pickup, from the attached flight when known. */
+  pickupTime?: string;
   pickupDate: string;               // YYYY-MM-DD
   adults: number;
   children?: number;
@@ -26,7 +30,7 @@ interface Props {
 
 type Source = 'live' | 'mock' | 'loading';
 
-export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airportCode, airportName, hotelAtlasCode, hotelName, pickupDate, adults, children = 0, onPick }: Props) {
+export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airportCode, airportName, hotelAtlasCode, hotelName, hotel, pickupTime, pickupDate, adults, children = 0, onPick }: Props) {
   const money = useMoney();
   const [alternatives, setAlternatives] = useState<Transfer[]>([]);
   const [source, setSource] = useState<Source>('mock');
@@ -34,25 +38,20 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
   const requestId = useRef(0);
 
   useEffect(() => {
-    if (!open || !airportCode || !hotelAtlasCode) return;
+    const hasCoords = typeof hotel?.latitude === 'number' && typeof hotel?.longitude === 'number';
+    if (!open || !airportCode || (!hotelAtlasCode && !hasCoords)) return;
     const myReq = ++requestId.current;
     setSource('loading');
     setWarning(undefined);
 
-    const fromType = kind === 'arrival' ? 'IATA'  : 'ATLAS';
-    const fromCode = kind === 'arrival' ? airportCode : hotelAtlasCode;
-    const fromName = kind === 'arrival' ? airportName ?? airportCode : hotelName;
-    const toType   = kind === 'arrival' ? 'ATLAS' : 'IATA';
-    const toCode   = kind === 'arrival' ? hotelAtlasCode : airportCode;
-    const toName   = kind === 'arrival' ? hotelName : airportName ?? airportCode;
 
     fetch('/api/search-transfers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        fromType, fromCode, toType, toCode,
-        pickupDate, adults, children,
-        fromName, toName, kind,
+        kind, airportCode, airportName, hotelAtlasCode,
+        hotel: { name: hotelName, address: hotel?.address, latitude: hotel?.latitude, longitude: hotel?.longitude },
+        pickupDate, pickupTime, adults, children,
       }),
     })
       .then((res) => res.json())
@@ -74,7 +73,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
         setWarning(String(e?.message ?? e));
         setAlternatives([]);
       });
-  }, [open, kind, airportCode, hotelAtlasCode, pickupDate, adults, children, airportName, hotelName]);
+  }, [open, kind, airportCode, hotelAtlasCode, pickupDate, pickupTime, adults, children, airportName, hotelName, hotel?.latitude, hotel?.longitude, hotel?.address]);
 
   const verb = kind === 'arrival' ? 'Arrival transfer' : 'Departure transfer';
 
@@ -84,7 +83,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
         <p className="text-xs text-[rgb(var(--text-secondary))]">
           {kind === 'arrival' ? `${airportName ?? airportCode} → ${hotelName}` : `${hotelName} → ${airportName ?? airportCode}`}
         </p>
-        {source === 'live'   && <Pill variant="success">{alternatives.length} LIVE · Hotelbeds</Pill>}
+        {source === 'live'   && <Pill variant="success">{alternatives.length} live option{alternatives.length !== 1 ? 's' : ''}</Pill>}
         {source === 'mock'   && <Pill variant="warning">MOCK · no live options for this route</Pill>}
       </div>
 
@@ -96,7 +95,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
 
       {source === 'loading' ? (
         <div className="text-center py-12 text-sm text-[rgb(var(--text-secondary))]">
-          <Spinner size="sm" className="inline mr-2" /> Searching Hotelbeds transfers…
+          <Spinner size="sm" className="inline mr-2" /> Searching live transfers…
         </div>
       ) : alternatives.length === 0 ? (
         <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-8">
@@ -110,9 +109,11 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
                 <p className="font-semibold text-ink inline-flex items-center gap-2">
                   <Car className="w-4 h-4 text-crimson-700" />
                   {vehicleLabel(t.vehicle)}
-                  {t.id.startsWith('TR-') && <Pill variant="success">LIVE</Pill>}
+                  {t.id.startsWith('TR-') && <Pill variant="success">Live · Hotelbeds</Pill>}
+                  {t.id.startsWith('LM-') && <Pill variant="success">Live · Leamigo</Pill>}
                 </p>
-                <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Up to {t.bagsAllowed} bags · {kind === 'arrival' ? 'Airport pickup' : 'Hotel pickup'} on {pickupDate}</p>
+                {t.description && <p className="text-xs text-ink mt-1">{t.description}</p>}
+                <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Up to {t.bagsAllowed} bags · {kind === 'arrival' ? 'Airport pickup' : 'Hotel pickup'} on {pickupDate}{pickupTime ? ` at ${pickupTime}` : ''}</p>
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-mono font-semibold text-ink">{money(t.pricePaise)}</p>

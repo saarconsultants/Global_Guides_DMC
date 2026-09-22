@@ -119,6 +119,8 @@ interface HbHotel {
   destinationName?: string;
   zoneName?: string;
   address?: { content?: string };
+  latitude?: string;           // Hotelbeds sends coordinates as strings
+  longitude?: string;
   rooms?: HbRoom[];
   currency?: string;
   minRate?: string;
@@ -187,8 +189,17 @@ function normalizeHotels(res: HbAvailResponse, cityCode: string, rates: { eurInr
       rateKey: cheapest?.rateKey,
       currency,
       roomOptions: roomOptions.slice(0, 20),
+      ...coords(h.latitude, h.longitude),
     };
   });
+}
+
+// Supplier coordinates, kept only when both parse to a valid point.
+function coords(lat?: string, lng?: string): { latitude?: number; longitude?: number } {
+  const la = lat === undefined ? NaN : parseFloat(lat);
+  const lo = lng === undefined ? NaN : parseFloat(lng);
+  if (!Number.isFinite(la) || !Number.isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180 || (la === 0 && lo === 0)) return {};
+  return { latitude: la, longitude: lo };
 }
 
 function parseStars(category?: string): StarRating {

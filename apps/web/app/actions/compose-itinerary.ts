@@ -13,7 +13,9 @@
 import { searchHotels, searchTransfers, isLive } from '@gg/hotelbeds';
 import { composeItinerary } from '@/lib/itinerary/compose';
 import { cityInfo } from '@/lib/itinerary/mock-inventory';
-import type { Hotel, IntakeForm, Itinerary, StarRating, TransferVehicle } from '@/lib/itinerary/types';
+import { airportPlace } from '@/lib/airport-coords';
+import { quoteLeamigoLeg, hotelPoint, pickDefault, leamigoIsLive, type PlacePoint } from '@/lib/transfers/leamigo';
+import type { Hotel, IntakeForm, Itinerary, StarRating, Transfer, TransferVehicle } from '@/lib/itinerary/types';
 
 const HOTEL_CHECKIN_HOUR = 14;
 const HOTEL_CHECKOUT_HOUR = 12;
@@ -91,74 +93,76 @@ async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
   const itinerary = composeItinerary(intake, overrides);
 
   // ── Transfer enrichment ──────────────────────────────────────────────────
-  // For arrival + departure days only (intercity stays mock — Hotelbeds doesn't
-  // do city↔city transfers directly). Each call is wrapped so a failure leaves
-  // the mock transfer in place instead of breaking the whole compose.
-  if (isLive('transfers')) {
-    const startDate = new Date(intake.departureDate);
-    let dayOffset = 0;
+  // Arrival / departure: Hotelbeds (airport IATA + hotel code) and Leamigo
+  // (coordinates) are asked in parallel; the cheapest private option wins.
+  // Inter-city: only Leamigo can quote hotel ↔ hotel, so it replaces the
+  // placeholder price when both hotels have supplier coordinates.
+  // Every quote is individually capped so a slow supplier can't push the whole
+  // compose past its 9s deadline (which would discard the live hotels too).
+  const hbTransfersLive = isLive('transfers');
+  const lmLive = leamigoIsLive();
+  if (hbTransfersLive || lmLive) {
+    const adults = intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
+    const pax = adults + intake.rooms.reduce((s, r) => s + (r.children ?? 0), 0);
 
     await Promise.allSettled(
       itinerary.days.map(async (day) => {
         try {
-          const dest = itinerary.destinations.find((x) => x.cityCode === day.cityCode);
-          const hotel = dest?.stay?.hotel;
-          if (!hotel || !hotel.id.startsWith('HB-')) return;       // only enrich live-hotel stays
-          const hotelAtlas = hotel.id.replace('HB-', '');
-
+          const destIdx = itinerary.destinations.findIndex((x) => x.cityCode === day.cityCode);
+          const hotel = itinerary.destinations[destIdx]?.stay?.hotel;
+          if (!hotel) return;
           const city = cityInfo(day.cityCode);
-          if (!city.airportCode) return;
 
-          const pickupDate = day.date;                              // YYYY-MM-DD
-          const adults = intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
-
-          let from: { type: 'IATA' | 'ATLAS'; code: string; name: string };
-          let to:   { type: 'IATA' | 'ATLAS'; code: string; name: string };
-          let kind: 'arrival' | 'departure';
+          let kind: Transfer['kind'];
+          let fromName: string, toName: string;
+          let lmFrom: PlacePoint | null = null, lmTo: PlacePoint | null = null;
+          let hb: { fromType: 'IATA' | 'ATLAS'; fromCode: string; toType: 'IATA' | 'ATLAS'; toCode: string } | null = null;
+          const atlas = hotel.id.startsWith('HB-') ? hotel.id.replace('HB-', '') : null;
 
           if (day.type === 'arrival') {
-            from = { type: 'IATA',  code: city.airportCode, name: city.airportName };
-            to   = { type: 'ATLAS', code: hotelAtlas,        name: hotel.name };
-            kind = 'arrival';
+            kind = 'arrival'; fromName = city.airportName; toName = hotel.name;
+            lmFrom = airportPlace(city.airportCode); lmTo = hotelPoint(hotel);
+            if (atlas) hb = { fromType: 'IATA', fromCode: city.airportCode, toType: 'ATLAS', toCode: atlas };
           } else if (day.type === 'departure') {
-            from = { type: 'ATLAS', code: hotelAtlas,        name: hotel.name };
-            to   = { type: 'IATA',  code: city.airportCode, name: city.airportName };
-            kind = 'departure';
+            kind = 'departure'; fromName = hotel.name; toName = city.airportName;
+            lmFrom = hotelPoint(hotel); lmTo = airportPlace(city.airportCode);
+            if (atlas) hb = { fromType: 'ATLAS', fromCode: atlas, toType: 'IATA', toCode: city.airportCode };
+          } else if (day.type === 'transit' && destIdx > 0) {
+            const prevHotel = itinerary.destinations[destIdx - 1]?.stay?.hotel;
+            if (!prevHotel) return;
+            kind = 'inter-city'; fromName = prevHotel.name; toName = hotel.name;
+            lmFrom = hotelPoint(prevHotel); lmTo = hotelPoint(hotel);
           } else {
-            return; // skip transit / stay days
+            return;
           }
 
-          const res = await searchTransfers({
-            fromType: from.type, fromCode: from.code,
-            toType:   to.type,   toCode:   to.code,
-            pickupDate, adults,
-          });
-          if (res.source !== 'live' || res.transfers.length === 0) return;
+          const candidates: Transfer[] = [];
+          await Promise.allSettled([
+            (async () => {
+              if (!hbTransfersLive || !hb) return;
+              const res = await searchTransfers({ ...hb, pickupDate: day.date, adults });
+              if (res.source !== 'live') return;
+              for (const t of res.transfers) candidates.push({
+                id: t.id, kind, fromName, toName,
+                vehicle: mapVehicle(t.vehicleKind),
+                bagsAllowed: t.maxPax >= 4 ? 4 : t.maxPax,
+                pricePaise: t.pricePaise,
+                description: `Hotelbeds · ${t.vehicleName}`,
+              });
+            })(),
+            (async () => {
+              if (!lmLive || !lmFrom || !lmTo) return;
+              const res = await quoteLeamigoLeg({ kind, from: lmFrom, to: lmTo, fromName, toName, pickupDate: day.date, passengers: pax, timeoutMs: 3_500 });
+              candidates.push(...res.transfers);
+            })(),
+          ]);
 
-          // Prefer cheapest private; fall back to cheapest overall
-          const privateOnly = res.transfers.filter((t) => t.vehicleKind !== 'SHARED');
-          const sorted = (privateOnly.length > 0 ? privateOnly : res.transfers).sort((a, b) => a.pricePaise - b.pricePaise);
-          const best = sorted[0];
+          const best = pickDefault(candidates);
           if (!best) return;
-
-          // Replace the mock transfer inclusion(s) with the live one
-          const newInclusions = day.inclusions.map((inc) => {
-            if (inc.kind !== 'transfer') return inc;
-            if (inc.transfer.kind !== kind) return inc;
-            return {
-              kind: 'transfer' as const,
-              transfer: {
-                id: best.id,
-                kind,
-                fromName: from.name,
-                toName:   to.name,
-                vehicle: mapVehicle(best.vehicleKind),
-                bagsAllowed: best.maxPax >= 4 ? 4 : best.maxPax,
-                pricePaise: best.pricePaise,
-              },
-            };
-          });
-          day.inclusions = newInclusions;
+          // Replace the placeholder transfer of the same kind with the live one.
+          day.inclusions = day.inclusions.map((inc) =>
+            inc.kind === 'transfer' && inc.transfer.kind === kind ? { kind: 'transfer' as const, transfer: best } : inc,
+          );
         } catch (e) {
           console.warn('[compose] transfer enrichment failed for day', day.dayNo, (e as Error)?.message ?? e);
         }
@@ -169,7 +173,6 @@ async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
     let total = 0;
     for (const d of itinerary.destinations) if (d.stay) total += d.stay.hotel.pricePerNightPaise * d.nights;
     for (const day of itinerary.days) for (const inc of day.inclusions) if (inc.kind === 'transfer') total += inc.transfer.pricePaise;
-    const adults = intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
     itinerary.pricePaise = total;
     itinerary.pricePerAdultPaise = Math.round(total / adults);
   }
@@ -187,11 +190,13 @@ function hotelbedsToHotel(h: {
   id: string; name: string; stars: StarRating; address: string; cityCode: string;
   thumb?: string; rating?: { score: number; label: string; reviewCount: number };
   refundable: boolean; mealPlan: string; pricePerNightPaise: number; room: { name: string; bedConfig: string };
+  latitude?: number; longitude?: number;
 }): Hotel {
   return {
     id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
     thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
     pricePerNightPaise: h.pricePerNightPaise, room: h.room,
+    latitude: h.latitude, longitude: h.longitude,
   };
 }
 

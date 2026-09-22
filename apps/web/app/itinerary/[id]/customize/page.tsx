@@ -205,6 +205,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     day={d}
                     hotelNameForOvernight={overnight}
                     hotelAtlasCode={hotel?.id.startsWith('HB-') ? hotel.id.replace('HB-', '') : undefined}
+                    hotelCoords={typeof hotel?.latitude === 'number' && typeof hotel?.longitude === 'number' ? { address: hotel.address, latitude: hotel.latitude, longitude: hotel.longitude } : undefined}
                     airportCode={cityInfo(d.cityCode).airportCode}
                     airportName={cityInfo(d.cityCode).airportName}
                     paxAdults={itinerary.intake.rooms.reduce((s, r) => s + r.adults, 0)}

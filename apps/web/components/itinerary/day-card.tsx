@@ -15,6 +15,7 @@ interface Props {
   day: Day;
   hotelNameForOvernight?: string;
   hotelAtlasCode?: string;            // HB-#### → #### for live transfer search
+  hotelCoords?: { address?: string; latitude: number; longitude: number };  // supplier lat/lng → Leamigo
   airportCode?: string;
   airportName?: string;
   paxAdults?: number;
@@ -36,7 +37,7 @@ const heading = (d: Day) => {
   return `Stay in ${d.cityName}`;
 };
 
-export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails, arrivalPrefill, departurePrefill }: Props) {
+export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoords, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails, arrivalPrefill, departurePrefill }: Props) {
   const money = useMoney();
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -49,7 +50,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
   const hasAirportTransfer = day.inclusions.some(
     (inc) => inc.kind === 'transfer' && inc.transfer.kind === day.type,
   );
-  const showAddTransfer = expectsTransfer && !hasAirportTransfer && !!onAddTransfer && !!airportCode && !!hotelAtlasCode;
+  const showAddTransfer = expectsTransfer && !hasAirportTransfer && !!onAddTransfer && !!airportCode && (!!hotelAtlasCode || !!hotelCoords);
 
   const missing = day.type === 'arrival' && !day.arrivalDetails ? 'Arrival information is missing'
                 : day.type === 'departure' && !day.departureDetails ? 'Departure information is missing'
@@ -185,7 +186,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
         />
       )}
 
-      {transferOpen && (day.type === 'arrival' || day.type === 'departure') && airportCode && hotelAtlasCode && onAddTransfer && (
+      {transferOpen && (day.type === 'arrival' || day.type === 'departure') && airportCode && (hotelAtlasCode || hotelCoords) && onAddTransfer && (
         <AddTransferModal
           open={transferOpen}
           onClose={() => setTransferOpen(false)}
@@ -196,6 +197,10 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, airportCod
           airportName={airportName}
           hotelAtlasCode={hotelAtlasCode}
           hotelName={hotelNameForOvernight ?? 'Hotel'}
+          hotel={hotelCoords}
+          pickupTime={day.type === 'arrival'
+            ? (day.arrivalDetails?.arrivalTime ?? arrivalPrefill?.time)
+            : pickupBeforeFlight(day.departureDetails?.departureTime ?? departurePrefill?.time)}
           pickupDate={day.date}
           adults={paxAdults ?? 2}
           children={paxChildren ?? 0}
@@ -242,4 +247,12 @@ function fmtDate(s: string) {
 }
 function vehicleLabel(v: string) {
   return v === 'PRIVATE_PREMIUM' ? 'Private Premium' : v === 'PRIVATE' ? 'Private' : 'Shared';
+}
+
+// Departure pickup: 3h before the flight, clamped to the same day.
+function pickupBeforeFlight(flightHHMM?: string): string | undefined {
+  const m = flightHHMM?.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return undefined;
+  const mins = Math.max(0, parseInt(m[1]!, 10) * 60 + parseInt(m[2]!, 10) - 180);
+  return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 }

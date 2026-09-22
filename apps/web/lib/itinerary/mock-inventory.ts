@@ -2,6 +2,7 @@
 // Per-city set of hotels, activities, and a transfer pricing function.
 
 import type { Hotel, Activity, Transfer, StarRating, TransferVehicle } from './types';
+import { AIRPORT_COORDS, resolveAirportCode } from '@/lib/airport-coords';
 
 interface CityInfo {
   name: string;
@@ -31,7 +32,12 @@ export function cityInfo(code: string): CityInfo {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { findCity } = require('@/lib/cities');
     const c = findCity(code);
-    if (c) return { name: c.name, countryCode: c.countryCode, airportCode: c.code, airportName: `${c.name} Airport (${c.code})` };
+    if (c) {
+      // City codes aren't always airports (KYO, INL, NYC…): use the airport travellers actually fly into.
+      const airportCode = resolveAirportCode(c.code);
+      const a = AIRPORT_COORDS[airportCode];
+      return { name: c.name, countryCode: c.countryCode, airportCode, airportName: a ? `${a.name} (${airportCode})` : `${c.name} Airport (${airportCode})` };
+    }
   } catch { /* ignore */ }
   return { name: code, countryCode: '', airportCode: code, airportName: `${code} Airport` };
 }

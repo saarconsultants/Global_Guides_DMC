@@ -32,6 +32,8 @@ export interface HotelbedsHotel {
   currency?: string;           // EUR / USD — original Hotelbeds currency before INR conversion
   allImages?: string[];        // Full gallery URLs from Content API (lightbox)
   roomOptions?: HotelbedsRoomOption[];  // all room+rate combos for this hotel
+  latitude?: number;           // supplier coordinates (point-to-point transfer search)
+  longitude?: number;
 }
 
 export interface AvailabilitySearchInput {
