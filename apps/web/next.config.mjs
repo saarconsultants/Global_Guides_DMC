@@ -3,7 +3,7 @@ import { join } from 'node:path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  transpilePackages: ['@gg/tripjack', '@gg/hotelbeds'],
+  transpilePackages: ['@gg/tripjack', '@gg/hotelbeds', '@gg/leamigo'],
   typedRoutes: true,
   // Trace from the monorepo root so Vercel's file tracer picks up workspace deps
   outputFileTracingRoot: join(process.cwd(), '../..'),

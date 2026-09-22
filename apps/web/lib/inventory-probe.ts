@@ -1,4 +1,4 @@
-// Unified on-demand reachability probe for the four supplier APIs.
+// Unified on-demand reachability probe for the supplier APIs.
 // Server-only. Results are cached ~5min per API so repeated "Check now" clicks
 // (and Tripjack, which rate-limits hard) don't hammer the suppliers.
 //
@@ -8,6 +8,7 @@
 
 import { probeTripjack } from '@gg/tripjack';
 import { probeHotelbeds } from '@gg/hotelbeds';
+import { probeLeamigo } from '@gg/leamigo';
 
 export interface InventoryProbeResult {
   key: string;
@@ -29,6 +30,7 @@ export async function probeApi(key: string, force = false): Promise<InventoryPro
   let base: { reachable: boolean; status: number | null; ms: number; detail: string };
   if (key === 'flights') base = await probeTripjack();
   else if (key === 'hotels' || key === 'activities' || key === 'transfers') base = await probeHotelbeds(key);
+  else if (key === 'leamigo') base = await probeLeamigo();
   else throw new Error(`Unknown inventory API: ${key}`);
 
   const result: InventoryProbeResult = { key, ...base, checkedAt: new Date().toISOString() };

@@ -8,7 +8,7 @@ import { InventoryProbe } from '@/components/admin/inventory-probe';
 
 export const dynamic = 'force-dynamic';
 
-const ICONS: Record<string, any> = { flights: Plane, hotels: Hotel, transfers: Car, activities: MapPin };
+const ICONS: Record<string, any> = { flights: Plane, hotels: Hotel, transfers: Car, leamigo: Car, activities: MapPin };
 
 export default async function AdminInventoryPage() {
   await requireSuperAdmin();
@@ -27,7 +27,7 @@ export default async function AdminInventoryPage() {
 
       {allLive ? (
         <div className="rounded-md border border-success-500/30 bg-success-100 text-success-500 px-4 py-3 text-sm inline-flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> All four inventory APIs are live. Agents get real flights, hotels, transfers, and activities end-to-end.
+          <CheckCircle2 className="w-4 h-4" /> All {apis.length} inventory APIs are live. Agents get real flights, hotels, transfers, and activities end-to-end.
         </div>
       ) : (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-4 py-3 text-sm inline-flex items-center gap-2">
@@ -65,7 +65,7 @@ export default async function AdminInventoryPage() {
         <CardContent className="pt-6 text-xs text-[rgb(var(--text-secondary))] space-y-2">
           <p className="text-ink font-semibold text-sm">How status is determined</p>
           <p>Each API is "live" when its credentials are present in this deployment's environment variables. A "LIVE" badge means "keys are configured", not "supplier is currently responding". For an actual round-trip check, click "Check now" on any card above — it makes a live call to that supplier's gateway and reports whether it's reachable, with the result cached ~5 minutes (so it won't hammer rate-limited suppliers like Tripjack).</p>
-          <p className="pt-2">Env vars: <span className="font-mono">TRIPJACK_PROXY_TOKEN</span> (flights), <span className="font-mono">HOTELBEDS_HOTELS_API_KEY</span>, <span className="font-mono">HOTELBEDS_TRANSFERS_API_KEY</span>, <span className="font-mono">HOTELBEDS_ACTIVITIES_API_KEY</span> — each with its matching <span className="font-mono">_SECRET</span>.</p>
+          <p className="pt-2">Env vars: <span className="font-mono">TRIPJACK_PROXY_TOKEN</span> (flights), <span className="font-mono">HOTELBEDS_HOTELS_API_KEY</span>, <span className="font-mono">HOTELBEDS_TRANSFERS_API_KEY</span>, <span className="font-mono">HOTELBEDS_ACTIVITIES_API_KEY</span> — each with its matching <span className="font-mono">_SECRET</span>. Leamigo transfers: <span className="font-mono">LEAMIGO_API_KEY</span> (plus optional <span className="font-mono">LEAMIGO_BASE_URL</span>, defaults to staging). The Leamigo card's &quot;Check now&quot; lists the countries your account&apos;s operators cover.</p>
         </CardContent>
       </Card>
     </div>

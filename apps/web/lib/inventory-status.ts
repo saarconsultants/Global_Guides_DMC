@@ -3,6 +3,7 @@
 // /api/health and the admin Inventory Status page. Server-only (reads env).
 
 import { isLive as hotelbedsIsLive } from '@gg/hotelbeds';
+import { isLive as leamigoIsLive, baseUrl as leamigoBaseUrl } from '@gg/leamigo';
 
 export interface ApiStatus {
   key: string;
@@ -39,6 +40,15 @@ export function inventoryStatus(): ApiStatus[] {
       provider: 'Hotelbeds (HBX Group)',
       live: hotelbedsIsLive('transfers'),
       note: hotelbedsIsLive('transfers') ? 'Live · airport ↔ hotel' : 'Mock — set HOTELBEDS_TRANSFERS_API_KEY',
+    },
+    {
+      key: 'leamigo',
+      label: 'Transfers',
+      provider: 'Leamigo',
+      live: leamigoIsLive(),
+      note: leamigoIsLive()
+        ? `Live · point-to-point by coordinates${leamigoBaseUrl().includes('staging') ? ' · STAGING' : ''}`
+        : 'Mock — set LEAMIGO_API_KEY',
     },
     {
       key: 'activities',
