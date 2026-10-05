@@ -63,7 +63,7 @@ async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
           cityCode: f.cityCode,
           checkIn: f.checkIn,
           checkOut: f.checkOut,
-          rooms: intake.rooms.map((r) => ({ adults: r.adults, children: r.children })),
+          rooms: intake.rooms.map((r) => ({ adults: r.adults, children: r.children, childAges: r.childAges })),
           minStars: intake.starRating,
         }),
       ),

@@ -47,6 +47,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     currency,
     rate,
     itinerary,
+    supplierHotels: booking.supplierJson ? JSON.parse(booking.supplierJson) : undefined,
   }));
 
   return new NextResponse(stream as any, {

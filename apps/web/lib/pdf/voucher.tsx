@@ -5,6 +5,7 @@
 import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/renderer';
 import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
+import type { SupplierHotelBooking } from '@/lib/bookings/hotelbeds';
 
 interface AgencyBrand {
   name: string; tagline?: string | null; logoUrl?: string | null;
@@ -20,6 +21,8 @@ export interface VoucherPdfInput {
   currency?: string;
   rate?: number;
   itinerary: Itinerary;
+  /** Hotelbeds confirmations (certification §4 voucher fields). */
+  supplierHotels?: SupplierHotelBooking[];
 }
 
 function fmtDate(s: string) {
@@ -59,7 +62,8 @@ export function buildVoucherPdf(input: VoucherPdfInput) {
   return <VoucherPdf {...input} />;
 }
 
-function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', rate = 1, itinerary: it }: VoucherPdfInput) {
+function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', rate = 1, itinerary: it, supplierHotels }: VoucherPdfInput) {
+  const hb = (supplierHotels ?? []).filter((h) => h.status === 'CONFIRMED' && h.booking);
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
   const money = (p: number | bigint) => formatMoneyCode(p, currency, rate);
@@ -87,10 +91,43 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
             <View style={[s.refBox, s.refLast]}><Text style={s.refLabel}>Trip</Text><Text style={s.refValue}>{nights}N · {adults} pax</Text></View>
           </View>
 
-          {it.destinations.some((d) => d.stay) && (
+          {hb.length > 0 && (
+            <View style={s.section}>
+              <Text style={s.sectionLabel}>Hotel confirmations</Text>
+              {hb.map((h) => {
+                const b = h.booking!;
+                const children = b.hotel.rooms.flatMap((r) => r.paxes.filter((p) => p.type === 'CH'));
+                return (
+                  <View key={h.reference} style={s.card} wrap={false}>
+                    <View style={s.row}>
+                      <Text style={s.bold}>{b.hotel.name}{b.hotel.categoryName ? `  ·  ${b.hotel.categoryName.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}` : ''}</Text>
+                      <Text style={[s.bold, { color: primary }]}>Ref {b.reference}</Text>
+                    </View>
+                    <Text style={s.muted}>{h.address}{b.hotel.destinationName ? ` · ${b.hotel.destinationName}` : ''}</Text>
+                    <Text style={s.muted}>Check-in {fmtDate(b.hotel.checkIn)}  ·  Check-out {fmtDate(b.hotel.checkOut)}  ·  Agency ref {code}</Text>
+                    <Text style={s.muted}>Lead guest: {b.holder.name} {b.holder.surname}</Text>
+                    {b.hotel.rooms.map((r, i) => (
+                      <Text key={i} style={s.muted}>
+                        Room {i + 1}: {r.name} · {r.rates[0]?.boardName ?? ''} · {r.paxes.filter((p) => p.name).map((p) => `${p.name} ${p.surname ?? ''}`.trim() + (p.type === 'CH' && p.age !== undefined ? ` (child, ${p.age})` : '')).join(', ')}
+                      </Text>
+                    ))}
+                    {children.length > 0 && <Text style={s.muted}>Children's ages: {children.map((c) => c.age).join(', ')}</Text>}
+                    {b.hotel.rooms.flatMap((r) => r.rates.map((x) => x.rateComments).filter(Boolean)).map((c, i) => (
+                      <Text key={`c${i}`} style={[s.note, { color: '#334155' }]}>Hotel conditions: {c}</Text>
+                    ))}
+                    <Text style={[s.note, { color: '#334155' }]}>
+                      Payable through {b.hotel.supplier?.name ?? 'Hotelbeds'}, acting as agent for the service operating company, details of which can be provided upon request. VAT: {b.hotel.supplier?.vatNumber ?? '—'} Reference: {b.reference}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {it.destinations.some((d) => d.stay && !hb.some((x) => x.hotelId === d.stay!.hotel.id)) && (
             <View style={s.section}>
               <Text style={s.sectionLabel}>Accommodation</Text>
-              {it.destinations.map((d) => d.stay && (
+              {it.destinations.map((d) => d.stay && !hb.some((x) => x.hotelId === d.stay!.hotel.id) && (
                 <View key={d.cityCode} style={s.card}>
                   <View style={s.row}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>

@@ -88,7 +88,7 @@ function NewItineraryForm() {
   }
 
   function updateRoom(i: number, patch: Partial<Room>) { setRooms((rs) => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r)); }
-  function addRoom() { setRooms((rs) => rs.length < 5 ? [...rs, { adults: 1, children: 0 }] : rs); }
+  function addRoom() { setRooms((rs) => rs.length < 5 ? [...rs, { adults: 1, children: 0, childAges: [] }] : rs); }
   function removeRoom(i: number) { setRooms((rs) => rs.length > 1 ? rs.filter((_, idx) => idx !== i) : rs); }
 
   const [composing, setComposing] = useState(false);
@@ -220,8 +220,24 @@ function NewItineraryForm() {
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">Children</span>
-                        <Stepper2 value={r.children} min={0} max={4} onChange={(v) => updateRoom(i, { children: v })} />
+                        <Stepper2 value={r.children} min={0} max={4} onChange={(v) => updateRoom(i, { children: v, childAges: Array.from({ length: v }, (_, k) => r.childAges?.[k] ?? 8) })} />
                       </div>
+                      {r.children > 0 && (
+                        <div className="w-full flex flex-wrap items-center gap-2">
+                          <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">Child ages at travel</span>
+                          {Array.from({ length: r.children }, (_, k) => (
+                            <select
+                              key={k}
+                              aria-label={`Room ${i + 1} child ${k + 1} age`}
+                              value={r.childAges?.[k] ?? 8}
+                              onChange={(e) => updateRoom(i, { childAges: Array.from({ length: r.children }, (_, m) => (m === k ? parseInt(e.target.value, 10) : r.childAges?.[m] ?? 8)) })}
+                              className="h-9 rounded-md border border-border bg-surface px-2 text-[13px] font-semibold"
+                            >
+                              {Array.from({ length: 18 }, (_, age) => <option key={age} value={age}>{age === 0 ? 'Under 1' : `${age} yrs`}</option>)}
+                            </select>
+                          ))}
+                        </div>
+                      )}
                       <button type="button" onClick={() => removeRoom(i)} disabled={rooms.length <= 1} className="text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 w-7 h-7 inline-flex items-center justify-center rounded-md ml-auto sm:ml-0" aria-label="Remove room">
                         <X className="w-4 h-4" />
                       </button>

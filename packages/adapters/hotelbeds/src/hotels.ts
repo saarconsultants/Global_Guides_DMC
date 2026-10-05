@@ -26,8 +26,8 @@ type CachedEntry = { at: number; promise: Promise<AvailabilitySearchResult> };
 const cache = new Map<string, CachedEntry>();
 
 function cacheKey(input: AvailabilitySearchInput): string {
-  const rooms = input.rooms.map((r) => `${r.adults}-${r.children ?? 0}`).join(',');
-  return `${input.cityCode}|${input.checkIn}|${input.checkOut}|${rooms}|${input.minStars ?? ''}|${input.maxStars ?? ''}`;
+  const rooms = input.rooms.map((r) => `${r.adults}-${r.children ?? 0}-${(r.childAges ?? []).join('.')}`).join(',');
+  return `${input.hotelCodes?.join('.') ?? input.cityCode}|${input.checkIn}|${input.checkOut}|${rooms}|${input.minStars ?? ''}|${input.maxStars ?? ''}`;
 }
 
 export async function searchHotels(input: AvailabilitySearchInput): Promise<AvailabilitySearchResult> {
@@ -41,8 +41,8 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
       return { hotels: [], source: 'mock', warning: 'HOTELBEDS_API_KEY not set' };
     }
 
-    const destinationCode = toHotelbedsDestination(input.cityCode);
-    if (!destinationCode) {
+    const destinationCode = input.hotelCodes?.length ? undefined : toHotelbedsDestination(input.cityCode);
+    if (!destinationCode && !input.hotelCodes?.length) {
       return {
         hotels: [],
         source: 'unsupported-city',
@@ -52,12 +52,12 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
 
     const body = {
       stay: { checkIn: input.checkIn, checkOut: input.checkOut },
-      occupancies: input.rooms.map((r) => ({
-        rooms: 1,
-        adults: r.adults,
-        children: r.children ?? 0,
-      })),
-      destination: { code: destinationCode },
+      // Certification 2.4 / 3.3 / 3.4: every room of the booking in ONE call,
+      // identical rooms grouped, and each child sent with its age.
+      occupancies: buildOccupancies(input.rooms),
+      ...(input.hotelCodes?.length
+        ? { hotels: { hotel: input.hotelCodes.slice(0, 2000) } }
+        : { destination: { code: destinationCode } }),
       filter: input.minStars || input.maxStars ? {
         minCategory: input.minStars,
         maxCategory: input.maxStars,
@@ -140,6 +140,13 @@ interface HbRate {
   boardName?: string;          // "ROOM ONLY" | "BED & BREAKFAST"
   paymentType?: string;
   cancellationPolicies?: Array<{ amount: string; from?: string }>;
+  rateType?: string;           // BOOKABLE | RECHECK
+  rateCommentsId?: string;
+  packaging?: boolean;         // opaque rate — only sellable inside a package
+  hotelMandatory?: boolean;    // sellingRate is mandatory
+  boardCode?: string;
+  promotions?: Array<{ code?: string; name?: string; remark?: string }>;
+  childrenAges?: string;
   rooms?: number;
   adults?: number;
   children?: number;
@@ -147,7 +154,10 @@ interface HbRate {
 
 function normalizeHotels(res: HbAvailResponse, cityCode: string, rates: { eurInr: number; usdInr: number }, nights: number): HotelbedsHotel[] {
   const hotels = res.hotels?.hotels ?? [];
-  return hotels.map((h): HotelbedsHotel => {
+  // Certification 5.2: never show a category the hotel doesn't have. The app
+  // sells 3–5★ hotels only (declared commercial decision), so 1–2★ hotels and
+  // non-star categories (keys, apartments) are excluded rather than relabelled.
+  return hotels.filter((h) => sellableCategory(h.categoryName)).map((h): HotelbedsHotel => {
     const currency = h.currency ?? 'EUR';
 
     // Build the full room+rate option list across all rooms.
@@ -156,6 +166,10 @@ function normalizeHotels(res: HbAvailResponse, cityCode: string, rates: { eurInr
       for (const r of room.rates ?? []) {
         const total = parseFloat(r.net ?? '0');
         if (!(total > 0)) continue;
+        // Commercial decisions (declared at certification):
+        //  • opaque/packaging rates may only be sold inside a package → excluded
+        //  • hotel-mandatory selling rates → excluded (we sell net + agency markup)
+        if (r.packaging === true || r.hotelMandatory === true) continue;
         roomOptions.push({
           roomName: room.name ?? 'Room',
           board: cleanBoard(r.boardName),
@@ -164,6 +178,17 @@ function normalizeHotels(res: HbAvailResponse, cityCode: string, rates: { eurInr
           // Hotelbeds net is the total for the stay; per-night = /nights.
           pricePerNightPaise: toInrPaiseWith(rates, total / nights, currency),
           rateKey: r.rateKey,
+          rateType: r.rateType === 'RECHECK' ? 'RECHECK' : 'BOOKABLE',
+          rateCommentsId: r.rateCommentsId,
+          cancellationPolicies: (r.cancellationPolicies ?? [])
+            .map((c) => ({ from: c.from ?? '', amount: parseFloat(c.amount), currency, amountPaise: toInrPaiseWith(rates, parseFloat(c.amount), currency) }))
+            .filter((c) => c.from && Number.isFinite(c.amount)),
+          promotions: r.promotions,
+          roomCode: room.code,
+          boardCode: r.boardCode,
+          netAmount: total,
+          currency,
+          rooms: r.rooms, adults: r.adults, children: r.children, childrenAges: r.childrenAges,
         });
       }
     }
@@ -200,6 +225,38 @@ function coords(lat?: string, lng?: string): { latitude?: number; longitude?: nu
   const lo = lng === undefined ? NaN : parseFloat(lng);
   if (!Number.isFinite(la) || !Number.isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180 || (la === 0 && lo === 0)) return {};
   return { latitude: la, longitude: lo };
+}
+
+/** Hotelbeds occupancy node for our rooms: identical rooms grouped, children with ages. */
+export function buildOccupancies(rooms: Array<{ adults: number; children?: number; childAges?: number[] }>) {
+  const groups = new Map<string, { rooms: number; adults: number; children: number; paxes?: Array<{ type: 'CH'; age: number }> }>();
+  for (const r of rooms) {
+    const ages = childAgesFor(r);
+    const key = `${r.adults}|${ages.join(',')}`;
+    const g = groups.get(key);
+    if (g) { g.rooms++; continue; }
+    groups.set(key, {
+      rooms: 1, adults: r.adults, children: ages.length,
+      ...(ages.length ? { paxes: ages.map((age) => ({ type: 'CH' as const, age })) } : {}),
+    });
+  }
+  return [...groups.values()];
+}
+
+/** Child ages for a room. Missing ages fall back to 8 so a search never fails, but the
+ *  intake form always collects real ages — certification requires the true age. */
+export function childAgesFor(r: { children?: number; childAges?: number[] }): number[] {
+  const n = Math.max(0, r.children ?? 0);
+  return Array.from({ length: n }, (_, i) => {
+    const a = r.childAges?.[i];
+    return typeof a === 'number' && a >= 0 && a <= 17 ? Math.floor(a) : 8;
+  });
+}
+
+function sellableCategory(category?: string): boolean {
+  if (!category) return true;                      // unknown: keep (star count shown only if parsed)
+  const m = category.match(/(\d)\s*STAR/i);
+  return !!m && +m[1]! >= 3 && +m[1]! <= 5;
 }
 
 function parseStars(category?: string): StarRating {

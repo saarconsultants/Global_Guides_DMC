@@ -114,7 +114,7 @@ function signature(key: string, secret: string): string {
 }
 
 interface HbCallInit {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'DELETE';
   timeoutMs?: number;
   product?: Product;
   /** Retries for FAST transient upstream blips (5xx/HTML). Only set on idempotent searches. */

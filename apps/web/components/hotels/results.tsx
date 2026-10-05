@@ -31,6 +31,15 @@ function InkPlate({ stars, cityCode }: { stars: number; cityCode: string }) {
   );
 }
 
+/** "08 Nov, 23:59" — first date a cancellation fee applies (hotel local time, as supplied). */
+function freeUntil(policies?: Array<{ from: string }>): string | null {
+  const first = [...(policies ?? [])].sort((a, b) => a.from.localeCompare(b.from))[0];
+  const m = first?.from.match(/^\d{4}-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+m[1]! - 1];
+  return `${m[2]} ${mon}, ${m[3]}:${m[4]}`;
+}
+
 export function HotelResults({ hotels, nights }: Props) {
   const money = useMoney();
   const [q, setQ] = useState('');
@@ -80,7 +89,10 @@ export function HotelResults({ hotels, nights }: Props) {
               <div className="mt-3 grid grid-cols-3 gap-3 max-w-md">
                 <div><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.mealPlan}</div></div>
                 <div><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.room.name}</div></div>
-                <div><div className="label">Cancellation</div><div className={`mt-0.5 text-[13px] font-bold truncate ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`}>{h.refundable ? 'Fully refundable' : 'Non-refundable'}</div></div>
+                <div><div className="label">Cancellation</div>{(() => {
+                  const until = h.refundable ? freeUntil(h.roomOptions?.[0]?.cancellationPolicies) : null;
+                  return <div className={`mt-0.5 text-[13px] font-bold truncate ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`} title={until ? 'Hotel local time' : undefined}>{until ? `Free until ${until}` : h.refundable ? 'Fully refundable' : 'Non-refundable'}</div>;
+                })()}</div>
               </div>
               {h.roomOptions && h.roomOptions.length > 1 && (
                 <details className="mt-3 group/rooms">
@@ -90,7 +102,7 @@ export function HotelResults({ hotels, nights }: Props) {
                       <thead><tr><th>Room</th><th>Board</th><th>Cancellation</th><th className="text-right">Total</th></tr></thead>
                       <tbody>
                         {h.roomOptions.map((r, i) => (
-                          <tr key={i}><td>{r.roomName}</td><td>{r.board}</td><td>{r.refundable ? <span className="text-success-600 font-semibold">Refundable</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}</td><td className="text-right money">{money(r.totalPaise)}</td></tr>
+                          <tr key={i}><td>{r.roomName}</td><td>{r.board}</td><td>{r.refundable ? <span className="text-success-600 font-semibold">{freeUntil(r.cancellationPolicies) ? `Free until ${freeUntil(r.cancellationPolicies)}` : 'Refundable'}</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}{r.promotions?.[0]?.name && <span className="ml-2"><Pill variant="live">{r.promotions[0].name}</Pill></span>}</td><td className="text-right money">{money(r.totalPaise)}</td></tr>
                         ))}
                       </tbody>
                     </table>

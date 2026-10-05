@@ -13,6 +13,28 @@ export interface HotelbedsRoomOption {
   pricePerNightPaise: number;  // converted to INR
   totalPaise: number;          // converted to INR for the whole stay
   rateKey?: string;            // opaque, required at /checkrates and /bookings
+  // ── Certification-relevant rate details ──
+  rateType?: 'BOOKABLE' | 'RECHECK';  // RECHECK → must CheckRate before booking
+  rateCommentsId?: string;     // resolve via Content API; must be shown before confirmation
+  cancellationPolicies?: HotelbedsCancellationPolicy[];
+  promotions?: Array<{ code?: string; name?: string; remark?: string }>;
+  roomCode?: string;
+  boardCode?: string;
+  netAmount?: number;          // supplier currency, whole stay, for this rate
+  currency?: string;
+  /** Occupancy this rate was priced for (multi-room: one rate per occupancy group). */
+  rooms?: number;
+  adults?: number;
+  children?: number;
+  childrenAges?: string;
+}
+
+/** A cancellation fee that applies from `from` (destination-local time, ISO with offset). */
+export interface HotelbedsCancellationPolicy {
+  from: string;
+  amount: number;              // supplier currency
+  amountPaise: number;         // INR
+  currency: string;
 }
 
 export interface HotelbedsHotel {
@@ -40,7 +62,9 @@ export interface AvailabilitySearchInput {
   cityCode: string;            // IATA-style city code; we translate to Hotelbeds destinationCode
   checkIn: string;             // YYYY-MM-DD
   checkOut: string;            // YYYY-MM-DD
-  rooms: Array<{ adults: number; children?: number }>;
+  rooms: Array<{ adults: number; children?: number; childAges?: number[] }>;
+  /** Search specific hotels instead of a whole destination (booking-time re-quote). Max 2000. */
+  hotelCodes?: number[];
   // Optional filters
   minStars?: StarRating;
   maxStars?: StarRating;

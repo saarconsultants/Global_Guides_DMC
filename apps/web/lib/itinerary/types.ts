@@ -43,7 +43,12 @@ export interface Hotel {
   pricePerNightPaise: number;
   room: { name: string; bedConfig: string };
   allImages?: string[];        // Full gallery (Hotelbeds Content API). thumb is allImages[0].
-  roomOptions?: Array<{ roomName: string; board: string; refundable: boolean; pricePerNightPaise: number; totalPaise: number; rateKey?: string }>;
+  roomOptions?: Array<{
+    roomName: string; board: string; refundable: boolean; pricePerNightPaise: number; totalPaise: number; rateKey?: string;
+    /** Fee schedule from the supplier; `from` is destination-local time. */
+    cancellationPolicies?: Array<{ from: string; amountPaise: number }>;
+    promotions?: Array<{ name?: string; remark?: string }>;
+  }>;
   latitude?: number;           // supplier coordinates, when the supplier sent them
   longitude?: number;
 }
