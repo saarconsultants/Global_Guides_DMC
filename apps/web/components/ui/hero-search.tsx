@@ -57,7 +57,7 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
 export function HeroBar({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className="relative mx-auto max-w-7xl px-6 -mt-[60px]">
-      <div className={cn('bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch overflow-hidden', className)}>
+      <div className={cn('bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch', className)}>
         {children}
       </div>
     </div>
@@ -81,7 +81,7 @@ export function HeroSubmit({ children = 'Search', caption }: { children?: React.
       <div aria-hidden className="hidden lg:block w-0 border-l-2 border-dashed border-border self-stretch" />
       <button
         type="submit"
-        className="relative shrink-0 lg:w-[232px] bg-crimson-700 text-white px-6 lg:pr-14 py-5 lg:py-0 hover:bg-crimson-900 active:bg-crimson-900 transition-colors flex flex-col items-start justify-center gap-1"
+        className="relative shrink-0 lg:w-[232px] rounded-b-lg lg:rounded-b-none lg:rounded-r-lg bg-crimson-700 text-white px-6 lg:pr-14 py-5 lg:py-0 hover:bg-crimson-900 active:bg-crimson-900 transition-colors flex flex-col items-start justify-center gap-1"
       >
         <span aria-hidden className="barcode absolute right-4 top-4 h-7 w-6 text-white/50 hidden lg:block" />
         <span className="inline-flex items-center gap-2 text-[17px] font-extrabold tracking-[0.02em] uppercase">{children}</span>
