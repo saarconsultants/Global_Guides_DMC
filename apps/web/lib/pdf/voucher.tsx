@@ -6,6 +6,7 @@ import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/render
 import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
 import type { SupplierHotelBooking } from '@/lib/bookings/hotelbeds';
+import type { SupplierTransferBooking } from '@/lib/bookings/leamigo';
 
 interface AgencyBrand {
   name: string; tagline?: string | null; logoUrl?: string | null;
@@ -22,7 +23,7 @@ export interface VoucherPdfInput {
   rate?: number;
   itinerary: Itinerary;
   /** Hotelbeds confirmations (certification §4 voucher fields). */
-  supplierHotels?: SupplierHotelBooking[];
+  supplierHotels?: Array<SupplierHotelBooking | SupplierTransferBooking>;
 }
 
 function fmtDate(s: string) {
@@ -63,7 +64,8 @@ export function buildVoucherPdf(input: VoucherPdfInput) {
 }
 
 function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', rate = 1, itinerary: it, supplierHotels }: VoucherPdfInput) {
-  const hb = (supplierHotels ?? []).filter((h) => h.status === 'CONFIRMED' && h.booking);
+  const hb = (supplierHotels ?? []).filter((h): h is SupplierHotelBooking => h.supplier === 'HOTELBEDS' && h.status === 'CONFIRMED' && !!h.booking);
+  const lm = (supplierHotels ?? []).filter((h): h is SupplierTransferBooking => h.supplier === 'LEAMIGO' && h.status === 'CONFIRMED');
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
   const money = (p: number | bigint) => formatMoneyCode(p, currency, rate);
@@ -121,6 +123,25 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
                   </View>
                 );
               })}
+            </View>
+          )}
+
+          {lm.length > 0 && (
+            <View style={s.section}>
+              <Text style={s.sectionLabel}>Transfer confirmations</Text>
+              {lm.map((t) => (
+                <View key={t.reference} style={s.card} wrap={false}>
+                  <View style={s.row}>
+                    <Text style={s.bold}>{t.fromName} → {t.toName}</Text>
+                    <Text style={[s.bold, { color: primary }]}>Ref {t.reference}</Text>
+                  </View>
+                  <Text style={s.muted}>Pickup {fmtDate(t.pickupDate)} at {t.pickupTime}  ·  {t.vehicleName}  ·  Agency ref {code}</Text>
+                  <Text style={s.muted}>Operated by {t.provider} via Leamigo</Text>
+                  {t.supplierContact && (t.supplierContact.contact247 || t.supplierContact.emergency) && (
+                    <Text style={s.muted}>24/7 driver desk: {t.supplierContact.contact247 ?? t.supplierContact.emergency}{t.supplierContact.email ? ` · ${t.supplierContact.email}` : ''}</Text>
+                  )}
+                </View>
+              ))}
             </View>
           )}
 

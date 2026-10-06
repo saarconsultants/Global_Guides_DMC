@@ -68,6 +68,20 @@ export interface Transfer {
   bagsAllowed: number;
   pricePaise: number;
   description?: string;
+  /** Live Leamigo leg — everything needed to re-search, prebook and book it later. */
+  leamigo?: LeamigoLeg;
+}
+
+export interface LeamigoLeg {
+  from: { address: string; latitude: number; longitude: number };
+  to: { address: string; latitude: number; longitude: number };
+  pickupDate: string;          // YYYY-MM-DD
+  pickupTime: string;          // HH:mm
+  passengers: number;
+  providerId: string;
+  vehicleName: string;
+  shared: boolean;
+  luxury: boolean;
 }
 
 export interface Activity {

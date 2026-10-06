@@ -1,4 +1,4 @@
-// POST /api/bookings/confirm { proposalId, quoteToken?, guests?, acceptPriceChange? }
+// POST /api/bookings/confirm { proposalId, quoteToken?, guests?, contact?, acceptPriceChange? }
 // Books every live hotel with Hotelbeds (60s confirmation timeout each, run in
 // parallel), then finalizes the internal booking. See lib/bookings/confirm.ts.
 
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const res = await confirmProposalBooking({
     agencyId: actor.agencyId, userId: actor.userId,
     proposalId: String(body?.proposalId ?? ''),
-    quoteToken: body?.quoteToken, guests: body?.guests, acceptPriceChange: body?.acceptPriceChange === true,
+    quoteToken: body?.quoteToken, guests: body?.guests, contact: body?.contact, acceptPriceChange: body?.acceptPriceChange === true,
   });
   if (res.ok) for (const p of ['/bookings', '/proposals', '/statement', '/leads', '/dashboard']) revalidatePath(p);
   return NextResponse.json(res, { status: res.ok ? 200 : res.code === 'not_found' ? 404 : 409 });

@@ -34,6 +34,7 @@ export interface LeamigoTransfer {
   searchId: string;
   bookingToken: string;          // valid until expiresAt
   provider: string;
+  providerId: string;
   vehicleName: string;           // "Sedan", "SUV", "Van"…
   vehicleModels: string[];       // indicative only, not guaranteed
   vehicleImg?: string;
@@ -207,6 +208,7 @@ function normalize(r: RawRide, meta: RawSearchResponse['metadata'], rates: Recor
     searchId: meta.search_id,
     bookingToken: r.booking_token,
     provider: r.provider?.name ?? 'Leamigo',
+    providerId: String(r.provider?.id ?? ''),
     vehicleName: r.vehicle?.name ?? 'Car',
     vehicleModels: r.vehicle?.config?.vehicleModels ?? [],
     vehicleImg: r.vehicle?.img || undefined,

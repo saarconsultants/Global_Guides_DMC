@@ -37,7 +37,7 @@ export class LeamigoError extends Error {
 }
 
 interface CallOpts {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH';
   body?: unknown;
   query?: Record<string, string | undefined>;
   timeoutMs?: number;

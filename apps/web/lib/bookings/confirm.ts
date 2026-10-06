@@ -13,14 +13,18 @@ import { emitNotification } from '@/lib/db/notifications';
 import { proposalToItinerary } from '@/lib/db/proposals';
 import { isLive } from '@gg/hotelbeds';
 import { verifyQuote, validateGuests, bookHotels, PRICE_TOLERANCE_PCT, type GuestsInput, type SupplierHotelBooking, type HotelQuote } from './hotelbeds';
+import { leamigoLegs, validateContact, bookTransfers, type TransferQuote, type SupplierTransferBooking, type LeadContact } from './leamigo';
+import { isLive as leamigoLive } from '@gg/leamigo';
+
+export type SupplierItem = SupplierHotelBooking | SupplierTransferBooking;
 
 export type ConfirmResult =
-  | { ok: true; bookingId: string; code: string; status: 'CONFIRMED' | 'PENDING'; hotels: SupplierHotelBooking[] }
-  | { ok: false; error: string; code?: 'not_found' | 'already_booked' | 'bad_status' | 'insufficient_funds' | 'quote' | 'guests' | 'price_change' | 'supplier_failed'; hotels?: SupplierHotelBooking[] };
+  | { ok: true; bookingId: string; code: string; status: 'CONFIRMED' | 'PENDING'; hotels: SupplierItem[] }
+  | { ok: false; error: string; code?: 'not_found' | 'already_booked' | 'bad_status' | 'insufficient_funds' | 'quote' | 'guests' | 'price_change' | 'supplier_failed'; hotels?: SupplierItem[] };
 
 export async function confirmProposalBooking(args: {
   agencyId: string; userId: string; proposalId: string;
-  quoteToken?: string; guests?: GuestsInput; acceptPriceChange?: boolean;
+  quoteToken?: string; guests?: GuestsInput; contact?: LeadContact; acceptPriceChange?: boolean;
 }): Promise<ConfirmResult> {
   const { agencyId, userId, proposalId } = args;
   const proposal = await db.proposal.findFirst({ where: { id: proposalId, agencyId }, include: { lead: true } });
@@ -34,20 +38,29 @@ export async function confirmProposalBooking(args: {
 
   // Which stays must go through Hotelbeds?
   const liveStays = isLive('hotels') ? it.destinations.filter((d) => d.stay?.hotel.id.startsWith('HB-')) : [];
+  const liveLegs = leamigoLive() ? leamigoLegs(it) : [];
+  const liveCount = liveStays.length + liveLegs.length;
   let quoteHotels: HotelQuote[] = [];
-  if (liveStays.length) {
+  let quoteTransfers: TransferQuote[] = [];
+  if (liveCount) {
     const v = verifyQuote(args.quoteToken ?? '', proposalId);
     if (!v.ok) return { ok: false, code: 'quote', error: v.error };
-    quoteHotels = v.hotels;
-    if (quoteHotels.length !== liveStays.length) return { ok: false, code: 'quote', error: 'Not every hotel passed the live price check. Resolve the listed problems first.' };
-    const bad = validateGuests(args.guests as GuestsInput, it.intake.rooms);
-    if (bad) return { ok: false, code: 'guests', error: bad };
-    const rises = quoteHotels.filter((h) => h.priceChangePct > PRICE_TOLERANCE_PCT);
-    if (rises.length && !args.acceptPriceChange) return { ok: false, code: 'price_change', error: `Supplier price went up for ${rises.map((h) => h.hotelName).join(', ')}. Accept the new price to continue.` };
+    quoteHotels = v.hotels; quoteTransfers = v.transfers;
+    if (quoteHotels.length !== liveStays.length || quoteTransfers.length !== liveLegs.length) return { ok: false, code: 'quote', error: 'Not every hotel and transfer passed the live price check. Resolve the listed problems first.' };
+    if (liveStays.length) {
+      const bad = validateGuests(args.guests as GuestsInput, it.intake.rooms);
+      if (bad) return { ok: false, code: 'guests', error: bad };
+    }
+    if (liveLegs.length) {
+      const bad = validateContact(args.contact);
+      if (bad) return { ok: false, code: 'guests', error: bad };
+    }
+    const rises = [...quoteHotels.map((h) => ({ n: h.hotelName, p: h.priceChangePct })), ...quoteTransfers.map((t) => ({ n: `${t.fromName} → ${t.toName}`, p: t.priceChangePct }))].filter((x) => x.p > PRICE_TOLERANCE_PCT);
+    if (rises.length && !args.acceptPriceChange) return { ok: false, code: 'price_change', error: `Supplier price went up for ${rises.map((x) => x.n).join(', ')}. Accept the new price to continue.` };
   }
 
   // Wallet debit: the proposal's net cost, plus any supplier increase the agent accepted.
-  const increase = quoteHotels.reduce((s, h) => s + Math.max(0, h.netPaise - h.quotedPaise), 0);
+  const increase = [...quoteHotels, ...quoteTransfers].reduce((s, h) => s + Math.max(0, h.netPaise - h.quotedPaise), 0);
   const net = proposal.netCostPaise + BigInt(increase);
   const priorStatus = proposal.status;
 
@@ -61,7 +74,7 @@ export async function confirmProposalBooking(args: {
       if (claimed.count === 0) throw new Error('ALREADY_BOOKED');
       const debited = await tx.agency.updateMany({ where: { id: agencyId, walletPaise: { gte: net } }, data: { walletPaise: { decrement: net } } });
       if (debited.count === 0) throw new Error('INSUFFICIENT_FUNDS');
-      const b = await tx.booking.create({ data: { agencyId, proposalId, paidPaise: net, status: liveStays.length ? 'PENDING' : 'CONFIRMED' } });
+      const b = await tx.booking.create({ data: { agencyId, proposalId, paidPaise: net, status: liveCount ? 'PENDING' : 'CONFIRMED' } });
       await tx.walletTxn.create({ data: { agencyId, type: 'DEBIT', amountPaise: net, ref: proposal.code, note: `Booking · ${proposal.name}` } });
       return b;
     })).id;
@@ -71,21 +84,23 @@ export async function confirmProposalBooking(args: {
     throw e;
   }
 
-  let hotels: SupplierHotelBooking[] = [];
-  if (liveStays.length) {
-    hotels = await bookHotels({ hotels: quoteHotels, guests: args.guests!, rooms: it.intake.rooms, clientReference: proposal.code });
-  }
+  const [hotelResults, transferResults] = await Promise.all([
+    liveStays.length ? bookHotels({ hotels: quoteHotels, guests: args.guests!, rooms: it.intake.rooms, clientReference: proposal.code }) : Promise.resolve([] as SupplierHotelBooking[]),
+    liveLegs.length ? bookTransfers({ transfers: quoteTransfers, contact: args.contact!, clientReference: proposal.code }) : Promise.resolve([] as SupplierTransferBooking[]),
+  ]);
+  const hotels: SupplierItem[] = [...hotelResults, ...transferResults];
   const confirmed = hotels.filter((h) => h.status === 'CONFIRMED');
+  const label = (h: SupplierItem) => (h.supplier === 'HOTELBEDS' ? h.hotelName : `${h.fromName} → ${h.toName}`);
 
-  // Every live hotel failed → nothing is held at the supplier: undo everything.
-  if (liveStays.length && confirmed.length === 0) {
+  // Every live booking failed → nothing is held at any supplier: undo everything.
+  if (liveCount && confirmed.length === 0) {
     await db.$transaction(async (tx) => {
       await tx.booking.delete({ where: { id: bookingId } });
       await tx.agency.update({ where: { id: agencyId }, data: { walletPaise: { increment: net } } });
-      await tx.walletTxn.create({ data: { agencyId, type: 'REFUND', amountPaise: net, ref: proposal.code, note: 'Hotel booking failed — debit reversed' } });
+      await tx.walletTxn.create({ data: { agencyId, type: 'REFUND', amountPaise: net, ref: proposal.code, note: 'Supplier booking failed — debit reversed' } });
       await tx.proposal.update({ where: { id: proposalId }, data: { status: priorStatus } });
     });
-    return { ok: false, code: 'supplier_failed', error: hotels.map((h) => `${h.hotelName}: ${h.error}`).join(' · '), hotels };
+    return { ok: false, code: 'supplier_failed', error: hotels.map((h) => `${label(h)}: ${h.error}`).join(' · '), hotels };
   }
 
   const allOk = confirmed.length === hotels.length;
@@ -93,7 +108,7 @@ export async function confirmProposalBooking(args: {
     where: { id: bookingId },
     data: {
       status: allOk ? 'CONFIRMED' : 'PENDING',
-      pnrs: confirmed.map((h) => `HB ${h.reference}`).join(', ') || null,
+      pnrs: confirmed.map((h) => `${h.supplier === 'HOTELBEDS' ? 'HB' : 'LM'} ${h.reference}`).join(', ') || null,
       supplierJson: hotels.length ? JSON.stringify(hotels) : null,
     },
   });
@@ -103,8 +118,8 @@ export async function confirmProposalBooking(args: {
     agencyId, userId, kind: 'BOOKING_CONFIRMED',
     title: allOk ? `Booking confirmed · ${proposal.code}` : `Booking needs attention · ${proposal.code}`,
     body: allOk
-      ? `${proposal.lead?.customerName ?? 'Customer'} · ${proposal.name}${confirmed.length ? ` · Hotelbeds ${confirmed.map((h) => h.reference).join(', ')}` : ''}`
-      : `${hotels.filter((h) => h.status === 'FAILED').map((h) => h.hotelName).join(', ')} could not be booked — operations will follow up.`,
+      ? `${proposal.lead?.customerName ?? 'Customer'} · ${proposal.name}${confirmed.length ? ` · ${confirmed.map((h) => h.reference).join(', ')}` : ''}`
+      : `${hotels.filter((h) => h.status === 'FAILED').map(label).join(', ')} could not be booked — operations will follow up.`,
     href: '/bookings',
   });
 

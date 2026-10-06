@@ -10,6 +10,17 @@ import { getDisplayMoney } from '@/lib/money-server';
 import { StatCard } from '@/components/ui/stat-card';
 import { Briefcase, FileCheck } from 'lucide-react';
 import Link from 'next/link';
+import { SupplierItems, type SupplierRow } from '@/components/bookings/supplier-items';
+import type { SupplierItem } from '@/lib/bookings/confirm';
+
+function supplierRows(json: string | null): SupplierRow[] {
+  if (!json) return [];
+  try {
+    return (JSON.parse(json) as SupplierItem[]).map((x) => x.supplier === 'HOTELBEDS'
+      ? { supplier: x.supplier, status: x.status, reference: x.reference, title: x.hotelName, detail: `${x.cityName} · ${x.checkIn} → ${x.checkOut}`, netPaise: x.netPaise, error: x.error }
+      : { supplier: x.supplier, status: x.status, reference: x.reference, title: `${x.fromName} → ${x.toName}`, detail: `${x.pickupDate} ${x.pickupTime} · ${x.vehicleName}`, netPaise: x.netPaise, error: x.error });
+  } catch { return []; }
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -92,7 +103,8 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4 money text-right">{fmt(b.paidPaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
-                      <td className="py-3 pl-4 text-right">
+                      <td className="py-3 pl-4 text-right whitespace-nowrap space-x-3">
+                        {b.supplierJson && <SupplierItems bookingId={b.id} code={b.proposal.code} items={supplierRows(b.supplierJson)} />}
                         <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
                       </td>
                     </tr>

@@ -4,7 +4,7 @@
 // lib/airport-coords (OurAirports), hotels from the supplier's own lat/lng.
 
 import { searchTransfers, isLive, type LeamigoTransfer } from '@gg/leamigo';
-import type { Transfer, TransferVehicle } from '@/lib/itinerary/types';
+import type { Transfer, TransferVehicle, LeamigoLeg } from '@/lib/itinerary/types';
 
 export { isLive as leamigoIsLive };
 
@@ -26,7 +26,7 @@ function vehicleOf(t: LeamigoTransfer): TransferVehicle {
   return 'PRIVATE';
 }
 
-export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kind']; fromName: string; toName: string }): Transfer {
+export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kind']; fromName: string; toName: string; leg?: Omit<LeamigoLeg, 'providerId' | 'vehicleName' | 'shared' | 'luxury'> }): Transfer {
   const extras = [t.flags.meetAndGreet && 'meet & greet', t.flags.freeCancellation && 'free cancellation'].filter(Boolean);
   return {
     id: t.id,
@@ -37,6 +37,7 @@ export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kin
     bagsAllowed: t.maxLuggage,
     pricePaise: t.pricePaise,
     description: [`Leamigo · ${t.vehicleName}`, `up to ${t.maxPax} passengers`, ...extras].join(' · '),
+    ...(ctx.leg ? { leamigo: { ...ctx.leg, providerId: t.providerId, vehicleName: t.vehicleName, shared: t.shared, luxury: t.luxury } } : {}),
   };
 }
 
@@ -53,16 +54,20 @@ export async function quoteLeamigoLeg(args: {
   timeoutMs?: number;
 }): Promise<{ transfers: Transfer[]; live: boolean; warning?: string }> {
   if (!isLive()) return { transfers: [], live: false };
+  const leg = {
+    from: args.from, to: args.to, passengers: Math.max(1, args.passengers),
+    pickupDate: args.pickupDate, pickupTime: args.pickupTime ?? DEFAULT_PICKUP[args.kind],
+  };
   try {
     const res = await withTimeout(searchTransfers({
-      pickup: args.from,
-      destination: args.to,
-      passengers: Math.max(1, args.passengers),
-      pickupDate: args.pickupDate,
-      pickupTime: args.pickupTime ?? DEFAULT_PICKUP[args.kind],
+      pickup: leg.from,
+      destination: leg.to,
+      passengers: leg.passengers,
+      pickupDate: leg.pickupDate,
+      pickupTime: leg.pickupTime,
     }), args.timeoutMs ?? 9_000);
     return {
-      transfers: res.transfers.map((t) => leamigoToTransfer(t, args)),
+      transfers: res.transfers.map((t) => leamigoToTransfer(t, { ...args, leg })),
       live: res.source === 'live',
       warning: res.warning,
     };

@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const booking = await db.booking.findFirst({ where: { id: String(body?.bookingId ?? ''), agencyId: actor.agencyId }, include: { proposal: true } });
   if (!booking?.supplierJson) return NextResponse.json({ ok: false, error: 'Booking not found.' }, { status: 404 });
   const hotels = JSON.parse(booking.supplierJson) as SupplierHotelBooking[];
-  const entry = hotels.find((h) => h.reference === body?.reference);
+  const entry = hotels.find((h) => h.supplier === 'HOTELBEDS' && h.reference === body?.reference);
   if (!entry || entry.status !== 'CONFIRMED') return NextResponse.json({ ok: false, error: 'No active hotel booking with that reference.' }, { status: 404 });
 
   try {

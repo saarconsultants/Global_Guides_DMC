@@ -13,6 +13,7 @@
 // The quote travels to the browser and back HMAC-signed, so the confirm step
 // books exactly what was reviewed — a tampered or expired quote is refused.
 
+import type { TransferQuote } from './leamigo';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
   searchHotels, checkRates, getRateComments, createBooking, buildOccupancies, childAgesFor,
@@ -75,22 +76,24 @@ function secret(): string {
 function sign(payload: string): string {
   return createHmac('sha256', secret()).update(payload).digest('base64url');
 }
-export function signQuote(proposalId: string, hotels: HotelQuote[]): { token: string; expiresAt: string } {
-  const expiresAt = new Date(Date.now() + QUOTE_TTL_MS).toISOString();
-  const payload = Buffer.from(JSON.stringify({ proposalId, expiresAt, hotels })).toString('base64url');
+export function signQuote(proposalId: string, hotels: HotelQuote[], transfers: TransferQuote[] = []): { token: string; expiresAt: string } {
+  // A Leamigo prebooking can expire before our 20 minutes — the quote dies with it.
+  const ends = [Date.now() + QUOTE_TTL_MS, ...transfers.map((t) => Date.parse(t.prebookExpiresAt)).filter(Number.isFinite)];
+  const expiresAt = new Date(Math.min(...ends)).toISOString();
+  const payload = Buffer.from(JSON.stringify({ proposalId, expiresAt, hotels, transfers })).toString('base64url');
   return { token: `${payload}.${sign(payload)}`, expiresAt };
 }
-export function verifyQuote(token: string, proposalId: string): { ok: true; hotels: HotelQuote[] } | { ok: false; error: string } {
+export function verifyQuote(token: string, proposalId: string): { ok: true; hotels: HotelQuote[]; transfers: TransferQuote[] } | { ok: false; error: string } {
   const [payload, mac] = String(token ?? '').split('.');
   if (!payload || !mac) return { ok: false, error: 'Missing price check. Run "Check live price" again.' };
   const expected = sign(payload);
   const a = Buffer.from(mac), b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return { ok: false, error: 'This price check was altered. Run it again.' };
-  let data: { proposalId: string; expiresAt: string; hotels: HotelQuote[] };
+  let data: { proposalId: string; expiresAt: string; hotels: HotelQuote[]; transfers?: TransferQuote[] };
   try { data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')); } catch { return { ok: false, error: 'Unreadable price check.' }; }
   if (data.proposalId !== proposalId) return { ok: false, error: 'Price check belongs to another proposal.' };
-  if (Date.parse(data.expiresAt) < Date.now()) return { ok: false, error: 'The live price has expired (20 minutes). Check the price again before booking.' };
-  return { ok: true, hotels: data.hotels };
+  if (Date.parse(data.expiresAt) < Date.now()) return { ok: false, error: 'The live price has expired. Check the price again before booking.' };
+  return { ok: true, hotels: data.hotels, transfers: data.transfers ?? [] };
 }
 
 // ── Prepare ──────────────────────────────────────────────────────────────────
