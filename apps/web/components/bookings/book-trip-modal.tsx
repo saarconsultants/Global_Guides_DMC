@@ -32,11 +32,11 @@ interface Policy { from: string; amountPaise: number }
 interface Rate { roomName: string; board: string; rooms: number; adults: number; childAges: number[]; cancellationPolicies: Policy[]; rateComments?: string }
 interface Hotel { hotelId: string; hotelName: string; cityName: string; address: string; checkIn: string; checkOut: string; rates: Rate[]; netPaise: number; quotedPaise: number; priceChangePct: number; sameRoomAndBoard: boolean }
 interface Issue { cityName: string; hotelName: string; reason: string }
-interface TQ { key: string; fromName: string; toName: string; pickupDate: string; pickupTime: string; vehicleName: string; provider: string; netPaise: number; quotedPaise: number; priceChangePct: number; sameVehicle: boolean; cancellationText: string; kind: string }
+interface TQ { product?: 'transfer' | 'rental' | 'activity'; key: string; fromName: string; toName: string; pickupDate: string; pickupTime: string; vehicleName: string; provider: string; netPaise: number; quotedPaise: number; priceChangePct: number; sameVehicle: boolean; cancellationText: string; kind: string }
 interface Contact { salutation: 'Mr' | 'Mrs' | 'Ms' | 'Miss' | 'Dr'; firstName: string; lastName: string; email: string; phone: string; flightNumber: string }
 interface Prep { hotels: Hotel[]; transfers: TQ[]; manual: Issue[]; problems: Issue[]; token?: string; expiresAt?: string; tolerancePct: number; rooms: Array<{ adults: number; children?: number }>; leadName: string | null }
 interface Guest { name: string; surname: string }
-interface Booked { supplier?: string; hotelName?: string; fromName?: string; toName?: string; status: string; reference?: string; error?: string }
+interface Booked { supplier?: string; product?: string; hotelName?: string; fromName?: string; toName?: string; status: string; reference?: string; error?: string }
 
 type Step = 'check' | 'review' | 'guests' | 'booking' | 'done';
 
@@ -173,8 +173,8 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                 <div key={t.key} className="rounded-md border border-border-subtle p-3 space-y-1 text-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-ink">{t.fromName} → {t.toName}</p>
-                      <p className="text-xs text-[rgb(var(--text-secondary))]"><span className="font-mono">{t.pickupDate} {t.pickupTime}</span> · {t.vehicleName} · {t.provider} via Leamigo</p>
+                      <p className="font-semibold text-ink">{t.product === 'activity' ? t.fromName : t.product === 'rental' ? `Car with driver · ${t.fromName}` : `${t.fromName} → ${t.toName}`}</p>
+                      <p className="text-xs text-[rgb(var(--text-secondary))]"><span className="font-mono">{t.pickupDate}{t.pickupTime ? ` ${t.pickupTime}` : ''}</span> · {t.vehicleName}{t.product === 'rental' ? ` · ${t.toName}` : t.product === 'activity' && t.toName ? ` · ${t.toName}` : ''} · {t.product === 'activity' ? 'Leamigo' : `${t.provider} via Leamigo`}</p>
                     </div>
                     <div className="text-right">
                       <p className="money font-bold text-ink">{money(t.netPaise)}</p>
@@ -222,7 +222,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
               <div className="space-y-3 max-h-[50vh] overflow-y-auto">
                 {hasTransfers && (
                   <div className="rounded-md border border-border-subtle p-3 space-y-2">
-                    <p className="label">Lead passenger — for the transfer driver</p>
+                    <p className="label">Lead passenger — for drivers and activity suppliers</p>
                     <div className="grid grid-cols-[90px_1fr_1fr] gap-2">
                       <select className="control" value={contact.salutation} onChange={(e) => setContact({ ...contact, salutation: e.target.value as Contact['salutation'] })}>
                         {['Mr', 'Mrs', 'Ms', 'Miss', 'Dr'].map((x) => <option key={x}>{x}</option>)}
@@ -234,7 +234,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                       <input className="control" type="email" placeholder="Email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
                       <input className="control" type="tel" placeholder="Mobile, e.g. +919876543210" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
                     </div>
-                    {prep.transfers.some((t) => t.kind !== 'inter-city') && (
+                    {prep.transfers.some((t) => t.kind === 'arrival' || t.kind === 'departure') && (
                       <input className="control w-full" placeholder="Flight number (optional, helps the driver track delays)" value={contact.flightNumber} onChange={(e) => setContact({ ...contact, flightNumber: e.target.value })} />
                     )}
                   </div>
@@ -252,7 +252,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                   </div>
                 ))}
               </div>
-              <Note tone="info">Confirming books these hotels and transfers with the suppliers and debits {money(debit)} from your wallet. Cancellation fees apply as shown on the previous step.</Note>
+              <Note tone="info">Confirming books these hotels, transfers and activities with the suppliers and debits {money(debit)} from your wallet. Cancellation fees apply as shown on the previous step.</Note>
               <div className="flex items-center justify-between gap-2 pt-1">
                 <Button variant="ghost" onClick={() => setStep('review')}>Back</Button>
                 <Button disabled={!guestsOk} onClick={confirm} className="gap-1.5"><CheckCircle2 className="w-4 h-4" />Confirm & book</Button>
@@ -276,7 +276,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                 <div className="rounded-md border border-border-subtle divide-y divide-border-subtle text-sm">
                   {result.hotels.map((h, i) => (
                     <div key={i} className="flex items-center justify-between px-3 py-2 gap-3">
-                      <span className="text-ink">{h.hotelName ?? `${h.fromName} → ${h.toName}`}</span>
+                      <span className="text-ink">{h.hotelName ?? (h.product === 'activity' ? h.fromName : h.product === 'rental' ? `Car with driver · ${h.fromName}` : `${h.fromName} → ${h.toName}`)}</span>
                       {h.status === 'CONFIRMED' ? <span className="font-mono text-xs text-emerald-700">{h.reference}</span> : <span className="text-xs text-danger-500">{h.error ?? 'Failed'}</span>}
                     </div>
                   ))}

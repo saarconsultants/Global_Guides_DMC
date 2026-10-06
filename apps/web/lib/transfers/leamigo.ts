@@ -18,7 +18,7 @@ export function hotelPoint(h?: { name: string; address?: string; latitude?: numb
 }
 
 /** Default pickup times when no flight time is known. */
-export const DEFAULT_PICKUP = { arrival: '12:00', departure: '10:00', 'inter-city': '10:00' } as const;
+export const DEFAULT_PICKUP = { arrival: '12:00', departure: '10:00', 'inter-city': '10:00', rental: '09:00' } as const;
 
 function vehicleOf(t: LeamigoTransfer): TransferVehicle {
   if (t.shared) return 'SHARED';

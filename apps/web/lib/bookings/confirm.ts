@@ -86,11 +86,11 @@ export async function confirmProposalBooking(args: {
 
   const [hotelResults, transferResults] = await Promise.all([
     liveStays.length ? bookHotels({ hotels: quoteHotels, guests: args.guests!, rooms: it.intake.rooms, clientReference: proposal.code }) : Promise.resolve([] as SupplierHotelBooking[]),
-    liveLegs.length ? bookTransfers({ transfers: quoteTransfers, contact: args.contact!, clientReference: proposal.code }) : Promise.resolve([] as SupplierTransferBooking[]),
+    liveLegs.length ? bookTransfers({ transfers: quoteTransfers, contact: args.contact!, clientReference: proposal.code, guestNames: (args.guests?.rooms ?? []).flatMap((r) => [...r.adults, ...r.children]).map((p) => `${p.name} ${p.surname}`.trim()) }) : Promise.resolve([] as SupplierTransferBooking[]),
   ]);
   const hotels: SupplierItem[] = [...hotelResults, ...transferResults];
   const confirmed = hotels.filter((h) => h.status === 'CONFIRMED');
-  const label = (h: SupplierItem) => (h.supplier === 'HOTELBEDS' ? h.hotelName : `${h.fromName} → ${h.toName}`);
+  const label = (h: SupplierItem) => (h.supplier === 'HOTELBEDS' ? h.hotelName : h.product === 'activity' ? h.fromName : `${h.fromName} → ${h.toName}`);
 
   // Every live booking failed → nothing is held at any supplier: undo everything.
   if (liveCount && confirmed.length === 0) {

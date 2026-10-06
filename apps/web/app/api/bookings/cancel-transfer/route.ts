@@ -1,4 +1,5 @@
 // POST /api/bookings/cancel-transfer { bookingId, reference, confirm? }
+// Any Leamigo item: transfer, hourly rental or activity.
 //   confirm=false → fee preview from Leamigo's cancellation policy (no change)
 //   confirm=true  → cancel at Leamigo, refund (transfer net − penalty) to the wallet
 
@@ -6,7 +7,8 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
-import { transferCancellationPolicy, cancelTransferBooking, chargePctNow } from '@gg/leamigo';
+import { transferCancellationPolicy, cancelTransferBooking, chargePctNow, rentalCancellationPolicy, cancelRentalBooking, activityCancellationPolicy, cancelActivityBooking } from '@gg/leamigo';
+import { productOf } from '@/lib/bookings/leamigo';
 import type { SupplierItem } from '@/lib/bookings/confirm';
 
 export const runtime = 'nodejs';
@@ -25,15 +27,20 @@ export async function POST(req: Request) {
   try {
     // Pickup is local to the destination; Leamigo rules are in hours, so a
     // few hours of timezone slack only matters right at a rule boundary.
-    const pickupAt = new Date(`${entry.pickupDate}T${entry.pickupTime}:00Z`);
-    const policy = await transferCancellationPolicy(entry.reference!);
+    const product = productOf(entry);
+    const pickupAt = new Date(`${entry.pickupDate}T${entry.pickupTime || '09:00'}:00Z`);
+    const policy = product === 'rental' ? await rentalCancellationPolicy(entry.reference!)
+      : product === 'activity' ? { freeCancellation: false, ...(await activityCancellationPolicy(entry.reference!)) }
+      : await transferCancellationPolicy(entry.reference!);
     const pct = chargePctNow(policy, pickupAt);
     const feePaise = Math.round((entry.netPaise * pct) / 100);
     if (body?.confirm !== true) {
       return NextResponse.json({ ok: true, preview: true, feePaise, chargePct: pct, refundPaise: entry.netPaise - feePaise });
     }
 
-    const res = await cancelTransferBooking(entry.reference!);
+    const res = product === 'rental' ? await cancelRentalBooking(entry.reference!)
+      : product === 'activity' ? await cancelActivityBooking(entry.reference!)
+      : await cancelTransferBooking(entry.reference!);
     if (res.status !== 'cancelled') return NextResponse.json({ ok: false, error: `Leamigo returned status ${res.status || 'unknown'} — not cancelled.` }, { status: 502 });
 
     // Leamigo reports its penalty in supplier currency; when it charges nothing,
@@ -48,7 +55,7 @@ export async function POST(req: Request) {
       await tx.booking.update({ where: { id: booking.id }, data: { supplierJson: JSON.stringify(items), ...(allCancelled ? { status: 'CANCELLED' } : {}) } });
       if (refundPaise > 0) {
         await tx.agency.update({ where: { id: actor.agencyId }, data: { walletPaise: { increment: BigInt(refundPaise) } } });
-        await tx.walletTxn.create({ data: { agencyId: actor.agencyId, type: 'REFUND', amountPaise: BigInt(refundPaise), ref: booking.proposal.code, note: `Transfer cancelled · ${entry.fromName} → ${entry.toName} · LM ${entry.reference}` } });
+        await tx.walletTxn.create({ data: { agencyId: actor.agencyId, type: 'REFUND', amountPaise: BigInt(refundPaise), ref: booking.proposal.code, note: `${product === 'activity' ? 'Activity' : product === 'rental' ? 'Car with driver' : 'Transfer'} cancelled · ${entry.fromName}${product === 'activity' ? '' : ` → ${entry.toName}`} · LM ${entry.reference}` } });
       }
     });
     for (const p of ['/bookings', '/statement']) revalidatePath(p);

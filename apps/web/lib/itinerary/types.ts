@@ -61,7 +61,7 @@ export interface Stay {
 
 export interface Transfer {
   id: string;
-  kind: 'arrival' | 'departure' | 'inter-city';
+  kind: 'arrival' | 'departure' | 'inter-city' | 'rental';
   fromName: string;            // e.g. 'Paris Orly Airport (ORY)'
   toName: string;              // e.g. 'Hotel (Central Paris)'
   vehicle: TransferVehicle;
@@ -70,6 +70,18 @@ export interface Transfer {
   description?: string;
   /** Live Leamigo leg — everything needed to re-search, prebook and book it later. */
   leamigo?: LeamigoLeg;
+  /** Live Leamigo hourly rental (kind 'rental'). */
+  leamigoRental?: LeamigoRentalLeg;
+}
+
+export interface LeamigoRentalLeg {
+  pickup: { address: string; latitude: number; longitude: number };
+  pickupDate: string;
+  pickupTime: string;
+  hours: number;
+  passengers: number;
+  providerId: string;
+  vehicleName: string;
 }
 
 export interface LeamigoLeg {
@@ -93,6 +105,8 @@ export interface Activity {
   thumb?: string;
   description?: string;        // Hotelbeds activity description (live inventory)
   category: 'sightseeing' | 'museum' | 'tour' | 'experience';
+  /** Live Leamigo activity — the exact option/ticket priced for this party. */
+  leamigo?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean; freeCancellation: boolean; cancellationRules: Array<{ hoursBefore: number; chargePct: number }> };
 }
 
 export type DayInclusion =

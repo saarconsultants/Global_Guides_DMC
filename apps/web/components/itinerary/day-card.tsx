@@ -9,6 +9,7 @@ import { Bed, Check, X, Plus, ChevronDown, Plane, Car } from 'lucide-react';
 import { AddActivityModal } from './add-activity-modal';
 import { FlightDetailsModal } from './flight-details-modal';
 import { AddTransferModal } from './add-transfer-modal';
+import { AddRentalModal } from './add-rental-modal';
 import type { Transfer } from '@/lib/itinerary/types';
 
 interface Props {
@@ -43,6 +44,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
   const [expanded, setExpanded] = useState(false);
   const [flightOpen, setFlightOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [rentalOpen, setRentalOpen] = useState(false);
 
   // Does this day already have a transfer matching its type? Arrival/departure days
   // expect an airport transfer; if it was removed, surface a re-add button.
@@ -138,8 +140,8 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                   <li key={t.id + i} className="flex items-center gap-3 py-2.5 text-sm">
                     <span className="w-8 h-8 rounded-md bg-navy-50 text-navy-700 inline-flex items-center justify-center shrink-0"><Car className="w-4 h-4" /></span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-bold text-ink text-[13.5px] truncate">{t.kind === 'arrival' ? 'Airport pickup' : t.kind === 'departure' ? 'Airport drop-off' : 'Inter-city transfer'} · {t.fromName} → {t.toName}</span>
-                      <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{vehicleLabel(t.vehicle)} · {t.bagsAllowed} bags</span>
+                      <span className="block font-bold text-ink text-[13.5px] truncate">{t.kind === 'rental' ? `Car with driver · ${t.leamigoRental?.hours ?? ''}h from ${t.fromName}` : <>{t.kind === 'arrival' ? 'Airport pickup' : t.kind === 'departure' ? 'Airport drop-off' : 'Inter-city transfer'} · {t.fromName} → {t.toName}</>}</span>
+                      <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{t.kind === 'rental' ? `${t.leamigoRental?.vehicleName ?? 'Car'} · starts ${t.leamigoRental?.pickupTime ?? ''}` : `${vehicleLabel(t.vehicle)} · ${t.bagsAllowed} bags`}</span>
                     </span>
                     <span className="money text-[13.5px] text-ink">{money(t.pricePaise)}</span>
                     <button onClick={() => onRemoveTransfer(t.id)} className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-tertiary))] hover:text-danger-500 hover:bg-danger-100" aria-label="Remove transfer"><X className="w-4 h-4" /></button>
@@ -162,6 +164,9 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           )}
           {day.type === 'departure' && (
             <Button size="sm" onClick={() => setFlightOpen(true)} className="gap-1.5"><Plane className="w-3.5 h-3.5" />Departure details</Button>
+          )}
+          {day.type === 'stay' && hotelCoords && onAddTransfer && (
+            <Button size="sm" variant="secondary" onClick={() => setRentalOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Car with driver</Button>
           )}
           {showAddTransfer && (
             <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
@@ -205,6 +210,19 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           adults={paxAdults ?? 2}
           children={paxChildren ?? 0}
           onPick={(t) => { onAddTransfer(t); toast.success('Transfer added', `${vehicleLabel(t.vehicle)} pickup confirmed.`); }}
+        />
+      )}
+
+      {rentalOpen && hotelCoords && onAddTransfer && (
+        <AddRentalModal
+          open={rentalOpen}
+          onClose={() => setRentalOpen(false)}
+          cityName={day.cityName}
+          hotelName={hotelNameForOvernight ?? 'Hotel'}
+          hotel={hotelCoords}
+          date={day.date}
+          passengers={(paxAdults ?? 2) + (paxChildren ?? 0)}
+          onPick={(t) => { onAddTransfer(t); toast.success('Car with driver added', `${t.leamigoRental?.hours}h from ${t.leamigoRental?.pickupTime}.`); }}
         />
       )}
 

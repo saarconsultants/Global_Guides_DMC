@@ -275,6 +275,7 @@ function heading(d: any) {
   return `Day in ${d.cityName}`;
 }
 function transferLine(t: any) {
+  if (t.kind === 'rental')    return `Car with driver from ${t.fromName} (${t.toName})`;
   if (t.kind === 'arrival')   return `${t.fromName} → Hotel (Private Premium transfer)`;
   if (t.kind === 'departure') return `Hotel → ${t.toName} (Private transfer)`;
   return `${t.fromName} → ${t.toName} (Private transfer)`;

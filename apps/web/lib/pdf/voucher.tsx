@@ -128,15 +128,15 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
 
           {lm.length > 0 && (
             <View style={s.section}>
-              <Text style={s.sectionLabel}>Transfer confirmations</Text>
+              <Text style={s.sectionLabel}>Transfers, cars & activities</Text>
               {lm.map((t) => (
                 <View key={t.reference} style={s.card} wrap={false}>
                   <View style={s.row}>
-                    <Text style={s.bold}>{t.fromName} → {t.toName}</Text>
+                    <Text style={s.bold}>{t.product === 'activity' ? t.fromName : t.product === 'rental' ? `Car with driver · ${t.toName}` : `${t.fromName} → ${t.toName}`}</Text>
                     <Text style={[s.bold, { color: primary }]}>Ref {t.reference}</Text>
                   </View>
-                  <Text style={s.muted}>Pickup {fmtDate(t.pickupDate)} at {t.pickupTime}  ·  {t.vehicleName}  ·  Agency ref {code}</Text>
-                  <Text style={s.muted}>Operated by {t.provider} via Leamigo</Text>
+                  <Text style={s.muted}>{t.product === 'activity' ? `Date ${fmtDate(t.pickupDate)}  ·  ${t.vehicleName}${t.toName ? `  ·  ${t.toName}` : ''}` : `Pickup ${fmtDate(t.pickupDate)} at ${t.pickupTime}${t.product === 'rental' ? ` from ${t.fromName}` : ''}  ·  ${t.vehicleName}`}  ·  Agency ref {code}</Text>
+                  <Text style={s.muted}>{t.product === 'activity' ? 'Supplier voucher available from your agent' : `Operated by ${t.provider}`} · via Leamigo</Text>
                   {t.supplierContact && (t.supplierContact.contact247 || t.supplierContact.emergency) && (
                     <Text style={s.muted}>24/7 driver desk: {t.supplierContact.contact247 ?? t.supplierContact.emergency}{t.supplierContact.email ? ` · ${t.supplierContact.email}` : ''}</Text>
                   )}
