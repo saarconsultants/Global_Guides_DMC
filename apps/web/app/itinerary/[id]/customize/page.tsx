@@ -1,8 +1,9 @@
 'use client';
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Stepper } from '@/components/itinerary/stepper';
 import { QuickNavRail } from '@/components/itinerary/quick-nav-rail';
@@ -106,8 +107,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         <h1 className="text-[20px] font-extrabold text-ink">We couldn&apos;t open this trip</h1>
         <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">It may have been deleted, or it was never saved as a proposal. Unsaved trips are lost when the page is refreshed.</p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Link href="/proposals"><Button>Go to My proposals</Button></Link>
-          <Link href="/itinerary/new"><Button variant="secondary">New trip</Button></Link>
+          <ButtonLink href="/proposals">Go to My proposals</ButtonLink>
+          <ButtonLink href="/itinerary/new" variant="secondary">New trip</ButtonLink>
         </div>
       </div>
     </div>
@@ -136,6 +137,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
+      <h1 className="sr-only">Customize proposal</h1>
       <QuickNavRail />
 
       <div className="mx-auto max-w-7xl px-6 py-8 grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -167,9 +169,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                       <>
                         <p className="font-semibold text-ink text-sm mb-1">Add flights to my trip — {itinerary.intake.leavingFromName} to {firstDest?.cityName}</p>
                         <p className="text-crimson-700 text-sm mb-3">No flight included yet{!fromIATA && <span className="ml-1 text-[rgb(var(--text-secondary))]">(we'll let you type the origin airport on the next page)</span>}</p>
-                        <Link href={outboundSearchHref as any}>
-                          <Button className="gap-1.5"><Plane className="w-4 h-4" />Add outbound flight</Button>
-                        </Link>
+                        <ButtonLink href={outboundSearchHref as any} className="gap-1.5"><Plane className="w-4 h-4" />Add outbound flight</ButtonLink>
                       </>
                     );
                   }
@@ -199,9 +199,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                           <p className="text-sm text-[rgb(var(--text-secondary))] mb-2">
                             <span className="font-semibold text-ink">Return flight not added yet</span> — {lastDest?.cityName} → {itinerary.intake.leavingFromName} on {new Date(returnDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.
                           </p>
-                          <Link href={returnSearchHref as any}>
-                            <Button variant="secondary" className="gap-1.5"><Plane className="w-4 h-4 -scale-x-100" />Add return flight</Button>
-                          </Link>
+                          <ButtonLink href={returnSearchHref as any} variant="secondary" className="gap-1.5"><Plane className="w-4 h-4 -scale-x-100" />Add return flight</ButtonLink>
                         </div>
                       )}
                     </div>
@@ -309,7 +307,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         </div>
 
         {/* Sticky rails */}
-        <aside id="section-price" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[132px] self-start min-w-0">
+        <aside id="section-price" aria-label="Price summary" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[132px] self-start min-w-0">
           <PriceRail itinerary={itinerary} onSave={() => setSaveOpen(true)} />
           <TripSummaryRail itinerary={itinerary} />
         </aside>
@@ -390,7 +388,7 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
         </div>
       </div>
       <div className="flex items-center gap-2 pt-1">
-        <Link href={searchHref as any}><Button size="sm" variant="secondary">Change flight</Button></Link>
+        <ButtonLink href={searchHref as any} size="sm" variant="secondary">Change flight</ButtonLink>
         <Button size="sm" variant="ghost" onClick={onRemove} className="text-danger-500 hover:text-danger-500">Remove</Button>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { getWalletBalance, listWalletTxns } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
@@ -23,7 +23,7 @@ export default async function StatementPage() {
         description="Wallet ledger and booking-level debits. Top up to enable instant bookings."
         actions={
           <>
-            <a href="/api/export/statement" className="inline-flex"><Button variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</Button></a>
+            <ButtonLink href="/api/export/statement" external variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</ButtonLink>
             <RechargeButton />
           </>
         }

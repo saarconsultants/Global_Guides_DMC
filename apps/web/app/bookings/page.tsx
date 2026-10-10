@@ -4,7 +4,7 @@ import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { requireAgency } from '@/lib/auth/ctx';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
@@ -49,7 +49,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       <PageHeader
         title="My bookings"
         description="Confirmed and pending bookings. Each row links back to the proposal it was converted from."
-        actions={<Link href="/itinerary/new"><Button>New trip</Button></Link>}
+        actions={<ButtonLink href="/itinerary/new">New trip</ButtonLink>}
       />
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">

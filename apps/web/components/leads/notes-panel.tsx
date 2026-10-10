@@ -72,6 +72,7 @@ export function LeadNotesPanel({ leadId, notes, currentUserId, isOwner }: Props)
             ))}
           </div>
           <textarea
+            aria-label={kind === 'CALL' ? 'Call notes' : 'Note'}
             ref={ref}
             value={body}
             onChange={(e) => setBody(e.target.value)}

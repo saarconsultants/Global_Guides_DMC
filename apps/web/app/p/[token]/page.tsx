@@ -107,7 +107,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         </div>
       </div>
 
-      <main className="mx-auto max-w-3xl px-6 py-10 space-y-12">
+      <div className="mx-auto max-w-3xl px-6 py-10 space-y-12">
         {/* Trip Summary at-a-glance */}
         <section>
           <h2 className="text-[22px] font-extrabold tracking-[-0.01em] text-ink mb-4">At a glance</h2>
@@ -121,7 +121,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                 )}
                 <p className="label">{d.nights} night{d.nights !== 1 ? 's' : ''} in</p>
                 <p className="text-lg font-bold text-ink">{d.cityName}</p>
-                <p className="text-sm text-[rgb(var(--text-secondary))] mt-1 inline-flex items-center gap-1.5"><span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-500" />)}</span>{d.stay.hotel.name}</p>
+                <p className="text-sm text-[rgb(var(--text-secondary))] mt-1 inline-flex items-center gap-1.5"><span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-500" />)}</span>{d.stay.hotel.name}</p>
               </div>
             ))}
           </div>
@@ -192,7 +192,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
+                      <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
                       <p className="font-bold text-ink">{d.stay.hotel.name}</p>
                     </div>
                     <p className="text-xs text-[rgb(var(--text-secondary))]">{d.stay.hotel.address}</p>
@@ -256,11 +256,11 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         </section>
 
         <footer className="text-center text-xs text-[rgb(var(--text-secondary))] pt-6">
-          <p>Questions? Contact <span className="font-semibold">{p.agency.name}</span>{(p.agency as any).supportEmail && <> · <a className="hover:underline" style={{ color: primary }} href={`mailto:${(p.agency as any).supportEmail}`}>{(p.agency as any).supportEmail}</a></>}{(p.agency as any).supportPhone && <> · <a className="hover:underline" style={{ color: primary }} href={`tel:${(p.agency as any).supportPhone}`}>{(p.agency as any).supportPhone}</a></>}.</p>
+          <p>Questions? Contact <span className="font-semibold">{p.agency.name}</span>{(p.agency as any).supportEmail && <> · <a className="underline hover:no-underline" style={{ color: primary }} href={`mailto:${(p.agency as any).supportEmail}`}>{(p.agency as any).supportEmail}</a></>}{(p.agency as any).supportPhone && <> · <a className="underline hover:no-underline" style={{ color: primary }} href={`tel:${(p.agency as any).supportPhone}`}>{(p.agency as any).supportPhone}</a></>}.</p>
           <p className="mt-2">Proposal {p.code} · Quoted {formatDateShort(p.createdAt)}</p>
           {(p.agency as any).footerText && <p className="mt-3 text-[10px] tracking-wider uppercase text-[rgb(var(--text-tertiary))]">{(p.agency as any).footerText}</p>}
         </footer>
-      </main>
+      </div>
     </div>
   );
 }

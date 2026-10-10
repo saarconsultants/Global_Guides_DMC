@@ -134,6 +134,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <h1 className="sr-only">Dashboard</h1>
       <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-7">
         {/* ── Shop window + the pass ── */}
         <PromoCarousel banners={banners} />

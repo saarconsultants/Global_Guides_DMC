@@ -68,9 +68,9 @@ export default async function TeamSettingsPage() {
           {invites.length === 0 ? (
             <EmptyState dense icon={<MailPlus className="w-7 h-7" />} title="No pending invites" body="When you invite a teammate, the link appears here so you can copy and share it." />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Pending invites table">
               <table className="w-full text-sm">
-                <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Email</th><th>Role</th><th>Expires</th><th>Invite link</th><th></th></tr></thead>
+                <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Email</th><th>Role</th><th>Expires</th><th>Invite link</th><th><span className="sr-only">Actions</span></th></tr></thead>
                 <tbody>
                   {invites.map((inv) => (
                     <tr key={inv.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
@@ -99,9 +99,9 @@ export default async function TeamSettingsPage() {
       <section>
         <h2 className="text-lg font-semibold text-ink mb-3">Team ({users.length})</h2>
         <Card><CardContent className="pt-2">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Team members table">
             <table className="w-full text-sm">
-              <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th><th></th></tr></thead>
+              <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th><th><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">

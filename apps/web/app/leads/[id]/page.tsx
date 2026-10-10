@@ -2,7 +2,7 @@ import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { requireAgency } from '@/lib/auth/ctx';
@@ -73,12 +73,12 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         actions={
           <>
             <ActionForm action={setLeadStatusAction.bind(null, lead.id)} success="Lead status updated" className="inline-flex items-center gap-2">
-              <select name="status" defaultValue={lead.status} className="h-10 rounded-md border border-border bg-surface px-3 text-sm">
+              <select name="status" aria-label="Lead status" defaultValue={lead.status} className="h-10 rounded-md border border-border bg-surface px-3 text-sm">
                 {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
               <Button size="sm" variant="secondary" type="submit">Update</Button>
             </ActionForm>
-            <Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New trip</Button></Link>
+            <ButtonLink href="/itinerary/new" className="gap-1.5"><Sparkles className="w-4 h-4" />New trip</ButtonLink>
           </>
         }
       />
@@ -126,7 +126,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Code</th><th>Trip</th><th>Created</th><th className="text-right">Price</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Code</th><th>Trip</th><th>Created</th><th className="text-right">Price</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
                     <tbody>
                       {lead.proposals.map((p) => (
                         <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors group">

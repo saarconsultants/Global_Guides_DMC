@@ -112,6 +112,8 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
           <input
+            type="search"
+            aria-label="Search activities"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search activities by name, type, or description…"

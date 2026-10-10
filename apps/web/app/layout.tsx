@@ -45,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={`${archivo.variable} ${b612.variable}`}>
       <body>
         <CurrencyProvider currency={currency} rate={rate}>
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:rounded-md focus:bg-crimson-900 focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-white">Skip to content</a>
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-2 focus:left-2 focus:inline-flex focus:items-center focus:min-h-[44px] focus:rounded-md focus:bg-crimson-900 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white focus:shadow-lg">Skip to content</a>
           {actor?.impersonating && (
             <div className="bg-amber-500 text-crimson-900">
               <div className="mx-auto max-w-7xl px-6 h-9 flex items-center justify-between gap-3 text-sm">

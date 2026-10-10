@@ -35,7 +35,7 @@ export function AdminSidebar() {
 
       {open && <div onClick={() => setOpen(false)} className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />}
 
-      <aside className={cn(
+      <aside aria-label="Platform admin" className={cn(
         'bg-ink text-white w-[260px] flex flex-col',
         'lg:sticky lg:top-0 lg:self-start lg:min-h-screen',
         'fixed inset-y-0 left-0 z-50 transition-transform lg:translate-x-0',
@@ -45,7 +45,7 @@ export function AdminSidebar() {
           <Link href="/admin"><img src="/brand/ggdmc-logo-white.svg" alt="Global Guides DMC" className="h-10 w-auto" /></Link>
           <span className="inline-block mt-3 rounded-[5px] bg-amber-500 text-ink text-[10.5px] font-bold uppercase tracking-[0.1em] px-1.5 py-0.5">Platform admin</span>
         </div>
-        <nav className="px-3 py-4 space-y-0.5 flex-1 overflow-y-auto mt-16 lg:mt-0">
+        <nav aria-label="Admin sections" className="px-3 py-4 space-y-0.5 flex-1 overflow-y-auto mt-16 lg:mt-0">
           {items.map((n) => {
             const Icon = n.icon;
             const active = pathname === n.href || (n.href !== '/admin' && pathname?.startsWith(n.href));

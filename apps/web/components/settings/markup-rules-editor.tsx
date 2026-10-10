@@ -46,6 +46,7 @@ export function MarkupRulesEditor({ initial, defaultPct }: Props) {
         <div key={rule.id} className="rounded-md border border-border-subtle p-3 space-y-3 bg-surface-2/40">
           <div className="flex items-center gap-2">
             <input
+              aria-label="Rule name"
               value={rule.label ?? ''}
               onChange={(e) => update(rule.id, { label: e.target.value })}
               placeholder="Rule name (e.g. Maldives peak season)"
@@ -64,18 +65,18 @@ export function MarkupRulesEditor({ initial, defaultPct }: Props) {
           <div className="grid grid-cols-2 sm:grid-cols-[1fr_1fr_auto] gap-2 items-end">
             <div>
               <label className="block text-[11px] font-medium text-[rgb(var(--text-secondary))] mb-1 inline-flex items-center gap-1"><CalendarRange className="w-3 h-3" />Travel from</label>
-              <input type="date" value={rule.start ?? ''} onChange={(e) => update(rule.id, { start: e.target.value || undefined })}
+              <input type="date" aria-label="Travel from" value={rule.start ?? ''} onChange={(e) => update(rule.id, { start: e.target.value || undefined })}
                 className="h-9 w-full rounded-sm border border-border bg-surface px-2 text-sm" />
             </div>
             <div>
               <label className="block text-[11px] font-medium text-[rgb(var(--text-secondary))] mb-1">Travel to</label>
-              <input type="date" value={rule.end ?? ''} onChange={(e) => update(rule.id, { end: e.target.value || undefined })}
+              <input type="date" aria-label="Travel to" value={rule.end ?? ''} onChange={(e) => update(rule.id, { end: e.target.value || undefined })}
                 className="h-9 w-full rounded-sm border border-border bg-surface px-2 text-sm" />
             </div>
             <div>
               <label className="block text-[11px] font-medium text-[rgb(var(--text-secondary))] mb-1 inline-flex items-center gap-1"><Percent className="w-3 h-3" />Markup</label>
               <div className="flex items-center gap-1">
-                <input type="number" min={0} max={100} step={0.5} value={rule.markupPct}
+                <input type="number" aria-label="Markup percent" min={0} max={100} step={0.5} value={rule.markupPct}
                   onChange={(e) => update(rule.id, { markupPct: Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)) })}
                   className="h-9 w-20 rounded-sm border border-border bg-surface px-2 text-sm" />
                 <span className="text-sm text-[rgb(var(--text-secondary))]">%</span>
@@ -138,6 +139,7 @@ function DestinationPicker({ codes, onChange }: { codes: string[]; onChange: (co
           </span>
         ))}
         <input
+          aria-label="Add destination"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}

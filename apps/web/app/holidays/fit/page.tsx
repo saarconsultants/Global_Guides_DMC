@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { getDisplayMoney } from '@/lib/money-server';
 import { Plane, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ export default async function FITPackagesPage() {
         eyebrow="Free Independent Traveller"
         title="FIT packages"
         description="Privately curated trips for individuals, couples, and families. Every quote is built from net hotel and transfer rates with your markup applied — no fixed-date constraints."
-        actions={<Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New trip</Button></Link>}
+        actions={<ButtonLink href="/itinerary/new" className="gap-1.5"><Sparkles className="w-4 h-4" />New trip</ButtonLink>}
       />
 
       {templates.length === 0 ? (
@@ -49,7 +49,7 @@ export default async function FITPackagesPage() {
                   <Pill variant="neutral">{t.totalNights}N</Pill>
                   <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{t.destinations}</span>
                 </div>
-                <h3 className="text-base font-semibold text-ink">{t.title}</h3>
+                <h2 className="text-base font-semibold text-ink">{t.title}</h2>
                 <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">A handpicked itinerary you can clone and customise.</p>
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                   <span className="font-mono text-sm font-bold text-crimson-900">From {fmt(t.startingPricePaise)}</span>

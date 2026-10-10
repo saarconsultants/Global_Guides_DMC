@@ -78,6 +78,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
             <input
               ref={inputRef}
               type="text"
+              aria-label="Search cities"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setHi(0); }}
               onKeyDown={onKey}

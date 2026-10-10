@@ -1,7 +1,7 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getDisplayMoney } from '@/lib/money-server';
@@ -9,7 +9,6 @@ import { cloneAndRedirectAction } from '@/app/actions/clone-template';
 import { regionSrc } from '@/lib/promos';
 import { Sparkles } from 'lucide-react';
 import { RouteCode } from '@/components/ui/pass';
-import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +42,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
           eyebrow="Hand-curated"
           title="Suggested itineraries"
           description="Built by the platform team. Click a template — we'll clone it into a draft proposal you can edit and send to your customer."
-          actions={<Link href="/itinerary/new?ai=1"><Button variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</Button></Link>}
+          actions={<ButtonLink href="/itinerary/new?ai=1" variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</ButtonLink>}
         />
 
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -84,7 +83,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                     </div>
                   </div>
                   <div className="px-4 pt-4 pb-3 flex-1 flex flex-col">
-                    <h3 className="text-[17px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h3>
+                    <h2 className="text-[17px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h2>
                     <p className="text-[13.5px] text-[rgb(var(--text-secondary))] mt-1.5 flex-1 leading-relaxed">{t.blurb}</p>
                     <div className="mt-3 grid grid-cols-3 gap-2">
                       <div><div className="label">Nights</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{t.totalNights}</div></div>

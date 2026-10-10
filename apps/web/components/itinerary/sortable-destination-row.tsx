@@ -46,7 +46,7 @@ export function SortableDestinationRow({ id, index, cityCode, nights, disabledCo
       </button>
       <span className="w-7 h-7 inline-flex items-center justify-center rounded-[6px] bg-ink text-white font-mono text-[12px] font-bold tnum">{index + 1}</span>
       <CityCombobox value={cityCode} onChange={onChangeCity} disabledCodes={disabledCodes} placeholder="Pick destination" />
-      <select value={nights} onChange={(e) => onChangeNights(parseInt(e.target.value, 10))} className="control px-2 text-[13px] sm:text-[15px] sm:px-3.5">
+      <select aria-label={`Nights in destination ${index + 1}`} value={nights} onChange={(e) => onChangeNights(parseInt(e.target.value, 10))} className="control px-2 text-[13px] sm:text-[15px] sm:px-3.5">
         {[1,2,3,4,5,6,7,10,14].map((n) => <option key={n} value={n}>{n} night{n !== 1 ? 's' : ''}</option>)}
       </select>
       <button

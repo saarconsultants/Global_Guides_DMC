@@ -7,7 +7,7 @@ import { listAllCommissions, platformCommissionTotalPaise } from '@/lib/db/commi
 import { formatINR, formatDateShort } from '@/lib/utils';
 import { Coins, TrendingUp, Download } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,7 +72,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
         actions={
           <>
             <Pill variant="gold">All-time · {formatINR(totalAllTime)}</Pill>
-            <a href={`/api/export/revenue?days=${days}`} className="inline-flex"><Button variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</Button></a>
+            <ButtonLink href={`/api/export/revenue?days=${days}`} external variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</ButtonLink>
           </>
         }
       />
@@ -114,7 +114,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-crimson-700" />Top earning agencies</h3>
+            <h2 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-crimson-700" />Top earning agencies</h2>
             {topAgencies.length === 0 ? (
               <EmptyState dense title="No earnings yet" body="Commission entries appear here as agencies save proposals." />
             ) : (
@@ -137,7 +137,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-ink mb-3">Where it came from</h3>
+            <h2 className="text-sm font-semibold text-ink mb-3">Where it came from</h2>
             {topProducts.length === 0 ? (
               <EmptyState dense title="No breakdown yet" body="Commission by product type appears once you have entries." />
             ) : (

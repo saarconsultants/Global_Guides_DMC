@@ -89,10 +89,10 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
                     </div>
 
                     <form action={resolveBugReportAction.bind(null, r.id)} className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-44">
-                      <select name="status" defaultValue={r.status} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs">
+                      <select name="status" aria-label={`Status for report: ${r.title}`} defaultValue={r.status} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs">
                         {STATUSES.map((s) => <option key={s}>{s}</option>)}
                       </select>
-                      <input name="resolution" placeholder="Resolution note (optional)" defaultValue={r.resolution ?? ''} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs" />
+                      <input name="resolution" aria-label={`Resolution note for report: ${r.title}`} placeholder="Resolution note (optional)" defaultValue={r.resolution ?? ''} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs" />
                       <button className="h-8 rounded-sm bg-navy-900 text-white text-xs font-semibold hover:bg-crimson-900 transition-colors">Update</button>
                     </form>
                   </div>

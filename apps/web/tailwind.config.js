@@ -27,7 +27,7 @@ module.exports = {
           100: '#FFEDB8',
           300: '#FFD166',
           500: '#F5B324',   // live cell / accent
-          700: '#C98A00',
+          700: '#8F6200',   // was #C98A00; darkened for AA text on white/amber-50 (5:1)
           900: '#7A5400',
         },
         // Ink scale (cool navy-black) — navy-* kept as the neutral ramp.
@@ -40,7 +40,7 @@ module.exports = {
         'surface-2': '#F5F6F8',  // secondary surface / zebra
         success: { 100:'#DCFCE7', 500:'#15803D', 600:'#166534' },
         warning: { 100:'#FEF3C7', 500:'#B45309' },
-        danger:  { 100:'#FEE2E2', 500:'#DC2626' },
+        danger:  { 100:'#FEE2E2', 500:'#B91C1C' },   // 500 darkened from #DC2626 for AA on danger-100 (5.3:1)
         info:    { 500:'#2563EB' },
         border: {
           subtle: '#E9ECF0',

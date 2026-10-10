@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import { Button } from './button';
+import { Button, ButtonLink } from './button';
 
 interface Props {
   icon?: React.ReactNode;
@@ -39,15 +38,15 @@ export function EmptyState({ icon, title, body, primary, secondary, className, d
       ) : (
         <GhostPass icon={icon} />
       )}
-      <h3 className={cn('text-ink tracking-[-0.01em]', dense ? 'text-lg font-bold' : 'text-[22px] font-extrabold')}>{title}</h3>
+      <h2 className={cn('text-ink tracking-[-0.01em]', dense ? 'text-lg font-bold' : 'text-[22px] font-extrabold')}>{title}</h2>
       {body && <p className="mt-1.5 text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>}
       {(primary || secondary) && (
         <div className="mt-6 flex items-center justify-center gap-2">
           {primary && (primary.href ? (
-            <Link href={primary.href as any}><Button>{primary.label}</Button></Link>
+            <ButtonLink href={primary.href as any}>{primary.label}</ButtonLink>
           ) : <Button onClick={primary.onClick}>{primary.label}</Button>)}
           {secondary && (secondary.href ? (
-            <Link href={secondary.href as any}><Button variant="ghost">{secondary.label}</Button></Link>
+            <ButtonLink href={secondary.href as any} variant="ghost">{secondary.label}</ButtonLink>
           ) : <Button variant="ghost" onClick={secondary.onClick}>{secondary.label}</Button>)}
         </div>
       )}

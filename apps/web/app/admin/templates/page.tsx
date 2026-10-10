@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -21,7 +21,7 @@ export default async function AdminTemplatesPage() {
         title="Itinerary templates"
         description="These appear under Suggested for every agency. Agents clone them into a draft proposal with one click."
         actions={
-          <Link href="/admin/templates/new"><Button className="gap-1.5"><Plus className="w-4 h-4" />New template</Button></Link>
+          <ButtonLink href="/admin/templates/new" className="gap-1.5"><Plus className="w-4 h-4" />New template</ButtonLink>
         }
       />
 
@@ -47,7 +47,7 @@ export default async function AdminTemplatesPage() {
                     <th className="py-3 pr-4 font-semibold text-right">Price from</th>
                     <th className="py-3 pr-4 font-semibold">Created</th>
                     <th className="py-3 pr-4 font-semibold">Status</th>
-                    <th className="py-3 pr-4 font-semibold"></th>
+                    <th className="py-3 pr-4 font-semibold"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>

@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
@@ -43,8 +43,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         description="Every enquiry, proposal request, and customer interaction in one place."
         actions={
           <>
-            <a href="https://wa.me/918378073375?text=Hi%20Global%20Guides%20ops%2C%20I%20need%20help%20with%20a%20lead." target="_blank" rel="noreferrer" className="inline-flex"><Button variant="secondary" className="gap-1.5"><HelpCircle className="w-4 h-4" />I need help</Button></a>
-            <Link href="/itinerary/new"><Button className="gap-1.5"><Plus className="w-4 h-4" />New lead</Button></Link>
+            <ButtonLink href="https://wa.me/918378073375?text=Hi%20Global%20Guides%20ops%2C%20I%20need%20help%20with%20a%20lead." target="_blank" rel="noreferrer" variant="secondary" className="gap-1.5"><HelpCircle className="w-4 h-4" />I need help</ButtonLink>
+            <ButtonLink href="/itinerary/new" className="gap-1.5"><Plus className="w-4 h-4" />New lead</ButtonLink>
           </>
         }
       />
@@ -58,9 +58,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
           <form method="GET" action="/leads" className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[220px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-              <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search by customer name, email, phone or destination…" className="pl-9" />
+              <Input name="q" type="search" aria-label="Search leads" defaultValue={sp.q ?? ''} placeholder="Search by customer name, email, phone or destination…" className="pl-9" />
             </div>
-            <select name="status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
+            <select name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>

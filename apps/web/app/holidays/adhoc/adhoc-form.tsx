@@ -3,7 +3,7 @@ import { useActionState } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Mail } from 'lucide-react';
 import { Input, Label } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { submitAdhocGroupAction, type AdhocGroupState } from '@/app/actions/adhoc-group';
 
 const initial: AdhocGroupState = { ok: false };
@@ -20,8 +20,8 @@ export function AdhocGroupForm() {
           We've saved this as a lead so you can track it. Our ops team will come back with net rates within 48 hours on your registered email and WhatsApp.
         </p>
         <div className="flex items-center justify-center gap-2 pt-2">
-          {state.leadId && <Link href={`/leads/${state.leadId}`}><Button size="sm">Open the lead</Button></Link>}
-          <Link href="/holidays"><Button size="sm" variant="ghost">Back to holidays</Button></Link>
+          {state.leadId && <ButtonLink href={`/leads/${state.leadId}`} size="sm">Open the lead</ButtonLink>}
+          <ButtonLink href="/holidays" size="sm" variant="ghost">Back to holidays</ButtonLink>
         </div>
       </div>
     );

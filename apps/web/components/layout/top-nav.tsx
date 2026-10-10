@@ -49,6 +49,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState<string | null>(null);
   const groupRef = useRef<HTMLDivElement>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) { if (groupRef.current && !groupRef.current.contains(e.target as Node)) setGroupOpen(null); }
@@ -67,7 +68,10 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
   );
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-surface border-b border-border-subtle">
+    <header
+      className="sticky top-0 z-30 w-full bg-surface border-b border-border-subtle"
+      onKeyDown={(e) => { if (e.key === 'Escape' && mobileOpen) { setMobileOpen(false); mobileToggleRef.current?.focus(); } }}
+    >
       <div className="mx-auto max-w-[1400px] px-4 lg:px-6 h-16 flex items-center gap-2 lg:gap-4">
         <Link href="/dashboard" className="flex items-center shrink-0 mr-1" aria-label="Global Guides — home">
           <img src="/brand/ggdmc-logo.svg" alt="Global Guides DMC" className="h-9 w-auto" />
@@ -79,12 +83,26 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
               const active = n.items.some((i) => isActive(pathname, i.href));
               const open = groupOpen === n.label;
               return (
-                <div key={n.label} ref={groupRef} className="relative">
-                  <button type="button" onClick={() => setGroupOpen(open ? null : n.label)} aria-expanded={open} className={linkCls(active)}>
-                    {n.label}<ChevronDown className={cn('w-3.5 h-3.5 transition-transform', open && 'rotate-180')} />
+                <div
+                  key={n.label}
+                  ref={groupRef}
+                  className="relative"
+                  // Disclosure pattern: Escape closes and refocuses the trigger;
+                  // moving focus outside the group closes it.
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape' && open) {
+                      e.stopPropagation();
+                      setGroupOpen(null);
+                      (e.currentTarget.querySelector('button') as HTMLButtonElement | null)?.focus();
+                    }
+                  }}
+                  onBlur={(e) => { if (open && !e.currentTarget.contains(e.relatedTarget as Node | null)) setGroupOpen(null); }}
+                >
+                  <button type="button" onClick={() => setGroupOpen(open ? null : n.label)} aria-expanded={open} aria-controls={`nav-group-${n.label.toLowerCase()}`} className={linkCls(active)}>
+                    {n.label}<ChevronDown aria-hidden className={cn('w-3.5 h-3.5 transition-transform', open && 'rotate-180')} />
                   </button>
                   {open && (
-                    <div className="absolute left-0 top-full mt-1 w-[300px] bg-surface rounded-lg shadow-xl border border-border-subtle z-50 overflow-hidden p-1.5">
+                    <div id={`nav-group-${n.label.toLowerCase()}`} className="absolute left-0 top-full mt-1 w-[300px] bg-surface rounded-lg shadow-xl border border-border-subtle z-50 overflow-hidden p-1.5">
                       {n.items.map((i) => {
                         const Icon = i.icon;
                         return (
@@ -110,7 +128,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
           </Link>
           {notif && <NotificationBell initialUnread={notif.unread} initialItems={notif.items} />}
           <div className="hidden lg:block"><NavAccount actor={actor} walletLabel={walletLabel} /></div>
-          <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-10 h-10 inline-flex items-center justify-center rounded-md text-navy-700 hover:bg-navy-50" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
+          <button ref={mobileToggleRef} type="button" onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-10 h-10 inline-flex items-center justify-center rounded-md text-navy-700 hover:bg-navy-50" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>

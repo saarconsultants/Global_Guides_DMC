@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Headphones, Wallet, ChevronDown, LogOut, ShieldCheck, Settings, Users, MessageCircle, Mail, Phone, Pencil, AlertTriangle } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WalletTopupDetails } from '@/components/wallet/wallet-topup-details';
 
@@ -142,7 +142,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
         <div className="space-y-4">
           <WalletTopupDetails />
           <div className="flex justify-end gap-2 pt-2 border-t border-border-subtle">
-            <Link href="/statement"><Button variant="secondary" onClick={() => setRechargeOpen(false)}>View statement</Button></Link>
+            <ButtonLink href="/statement" variant="secondary" onClick={() => setRechargeOpen(false)}>View statement</ButtonLink>
             <Button variant="ghost" onClick={() => setRechargeOpen(false)}>Close</Button>
           </div>
         </div>

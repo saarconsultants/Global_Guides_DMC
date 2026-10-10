@@ -1,7 +1,7 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatDateShort, formatINR } from '@/lib/utils';
@@ -28,7 +28,7 @@ export default async function AdminAgenciesPage() {
         title="Agencies"
         description="Every tenant on the platform. Onboard manually or share the public signup link."
         actions={
-          <Link href="/admin/agencies/new"><Button className="gap-1.5"><Plus className="w-4 h-4" />Onboard agency</Button></Link>
+          <ButtonLink href="/admin/agencies/new" className="gap-1.5"><Plus className="w-4 h-4" />Onboard agency</ButtonLink>
         }
       />
 
@@ -72,7 +72,7 @@ export default async function AdminAgenciesPage() {
                     <th className="py-3 pr-4 font-semibold text-right">Markup</th>
                     <th className="py-3 pr-4 font-semibold text-right">Wallet</th>
                     <th className="py-3 pr-4 font-semibold">Joined</th>
-                    <th className="py-3 pr-4 font-semibold"></th>
+                    <th className="py-3 pr-4 font-semibold"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>

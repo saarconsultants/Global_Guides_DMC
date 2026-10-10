@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 // Stub geometry: firm rectangle, 10px radius, bold label. Press = 2% scale.
@@ -37,3 +38,26 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ),
 );
 Button.displayName = 'Button';
+
+export { buttonVariants };
+
+/**
+ * A link styled as a button. Use instead of nesting <Button> inside <Link>/<a>
+ * (interactive-inside-interactive is invalid and confuses screen readers).
+ * Internal hrefs go through next/link; external URLs render a plain <a>.
+ */
+export interface ButtonLinkProps
+  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>,
+    VariantProps<typeof buttonVariants> {
+  href: string;
+  external?: boolean;
+}
+
+export const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
+  ({ className, variant, size, href, external, ...props }, ref) => {
+    const cls = cn(buttonVariants({ variant, size }), className);
+    if (external || /^(https?:|mailto:|tel:)/.test(href)) return <a ref={ref} href={href} className={cls} {...props} />;
+    return <Link ref={ref} href={href as any} className={cls} {...props} />;
+  },
+);
+ButtonLink.displayName = 'ButtonLink';

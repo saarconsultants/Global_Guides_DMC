@@ -33,6 +33,7 @@ export function PhotoLightbox({ open, onClose, images, startIndex = 0, hotelName
       onClick={onClose}
       className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
       role="dialog"
+      aria-modal="true"
       aria-label={`${hotelName} — photo ${index + 1} of ${images.length}`}
     >
       {/* Close */}
@@ -85,7 +86,10 @@ export function PhotoLightbox({ open, onClose, images, startIndex = 0, hotelName
           {images.map((src, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => setIndex(i)}
+              aria-label={`Photo ${i + 1} of ${images.length}`}
+              aria-current={i === index ? 'true' : undefined}
               className={`w-16 h-16 rounded overflow-hidden flex-shrink-0 border-2 transition-all ${i === index ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
             >
               <img src={src} alt="" className="w-full h-full object-cover" />

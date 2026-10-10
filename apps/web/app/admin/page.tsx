@@ -52,7 +52,7 @@ export default async function AdminOverview() {
                 primary={{ label: 'Publish a starter template', href: '/admin/templates' }}
               />
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Recent proposals table">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left label border-b border-border">

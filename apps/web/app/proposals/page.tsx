@@ -3,7 +3,7 @@ import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
 import { getWalletBalance } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
@@ -37,7 +37,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
       <PageHeader
         title="My proposals"
         description="Proposals you've prepared. Click a row to open it. Customer views update status automatically."
-        actions={<Link href="/itinerary/new"><Button>New trip</Button></Link>}
+        actions={<ButtonLink href="/itinerary/new">New trip</ButtonLink>}
       />
 
       <Card>
@@ -45,9 +45,9 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
           <form method="GET" action="/proposals" className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[220px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-              <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
+              <Input name="q" type="search" aria-label="Search proposals" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
             </div>
-            <select name="status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
+            <select name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>

@@ -124,7 +124,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 text-amber-500 text-sm">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</div>
+                <div className="flex items-center gap-1 text-amber-500 text-sm" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</div>
                 <h4 className="font-semibold text-ink mt-1 flex items-center gap-2 flex-wrap">
                   {h.name}
                   {h.id.startsWith('HB-') && <Pill variant="success">LIVE</Pill>}

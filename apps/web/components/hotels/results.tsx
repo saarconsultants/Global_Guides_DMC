@@ -60,7 +60,7 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by hotel name or area" className="pl-9" />
+          <Input type="search" aria-label="Filter hotels by name or area" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by hotel name or area" className="pl-9" />
         </div>
         <p className="text-sm text-[rgb(var(--text-secondary))]"><span className="font-bold text-ink tnum">{filtered.length}</span>{query ? ` of ${hotels.length}` : ''} properties · <span className="tnum">{nights}</span> night{nights !== 1 ? 's' : ''}</p>
       </div>
@@ -75,7 +75,7 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
+                <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
                 {h.id.startsWith('HB-') && <Pill variant="live">Live</Pill>}
               </div>
               <h3 className="mt-1 text-[17px] font-bold text-ink tracking-[-0.01em] leading-tight">
