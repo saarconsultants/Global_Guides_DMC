@@ -7,7 +7,7 @@ import { listAllCommissions, platformCommissionTotalPaise } from '@/lib/db/commi
 import { formatINR, formatDateShort } from '@/lib/utils';
 import { Coins, TrendingUp, Download } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,7 +72,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
         actions={
           <>
             <Pill variant="gold">All-time · {formatINR(totalAllTime)}</Pill>
-            <a href={`/api/export/revenue?days=${days}`} className="inline-flex"><Button variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</Button></a>
+            <ButtonLink href={`/api/export/revenue?days=${days}`} external variant="secondary" className="gap-1.5"><Download className="w-4 h-4" />Export CSV</ButtonLink>
           </>
         }
       />

@@ -1,7 +1,7 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { requireAgency } from '@/lib/auth/ctx';
@@ -77,7 +77,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               </select>
               <Button size="sm" variant="secondary" type="submit">Update</Button>
             </ActionForm>
-            <Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New proposal</Button></Link>
+            <ButtonLink href="/itinerary/new" className="gap-1.5"><Sparkles className="w-4 h-4" />New proposal</ButtonLink>
           </>
         }
       />

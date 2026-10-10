@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { saveTemplateRedirectAction, deleteTemplateAction } from '@/app/actions/admin';
 import { CityCombobox } from '@/components/ui/city-combobox';
@@ -202,14 +202,14 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
                   <Button type="submit" variant="ghost" className="text-danger-500 gap-1.5"><Trash2 className="w-4 h-4" />Delete</Button>
                 </form>
               )}
-              <Link href="/admin/templates"><Button type="button" variant="ghost">Cancel</Button></Link>
+              <ButtonLink href="/admin/templates" variant="ghost">Cancel</ButtonLink>
               <SubmitButton isEdit={isEdit} />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <aside className="space-y-3 sticky top-24 self-start">
+      <aside aria-label="Card preview" className="space-y-3 sticky top-24 self-start">
         <p className="label">Card preview</p>
         <Card className="lift overflow-hidden">
           <div className="relative h-32 bg-gradient-to-br from-crimson-500 to-crimson-900">

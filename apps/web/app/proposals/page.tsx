@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
 import { getWalletBalance } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
@@ -35,7 +35,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
       <PageHeader
         title="My proposals"
         description="Quotes you've prepared. Click a row to open it. Customer views update status automatically."
-        actions={<Link href="/itinerary/new"><Button>New proposal</Button></Link>}
+        actions={<ButtonLink href="/itinerary/new">New proposal</ButtonLink>}
       />
 
       <Card>

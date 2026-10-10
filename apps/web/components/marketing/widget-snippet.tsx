@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Copy, Check, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 
 export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }) {
   const [copied, setCopied] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }
       </div>
 
       <div className="flex justify-end">
-        <a href={link} target="_blank" rel="noreferrer" className="inline-flex"><Button variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />Preview widget</Button></a>
+        <ButtonLink href={link} target="_blank" rel="noreferrer" variant="secondary" className="gap-1.5"><ExternalLink className="w-4 h-4" />Preview widget</ButtonLink>
       </div>
     </div>
   );

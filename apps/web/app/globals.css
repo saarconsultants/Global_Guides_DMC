@@ -11,7 +11,7 @@
   :root {
     --text-primary: 16 24 40;      /* ink */
     --text-secondary: 71 84 103;   /* muted ink */
-    --text-tertiary: 152 162 179;  /* label grey */
+    --text-tertiary: 94 102 120;   /* label grey — #5E6678: ≥4.5:1 on white, surface-2 and canvas (WCAG AA) */
   }
   html { font-family: var(--font-sans), ui-sans-serif, system-ui; }
   body { @apply bg-canvas text-[rgb(var(--text-primary))] antialiased; font-feature-settings: 'tnum' 1, 'cv11' 1; caret-color: #A8172E; }

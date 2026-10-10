@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
 import { saveSalesSettingsAction } from '@/app/actions/branding';
@@ -113,7 +113,7 @@ export default async function SalesSettingsPage() {
         </Card>
 
         <div className="flex items-center justify-end gap-2">
-          <Link href="/settings"><Button type="button" variant="ghost">Cancel</Button></Link>
+          <ButtonLink href="/settings" variant="ghost">Cancel</ButtonLink>
           <Button type="submit">Save sales settings</Button>
         </div>
       </ActionForm>

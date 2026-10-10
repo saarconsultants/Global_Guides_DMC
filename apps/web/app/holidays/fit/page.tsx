@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { getDisplayMoney } from '@/lib/money-server';
 import { Plane, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -29,7 +29,7 @@ export default async function FITPackagesPage() {
         eyebrow="Free Independent Traveller"
         title="FIT packages"
         description="Privately curated trips for individuals, couples, and families. Every quote is built from net hotel and transfer rates with your markup applied — no fixed-date constraints."
-        actions={<Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />Start new FIT proposal</Button></Link>}
+        actions={<ButtonLink href="/itinerary/new" className="gap-1.5"><Sparkles className="w-4 h-4" />Start new FIT proposal</ButtonLink>}
       />
 
       {templates.length === 0 ? (
@@ -52,7 +52,7 @@ export default async function FITPackagesPage() {
                 <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">A handpicked itinerary you can clone and customise.</p>
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                   <span className="font-mono text-sm font-bold text-crimson-900">From {fmt(t.startingPricePaise)}</span>
-                  <Link href={`/itinerary/template/${t.id}` as any}><Button size="sm" variant="secondary">Clone</Button></Link>
+                  <ButtonLink href={`/itinerary/template/${t.id}` as any} size="sm" variant="secondary">Clone</ButtonLink>
                 </div>
               </CardContent>
             </Card>

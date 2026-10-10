@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Button } from './button';
+import { Button, ButtonLink } from './button';
 
 interface Props {
   icon?: React.ReactNode;
@@ -44,10 +44,10 @@ export function EmptyState({ icon, title, body, primary, secondary, className, d
       {(primary || secondary) && (
         <div className="mt-6 flex items-center justify-center gap-2">
           {primary && (primary.href ? (
-            <Link href={primary.href as any}><Button>{primary.label}</Button></Link>
+            <ButtonLink href={primary.href as any}>{primary.label}</ButtonLink>
           ) : <Button onClick={primary.onClick}>{primary.label}</Button>)}
           {secondary && (secondary.href ? (
-            <Link href={secondary.href as any}><Button variant="ghost">{secondary.label}</Button></Link>
+            <ButtonLink href={secondary.href as any} variant="ghost">{secondary.label}</ButtonLink>
           ) : <Button variant="ghost" onClick={secondary.onClick}>{secondary.label}</Button>)}
         </div>
       )}

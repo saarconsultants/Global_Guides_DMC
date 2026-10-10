@@ -2,7 +2,7 @@ import { getHotelDetail, isLive } from '@gg/hotelbeds';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { HotelDetailGallery } from '@/components/hotels/hotel-detail-gallery';
 import { Star, MapPin, Mail, Phone, Globe, Check, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -146,9 +146,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
             );
           })()}
 
-          <Link href={backHref as any} className="block">
-            <Button variant="secondary" className="w-full">Back to search results</Button>
-          </Link>
+          <ButtonLink href={backHref as any} variant="secondary" className="w-full">Back to search results</ButtonLink>
         </aside>
       </div>
     </div>

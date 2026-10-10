@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Dialog } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { useMoney } from '@/components/providers/currency-provider';
 import { CheckCircle2, Wallet, AlertTriangle, Briefcase, Loader2, Info } from 'lucide-react';
@@ -207,7 +207,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
 
               <div className="flex items-center justify-end gap-2 pt-1">
                 <Button variant="ghost" onClick={close}>Cancel</Button>
-                {!enough ? <Link href="/statement"><Button variant="secondary">View wallet</Button></Link>
+                {!enough ? <ButtonLink href="/statement" variant="secondary">View wallet</ButtonLink>
                   : prep.problems.length > 0 ? <Button onClick={begin}>Check again</Button>
                   : <Button disabled={rises.length > 0 && !acceptRise} onClick={() => (live ? setStep('guests') : confirm())}>
                       {live ? (hasHotels ? 'Continue to guest names' : 'Continue to passenger contact') : 'Confirm & book'}

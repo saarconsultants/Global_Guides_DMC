@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import Link from 'next/link';
 import { createAgencyManualAction } from '@/app/actions/admin';
 import { Building2 } from 'lucide-react';
@@ -40,7 +40,7 @@ export default function NewAgencyPage() {
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 pt-2">
-              <Link href="/admin/agencies"><Button variant="ghost" type="button">Cancel</Button></Link>
+              <ButtonLink href="/admin/agencies" variant="ghost">Cancel</ButtonLink>
               <Button type="submit">Create agency</Button>
             </div>
           </form>

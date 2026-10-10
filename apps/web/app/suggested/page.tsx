@@ -1,7 +1,7 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getDisplayMoney } from '@/lib/money-server';
@@ -43,7 +43,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
           eyebrow="Hand-curated"
           title="Suggested itineraries"
           description="Built by the platform team. Click a template — we'll clone it into a draft proposal you can edit and send to your customer."
-          actions={<Link href="/itinerary/new?ai=1"><Button variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</Button></Link>}
+          actions={<ButtonLink href="/itinerary/new?ai=1" variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</ButtonLink>}
         />
 
         <div className="flex flex-wrap items-center gap-2 text-sm">

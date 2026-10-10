@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Input, Label } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
 import { Check, Copy, ExternalLink, MessageCircle, Mail, Percent } from 'lucide-react';
@@ -134,10 +134,10 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
           </div>
 
           <div className="flex justify-between gap-2 pt-2 border-t border-border-subtle">
-            <a href={`/p/${result.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex"><Button variant="ghost" className="gap-1.5"><ExternalLink className="w-4 h-4" />Preview as customer</Button></a>
+            <ButtonLink href={`/p/${result.shareToken}`} target="_blank" rel="noreferrer" variant="ghost" className="gap-1.5"><ExternalLink className="w-4 h-4" />Preview as customer</ButtonLink>
             <div className="flex gap-2">
               <Button variant="ghost" onClick={reset}>Close</Button>
-              <a href="/proposals" className="inline-flex"><Button variant="primary">Go to My Proposals</Button></a>
+              <ButtonLink href="/proposals" external variant="primary">Go to My Proposals</ButtonLink>
             </div>
           </div>
         </div>

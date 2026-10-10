@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Plane, Users, CalendarRange, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -58,9 +58,7 @@ export default function HolidaysPage() {
               </div>
               <h2 className="text-[18px] font-extrabold tracking-[-0.01em] text-ink">{title} <span className="font-mono text-[12px] font-bold text-[rgb(var(--text-tertiary))] ml-1">{eyebrow}</span></h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>
-              <Link href={href as any} className="inline-flex">
-                <Button variant="ghost" className="gap-1.5 group-hover:text-crimson-700 px-0">{cta}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></Button>
-              </Link>
+              <ButtonLink href={href as any} variant="ghost" className="gap-1.5 group-hover:text-crimson-700 px-0">{cta}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></ButtonLink>
             </CardContent>
           </Card>
         ))}

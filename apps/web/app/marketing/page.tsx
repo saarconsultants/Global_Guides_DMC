@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { getDisplayMoney } from '@/lib/money-server';
 import { Download, Megaphone, Eye, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ export default async function MarketingPage() {
           title="Download branded flyers"
           description="Every Suggested itinerary is also a one-page PDF flyer in your brand colours, with your logo. Download and share via WhatsApp, email, or print for shop windows."
           actions={
-            <Link href="/suggested"><Button variant="ghost" className="gap-1.5"><Eye className="w-4 h-4" />Customer-facing templates</Button></Link>
+            <ButtonLink href="/suggested" variant="ghost" className="gap-1.5"><Eye className="w-4 h-4" />Customer-facing templates</ButtonLink>
           }
         />
 
