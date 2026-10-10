@@ -9,7 +9,6 @@ import { cloneAndRedirectAction } from '@/app/actions/clone-template';
 import { regionSrc } from '@/lib/promos';
 import { Sparkles } from 'lucide-react';
 import { RouteCode } from '@/components/ui/pass';
-import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 

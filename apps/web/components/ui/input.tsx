@@ -3,16 +3,16 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Field — pairs a <Label> with its control so screen readers announce the
- * label. Inside a <Field>, <Label> gets `htmlFor` and <Input> gets `id`
+ * FormField — pairs a <Label> with its control so screen readers announce the
+ * label. Inside a <FormField>, <Label> gets `htmlFor` and <Input> gets `id`
  * automatically (shared React useId). For native <select>/<textarea>, read
  * the id with `useFieldId()` or pass `id` yourself.
  *
- *   <Field><Label>Email</Label><Input type="email" /></Field>
+ *   <FormField><Label>Email</Label><Input type="email" /></FormField>
  */
 const FieldContext = React.createContext<string | null>(null);
 
-export function Field({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
+export function FormField({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
   const auto = React.useId();
   return (
     <FieldContext.Provider value={id ?? auto}>
@@ -55,13 +55,15 @@ function isUnlabelled(el: Element): el is HTMLInputElement | HTMLSelectElement |
 }
 
 /** First unlabelled form control that follows `start` in document order,
- *  searching its following siblings, then its parent's, up to 3 levels. */
+ *  searching its following siblings, then its parent's following siblings.
+ *  Stops at the next label (that control belongs to another field) so a label
+ *  over a custom widget never "steals" the next field's control. */
 function findControlAfter(start: Element): HTMLElement | null {
   let node: Element | null = start;
-  for (let level = 0; node && level < 3; level++) {
+  for (let level = 0; node && level < 2; level++) {
     for (let sib = node.nextElementSibling; sib; sib = sib.nextElementSibling) {
-      if (sib.tagName === 'LABEL') return null; // the next field's label — stop
       if (sib.matches(CONTROL)) return isUnlabelled(sib) ? (sib as HTMLElement) : null;
+      if (sib.matches('label') || sib.querySelector('label')) return null;
       const inner = sib.querySelector(CONTROL);
       if (inner) return isUnlabelled(inner) ? (inner as HTMLElement) : null;
     }
@@ -71,7 +73,7 @@ function findControlAfter(start: Element): HTMLElement | null {
 }
 
 /** Field label in the pass vocabulary: caps, letterspaced, quiet.
- *  Association, in order: explicit `htmlFor` → enclosing <Field> → the next
+ *  Association, in order: explicit `htmlFor` → enclosing <FormField> → the next
  *  unlabelled control after the label in the DOM (so legacy
  *  `<Label/><Input/>` sibling markup is still announced correctly). */
 export function Label({ children, htmlFor, required, className, id }: { children: React.ReactNode; htmlFor?: string; required?: boolean; className?: string; id?: string }) {

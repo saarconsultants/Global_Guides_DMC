@@ -10,7 +10,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Dialog } from '@/components/ui/dialog';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';

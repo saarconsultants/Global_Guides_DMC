@@ -9,7 +9,6 @@ import { saveTemplateRedirectAction, deleteTemplateAction } from '@/app/actions/
 import { CityCombobox } from '@/components/ui/city-combobox';
 import { findCity } from '@/lib/cities';
 import { Sparkles, Eye, Save, Trash2, Plus, MapPin } from 'lucide-react';
-import Link from 'next/link';
 
 interface DestRow { cityCode: string; nights: number }
 function parseDestRows(json?: string): DestRow[] {

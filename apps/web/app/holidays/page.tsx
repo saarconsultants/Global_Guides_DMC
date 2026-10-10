@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Plane, Users, CalendarRange, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
