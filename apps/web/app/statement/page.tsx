@@ -34,7 +34,7 @@ export default async function StatementPage() {
           <div className="flex-1 px-6 py-6">
             <p className="label text-amber-500 inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>
             <p className="mt-2 money text-[44px] leading-none">{fmt(balance)}</p>
-            <p className="text-[13px] text-white/70 mt-3 max-w-md">Bookings confirm instantly against this balance. Online top-up arrives with Razorpay in Phase 2; until then, transfer by NEFT/IMPS and WhatsApp the receipt.</p>
+            <p className="text-[13px] text-white/70 mt-3 max-w-md">Bookings confirm instantly against this balance. Top up by NEFT/IMPS bank transfer and WhatsApp us the receipt.</p>
           </div>
           <div className="lg:w-[220px] border-t lg:border-t-0 lg:border-l border-dashed border-white/25 px-6 py-5 flex flex-col justify-center gap-1">
             <p className="label text-white/60">Account</p>

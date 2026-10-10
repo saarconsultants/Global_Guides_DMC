@@ -73,7 +73,7 @@ export function WidgetForm({ slug, accent, primary }: { slug: string; accent: st
         </div>
       </div>
       <p className="text-[11px] text-gray-500">Provide either email or phone so we can send you the proposal.</p>
-      {error && <div className="rounded bg-red-50 text-red-700 px-3 py-2 text-xs">{error}</div>}
+      {error && <div role="alert" className="rounded bg-red-50 text-red-700 px-3 py-2 text-xs">{error}</div>}
       <button type="submit" disabled={busy} className="w-full h-11 rounded text-white font-semibold text-sm disabled:opacity-60 transition-opacity" style={{ background: primary }}>
         {busy ? 'Sending…' : 'Request a proposal'}
       </button>

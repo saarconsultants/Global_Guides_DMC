@@ -41,7 +41,7 @@ export function InviteAcceptForm({ token, email, agencyName, role }: { token: st
           </button>
         </div>
       </div>
-      {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
+      {error && <div role="alert" className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
       <Button type="submit" disabled={pending} className="w-full gap-2">{pending ? <><Spinner size="sm" className="text-white" />Creating account…</> : 'Accept &amp; sign in'}</Button>
     </form>
   );

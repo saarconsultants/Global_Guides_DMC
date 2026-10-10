@@ -7,7 +7,8 @@ import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { loginAction } from '@/app/actions/auth';
-import { Eye, EyeOff } from 'lucide-react';
+import { Dialog } from '@/components/ui/dialog';
+import { Eye, EyeOff, Mail, MessageCircle, Phone } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +60,7 @@ export default function LoginPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <Label required>Password</Label>
-                  <button type="button" className="text-xs font-bold text-crimson-700 hover:underline mb-1.5">Forgot?</button>
+                  <button type="button" onClick={() => setForgotOpen(true)} className="text-xs font-bold text-crimson-700 hover:underline mb-1.5">Forgot?</button>
                 </div>
                 <div className="relative">
                   <Input type={showPwd ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required className="pr-10" />
@@ -67,7 +69,7 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-              {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm animate-in slide-in-from-top-1 fade-in duration-200">{error}</div>}
+              {error && <div role="alert" className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm animate-in slide-in-from-top-1 fade-in duration-200">{error}</div>}
               <Button type="submit" disabled={pending} size="lg" className="w-full gap-2">
                 {pending ? <><Spinner size="sm" className="text-white" />Signing in…</> : 'Sign in'}
               </Button>
@@ -78,6 +80,28 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)} title="Forgot your password?" size="sm">
+        <div className="space-y-4 text-sm text-ink">
+          <div>
+            <p className="font-bold">Agents and counsellors</p>
+            <p className="mt-1 text-[rgb(var(--text-secondary))]">Ask your agency owner to set a new password for you. They can do it in Settings › Team, using “Reset password” next to your name.</p>
+          </div>
+          <div>
+            <p className="font-bold">Agency owners</p>
+            <p className="mt-1 text-[rgb(var(--text-secondary))]">Contact Global Guides support and we'll reset it for you after confirming it's you.</p>
+            <div className="mt-2 flex flex-col gap-1.5">
+              <a href="https://wa.me/918378073375?text=Hi%2C%20I%20need%20a%20password%20reset%20for%20my%20agency%20account." target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-semibold text-crimson-700 hover:underline"><MessageCircle className="w-4 h-4" />WhatsApp +91 83780 73375</a>
+              <a href="tel:+918378073375" className="inline-flex items-center gap-2 font-semibold text-crimson-700 hover:underline"><Phone className="w-4 h-4" />Call +91 83780 73375</a>
+              <a href="mailto:travel@globalguidesdmc.com?subject=Password%20reset" className="inline-flex items-center gap-2 font-semibold text-crimson-700 hover:underline"><Mail className="w-4 h-4" />travel@globalguidesdmc.com</a>
+            </div>
+            <p className="mt-2 text-xs text-[rgb(var(--text-tertiary))]">Mon–Sat · 9 AM – 7 PM IST</p>
+          </div>
+          <div className="flex justify-end pt-2 border-t border-border-subtle">
+            <Button variant="ghost" onClick={() => setForgotOpen(false)}>Close</Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

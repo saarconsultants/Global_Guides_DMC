@@ -1,10 +1,17 @@
 'use client';
+import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Headphones, Wallet, ChevronDown, LogOut, ShieldCheck, Settings, Users, MessageCircle, Mail, Phone, Pencil, AlertTriangle } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { WalletTopupDetails } from '@/components/wallet/wallet-topup-details';
+
+/** "AGENCY_OWNER" -> "Agency Owner" */
+function formatRole(role: string): string {
+  return role.split('_').filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
 
 export interface Actor {
   name: string;
@@ -27,9 +34,29 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
       if (supportRef.current && !supportRef.current.contains(e.target as Node)) setSupportOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      // Return focus to the menu's trigger button if focus was inside an open menu.
+      if (supportRef.current?.contains(document.activeElement)) supportRef.current.querySelector('button')?.focus();
+      if (profileRef.current?.contains(document.activeElement)) profileRef.current.querySelector('button')?.focus();
+      setSupportOpen(false);
+      setProfileOpen(false);
+    }
     document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
+
+  /** Close a dropdown when keyboard focus moves somewhere outside it. */
+  function closeOnBlur(ref: React.RefObject<HTMLDivElement | null>, close: () => void) {
+    return (e: React.FocusEvent<HTMLDivElement>) => {
+      const next = e.relatedTarget as Node | null;
+      if (next && ref.current && !ref.current.contains(next)) close();
+    };
+  }
 
   function openWriteToUs() {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', ctrlKey: true, shiftKey: true, metaKey: true }));
@@ -53,7 +80,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
       </button>
 
       {/* Support */}
-      <div ref={supportRef} className="relative">
+      <div ref={supportRef} className="relative" onBlur={closeOnBlur(supportRef, () => setSupportOpen(false))}>
         <button
           type="button"
           onClick={() => { setSupportOpen(!supportOpen); setProfileOpen(false); }}
@@ -80,7 +107,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
       </div>
 
       {/* Account */}
-      <div ref={profileRef} className="relative">
+      <div ref={profileRef} className="relative" onBlur={closeOnBlur(profileRef, () => setProfileOpen(false))}>
         <button
           type="button"
           onClick={() => { setProfileOpen(!profileOpen); setSupportOpen(false); }}
@@ -97,7 +124,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
               {actor.logoUrl && <img src={actor.logoUrl} alt="" className="h-7 w-auto max-w-[120px] object-contain mb-2 rounded-sm bg-ink/90 p-1" />}
               <p className="text-sm font-bold truncate">{actor.name}</p>
               <p className="text-[12px] text-[rgb(var(--text-secondary))] mt-0.5 truncate">{actor.agencyName}</p>
-              <p className="label mt-1.5 text-crimson-700">{actor.role.replace('_', ' ')}</p>
+              <p className="label mt-1.5 text-crimson-700">{formatRole(actor.role)}</p>
             </div>
             <Link href="/settings" onClick={() => setProfileOpen(false)} className={item}><Settings className="w-4 h-4 text-navy-500" /> Agency settings</Link>
             <Link href="/settings/team" onClick={() => setProfileOpen(false)} className={item}><Users className="w-4 h-4 text-navy-500" /> Team</Link>
@@ -113,24 +140,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
       {/* Recharge */}
       <Dialog open={rechargeOpen} onClose={() => setRechargeOpen(false)} title="Recharge wallet" size="sm">
         <div className="space-y-4">
-          <div className="rounded-md bg-amber-50 border border-amber-100 px-4 py-3 text-sm">
-            <p className="font-bold text-amber-900 mb-1">Online recharge is coming in Phase 2</p>
-            <p className="text-ink">Razorpay is planned for the next milestone. Until then, credit your wallet by bank transfer.</p>
-          </div>
-          <div>
-            <p className="label mb-2">Credit your wallet manually</p>
-            <ol className="text-sm text-ink space-y-2 list-decimal list-inside">
-              <li>NEFT/IMPS the amount to Global Guides DMC:
-                <div className="ml-5 mt-1.5 font-mono text-xs bg-surface-2 border border-border-subtle p-2.5 rounded-md leading-relaxed">
-                  A/c: 924020014711<br />
-                  IFSC: AXIS0001234<br />
-                  Name: Global Guides DMC LLP
-                </div>
-              </li>
-              <li>WhatsApp the transfer screenshot and your agency code to <a href="https://wa.me/918378073375" className="text-crimson-700 font-semibold hover:underline">+91 83780 73375</a></li>
-              <li>Wallet credited within 1 business hour</li>
-            </ol>
-          </div>
+          <WalletTopupDetails />
           <div className="flex justify-end gap-2 pt-2 border-t border-border-subtle">
             <Link href="/statement"><Button variant="secondary" onClick={() => setRechargeOpen(false)}>View statement</Button></Link>
             <Button variant="ghost" onClick={() => setRechargeOpen(false)}>Close</Button>

@@ -27,6 +27,13 @@ const CATEGORIES: { v: Category; label: string }[] = [
   { v: 'OTHER',           label: 'Other' },
 ];
 
+/** Routes customers or signed-out visitors land on: no bug-report button there. */
+function isCustomerFacing(pathname: string | null): boolean {
+  if (!pathname) return false;
+  if (pathname === '/login' || pathname === '/signup') return true;
+  return ['/p/', '/widget/', '/invite/'].some((prefix) => pathname.startsWith(prefix));
+}
+
 export function BugReportButton() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,8 +43,10 @@ export function BugReportButton() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const pathname = usePathname();
+  const hidden = isCustomerFacing(pathname);
 
   useEffect(() => {
+    if (hidden) return;
     // Keyboard shortcut: Cmd/Ctrl + Shift + B
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'b') {
@@ -47,7 +56,7 @@ export function BugReportButton() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [hidden]);
 
   function reset() {
     setOpen(false);
@@ -82,6 +91,9 @@ export function BugReportButton() {
       setBusy(false);
     }
   }
+
+  // Customers, widget visitors and signed-out people never see the internal report button.
+  if (hidden) return null;
 
   return (
     <>

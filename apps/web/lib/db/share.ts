@@ -28,21 +28,48 @@ export async function recordProposalView(token: string) {
   } catch { /* viewing should never error the page */ }
 }
 
-export async function recordProposalResponse(token: string, action: 'ACCEPT' | 'DECLINE') {
-  const status = action === 'ACCEPT' ? 'ACCEPTED' : 'DECLINED';
-  const p = await db.proposal.findUnique({ where: { shareToken: token }, select: { id: true, code: true, agencyId: true, ownerUserId: true } });
-  if (!p) return;
+/** Customer accepted the proposal. Returns false if the link is unknown. */
+export async function recordProposalAcceptance(token: string): Promise<boolean> {
+  const p = await db.proposal.findUnique({ where: { shareToken: token }, select: { id: true, code: true, agencyId: true, ownerUserId: true, status: true } });
+  if (!p) return false;
+  // Already accepted or booked: nothing to change, don't notify twice.
+  if (p.status === 'ACCEPTED' || p.status === 'BOOKED') return true;
   await db.proposal.update({
     where: { id: p.id },
-    data: { status, acceptedAt: action === 'ACCEPT' ? new Date() : null },
+    data: { status: 'ACCEPTED', acceptedAt: new Date() },
   });
   await emitNotification({
     agencyId: p.agencyId, userId: p.ownerUserId,
-    kind: action === 'ACCEPT' ? 'PROPOSAL_ACCEPTED' : 'PROPOSAL_DECLINED',
-    title: action === 'ACCEPT' ? `🎉 ${p.code} accepted` : `${p.code} declined`,
-    body: action === 'ACCEPT' ? 'Customer accepted the proposal. Convert to a booking.' : 'Customer asked for changes. Open the proposal to revise.',
+    kind: 'PROPOSAL_ACCEPTED',
+    title: `🎉 ${p.code} accepted`,
+    body: 'Customer accepted the proposal. Convert to a booking.',
     href: '/proposals',
   });
+  return true;
+}
+
+/**
+ * Customer asked for changes. This does NOT change the proposal's status:
+ * we record their message on the lead (when the proposal has one) and
+ * notify the agency so they can send a revised version.
+ */
+export async function recordProposalChangeRequest(token: string, message: string): Promise<boolean> {
+  const p = await db.proposal.findUnique({ where: { shareToken: token }, select: { id: true, code: true, agencyId: true, ownerUserId: true, leadId: true } });
+  if (!p) return false;
+  if (p.leadId) {
+    await db.leadNote.create({
+      data: { leadId: p.leadId, authorId: null, kind: 'NOTE', body: `Customer asked for changes on ${p.code}:\n${message}` },
+    });
+  }
+  const preview = message.length > 400 ? `${message.slice(0, 400)}…` : message;
+  await emitNotification({
+    agencyId: p.agencyId, userId: p.ownerUserId,
+    kind: 'PROPOSAL_CHANGES_REQUESTED',
+    title: `${p.code}: customer asked for changes`,
+    body: `"${preview}"`,
+    href: p.leadId ? `/leads/${p.leadId}` : '/proposals',
+  });
+  return true;
 }
 
 export { proposalToItinerary };

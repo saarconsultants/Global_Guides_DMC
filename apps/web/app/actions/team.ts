@@ -46,6 +46,29 @@ export async function removeTeamMemberAction(userId: string) {
   revalidatePath('/settings/team');
 }
 
+/** Agency owner sets a new password for a teammate who has forgotten theirs. */
+// Returns a result instead of throwing: thrown messages are hidden from the browser in production.
+export async function resetMemberPasswordAction(userId: string, formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  const actor = await requireAgency();
+  if (actor.role !== 'AGENCY_OWNER') return { ok: false, error: 'Only the agency owner can reset passwords.' };
+  if (userId === actor.userId) return { ok: false, error: 'To change your own password, please contact Global Guides support.' };
+
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm') ?? '');
+  if (password.length < 8) return { ok: false, error: 'The new password must be at least 8 characters.' };
+  if (password !== confirm) return { ok: false, error: "The two passwords don't match." };
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  // Tenant-scoped in the WHERE: an owner can only reset members of their own agency.
+  const updated = await db.user.updateMany({
+    where: { id: userId, agencyId: actor.agencyId, role: { not: 'SUPER_ADMIN' } },
+    data: { passwordHash },
+  });
+  if (updated.count === 0) return { ok: false, error: 'That team member could not be found.' };
+  revalidatePath('/settings/team');
+  return { ok: true };
+}
+
 // Accept an invite (no auth required — token IS the auth)
 export async function acceptInviteAction(token: string, formData: FormData): Promise<void> {
   const invite = await db.invite.findUnique({ where: { token } });

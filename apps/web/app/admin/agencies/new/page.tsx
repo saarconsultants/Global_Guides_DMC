@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { createAgencyManualAction } from '@/app/actions/admin';
 import { Building2 } from 'lucide-react';
+import { SelectOnFocusInput } from '@/components/ui/select-on-focus-input';
 
 export default function NewAgencyPage() {
   return (
@@ -52,7 +53,7 @@ export default function NewAgencyPage() {
           <h3 className="text-sm font-semibold text-ink mb-2">Alternative · share the public signup link</h3>
           <p className="text-xs text-[rgb(var(--text-secondary))] mb-3">Let the agency owner set up their own account, brand, and password. Recommended for self-serve onboarding.</p>
           <div className="flex items-center gap-2">
-            <Input readOnly value="https://app.globalguides.com/signup" className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+            <SelectOnFocusInput value="https://app.globalguides.com/signup" className="font-mono text-xs" aria-label="Public signup link" />
           </div>
         </CardContent>
       </Card>

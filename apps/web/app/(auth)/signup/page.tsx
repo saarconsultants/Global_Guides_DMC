@@ -55,7 +55,7 @@ export default function SignupPage() {
               <div><Label required>Your name</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
               <div><Label required>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
               <div><Label required>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="min 8 characters" /></div>
-              {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
+              {error && <div role="alert" className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
               <Button type="submit" disabled={pending} className="w-full">{pending ? 'Creating…' : 'Create agency &amp; sign in'}</Button>
             </form>
             <p className="mt-6 text-sm text-[rgb(var(--text-secondary))] text-center">

@@ -96,7 +96,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
             <div><div className="label">Destinations</div><div className="mt-1 text-[15px] font-bold text-ink truncate">{cities.length}</div><div className="text-[12px] text-[rgb(var(--text-secondary))] truncate">{cities.join(' · ')}</div></div>
             <div><div className="label">Nights</div><div className="mt-1 font-mono text-[22px] font-bold text-ink leading-none tnum">{nights}</div></div>
             <div><div className="label">Depart</div><div className="mt-1 text-[15px] font-bold text-ink tnum">{formatDateShort(p.travelDate)}</div></div>
-            <div><div className="label">Travellers</div><div className="mt-1 text-[15px] font-bold text-ink tnum">{(() => { try { const r = JSON.parse(p.travelers).rooms as Array<{ adults: number; children: number }>; const a = r.reduce((s, x) => s + x.adults, 0); const c = r.reduce((s, x) => s + (x.children ?? 0), 0); return `${a} adult${a !== 1 ? 's' : ''}${c ? `, ${c} child` : ''}`; } catch { return '—'; } })()}</div></div>
+            <div><div className="label">Travellers</div><div className="mt-1 text-[15px] font-bold text-ink tnum">{(() => { try { const r = JSON.parse(p.travelers).rooms as Array<{ adults: number; children: number }>; const a = r.reduce((s, x) => s + x.adults, 0); const c = r.reduce((s, x) => s + (x.children ?? 0), 0); return `${a} adult${a !== 1 ? 's' : ''}${c ? `, ${c} ${c === 1 ? 'child' : 'children'}` : ''}`; } catch { return '—'; } })()}</div></div>
           </div>
           <div className="sm:w-0 border-t-2 sm:border-t-0 sm:border-l-2 border-dashed border-border" />
           <div className="sm:w-[210px] px-5 py-4 flex flex-col justify-center text-white" style={{ background: primary }}>
@@ -138,7 +138,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                   <span className="absolute -left-[33px] top-1 w-6 h-6 rounded-full text-white text-xs font-bold inline-flex items-center justify-center shadow-sm" style={{ background: primary }}>{day.dayNo}</span>
                   <p className="label">{fmtDayLabel(day.date)}</p>
                   <p className="text-lg font-bold text-ink mt-0.5">{heading(day)}</p>
-                  <p className="text-sm text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed">{day.narrative}</p>
+                  <p className="text-sm text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed">{customerNarrative(day)}</p>
                   {(day.morning || day.afternoon || day.evening) && (
                     <div className="mt-3 grid sm:grid-cols-3 gap-2">
                       {(['morning','afternoon','evening'] as const).map((s) => {
@@ -268,6 +268,15 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
 function fmtDayLabel(s: string) {
   return new Date(s).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long' });
 }
+/** Older proposals saved builder instructions as the day text; show customers a friendly line instead. */
+function customerNarrative(d: { narrative?: string | null; cityName?: string }): string {
+  const text = d.narrative ?? '';
+  if (text.includes('Use morning, afternoon and evening slots')) {
+    return `A free day in ${d.cityName ?? 'the city'} to explore at your own pace.`;
+  }
+  return text;
+}
+
 function heading(d: any) {
   if (d.type === 'arrival')   return `Arrival in ${d.cityName}`;
   if (d.type === 'departure') return `Departure from ${d.cityName}`;

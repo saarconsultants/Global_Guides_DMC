@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { getDisplayMoney } from '@/lib/money-server';
 import { Plane, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { cloneAndRedirectAction } from '@/app/actions/clone-template';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,7 +53,9 @@ export default async function FITPackagesPage() {
                 <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">A handpicked itinerary you can clone and customise.</p>
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                   <span className="font-mono text-sm font-bold text-crimson-900">From {fmt(t.startingPricePaise)}</span>
-                  <Link href={`/itinerary/template/${t.id}` as any}><Button size="sm" variant="secondary">Clone</Button></Link>
+                  <form action={cloneAndRedirectAction.bind(null, t.id)}>
+                    <Button type="submit" size="sm" variant="secondary">Clone</Button>
+                  </form>
                 </div>
               </CardContent>
             </Card>
