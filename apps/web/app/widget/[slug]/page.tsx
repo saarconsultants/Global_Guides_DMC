@@ -16,7 +16,7 @@ export default async function WidgetPage({ params }: { params: Promise<{ slug: s
   const accent  = agency.accentColor  ?? '#FFBA06';
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4" style={{ background: `linear-gradient(135deg, ${primary} 0%, #000 100%)` }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: `linear-gradient(135deg, ${primary} 0%, #000 100%)` }}>
       <div className="w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
         <div className="px-6 py-5 text-white" style={{ background: primary }}>
           <div className="flex items-center gap-3">
@@ -30,6 +30,6 @@ export default async function WidgetPage({ params }: { params: Promise<{ slug: s
         </div>
         <WidgetForm slug={agency.slug} accent={accent} primary={primary} />
       </div>
-    </main>
+    </div>
   );
 }

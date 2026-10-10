@@ -34,7 +34,7 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
             <HotelPhoto thumb={h.thumb} allImages={h.allImages} hotelName={h.name} className="w-full h-full rounded-md" placeholder={<div className="w-full h-full rounded-md bg-ink text-white flex flex-col items-center justify-center gap-2"><span className="inline-flex items-center gap-0.5 text-amber-500">{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span><span className="font-mono text-[15px] font-bold tracking-[0.06em] tnum">{cityCode}</span></div>} />
           </div>
           <div className="min-w-0 flex-1">
-            <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
+            <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
             <h4 className="mt-1 text-[16px] font-bold text-ink tracking-[-0.01em] leading-tight">{h.name}</h4>
             <p className="text-[12.5px] text-[rgb(var(--text-secondary))] truncate">{h.address}</p>
             {h.rating && (

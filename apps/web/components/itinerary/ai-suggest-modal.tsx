@@ -169,7 +169,7 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
                 <HotelIcon className="w-4 h-4 text-crimson-700 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-ink truncate">{d.cityName} · {d.nights}N — {d.stay?.hotel.name ?? 'no stay'}</p>
-                  {d.stay && <p className="text-xs text-[rgb(var(--text-secondary))] inline-flex items-center gap-1.5"><span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-500" />)}</span>· {d.stay.hotel.mealPlan}</p>}
+                  {d.stay && <p className="text-xs text-[rgb(var(--text-secondary))] inline-flex items-center gap-1.5"><span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${d.stay.hotel.stars} star`}>{Array.from({ length: d.stay.hotel.stars }).map((_, i) => <Star key={i} className="w-3 h-3 fill-amber-500" />)}</span>· {d.stay.hotel.mealPlan}</p>}
                 </div>
               </div>
             ))}

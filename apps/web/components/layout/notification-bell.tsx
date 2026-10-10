@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useId, useRef, useState, useTransition } from 'react';
 import { Bell, Check, Sparkles, Send, Eye, PartyPopper, Undo2, Clock, CheckCircle2, Users } from 'lucide-react';
 import { markAllReadAction } from '@/app/actions/notifications';
 import { cn } from '@/lib/utils';
@@ -37,6 +37,8 @@ export function NotificationBell({ initialUnread, initialItems }: Props) {
   const [items, setItems] = useState(initialItems);
   const [pending, start] = useTransition();
   const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
 
   // close on outside click
   useEffect(() => {
@@ -58,21 +60,30 @@ export function NotificationBell({ initialUnread, initialItems }: Props) {
   }
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div
+      ref={wrapRef}
+      className="relative"
+      // Escape closes and returns focus to the bell; tabbing out closes too.
+      onKeyDown={(e) => { if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); buttonRef.current?.focus(); } }}
+      onBlur={(e) => { if (open && !wrapRef.current?.contains(e.relatedTarget as Node | null)) setOpen(false); }}
+    >
       <button
+        ref={buttonRef}
         type="button"
-        aria-label="Notifications"
+        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+        aria-expanded={open}
+        aria-controls={panelId}
         onClick={openAndMarkRead}
         className="inline-flex items-center justify-center w-9 h-9 rounded-md text-navy-700 hover:bg-navy-50 hover:text-ink transition-colors cursor-pointer relative"
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-4 h-4" aria-hidden />
         {unread > 0 && (
-          <span aria-label={`${unread} unread`} className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-crimson-700 text-white text-[10px] font-bold border-2 border-surface tnum">{unread > 9 ? '9+' : unread}</span>
+          <span aria-hidden className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-crimson-700 text-white text-[10px] font-bold border-2 border-surface tnum">{unread > 9 ? '9+' : unread}</span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] z-50 bg-surface text-[rgb(var(--text-primary))] rounded-lg shadow-xl border border-border-subtle overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div id={panelId} className="absolute right-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] z-50 bg-surface text-[rgb(var(--text-primary))] rounded-lg shadow-xl border border-border-subtle overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
           <header className="px-4 py-3 border-b border-border-subtle flex items-center justify-between">
             <p className="font-bold text-sm">Notifications</p>
             {items.length > 0 && unread === 0 && <span className="text-xs text-success-500 inline-flex items-center gap-1"><Check className="w-3 h-3" />All caught up</span>}
@@ -96,7 +107,7 @@ export function NotificationBell({ initialUnread, initialItems }: Props) {
                         {n.body && <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5 leading-snug line-clamp-2">{n.body}</p>}
                         <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-1">{new Date(n.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      {!n.readAt && <span className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" aria-label="Unread" />}
+                      {!n.readAt && <><span className="w-2 h-2 rounded-full bg-amber-500 mt-2 flex-shrink-0" aria-hidden /><span className="sr-only">Unread</span></>}
                     </div>
                   );
                   return n.href ? (

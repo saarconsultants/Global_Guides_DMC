@@ -44,7 +44,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
       <div>
         <div className="flex items-center gap-2 mb-1">
           {hotel.stars && (
-            <span className="inline-flex items-center gap-0.5 text-amber-500">
+            <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${hotel.stars} star`}>
               {Array.from({ length: hotel.stars }).map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-500" />)}
             </span>
           )}

@@ -73,7 +73,7 @@ export function HotelResults({ hotels, nights }: Props) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
+                <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
                 {h.id.startsWith('HB-') && <Pill variant="live">Live</Pill>}
               </div>
               <h3 className="mt-1 text-[17px] font-bold text-ink tracking-[-0.01em] leading-tight">
