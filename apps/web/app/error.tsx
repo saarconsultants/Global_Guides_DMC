@@ -31,8 +31,8 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         </div>
         <p className="text-[11px] uppercase tracking-widest text-danger-500 font-bold">Something went wrong</p>
         <h1 className="mt-3 text-2xl font-bold text-ink tracking-tight">We couldn't render this page.</h1>
-        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">{error.message ?? 'Unknown error'}</p>
-        {error.digest && <p className="mt-1 text-xs font-mono text-[rgb(var(--text-tertiary))]">ref: {error.digest}</p>}
+        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">Something on our side didn't work. We've been notified automatically. Please try again, or go back to your dashboard.</p>
+        {error.digest && <p className="mt-1 text-xs font-mono text-[rgb(var(--text-tertiary))]">Ref: {error.digest}</p>}
         <div className="mt-6 flex items-center justify-center gap-2">
           <Button onClick={reset}>Try again</Button>
           <Button variant="ghost" onClick={() => (window.location.href = '/dashboard')}>Back to dashboard</Button>

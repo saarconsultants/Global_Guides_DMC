@@ -46,7 +46,8 @@ export function composeItinerary(intake: IntakeForm, hotelOverrides?: Record<str
       const isLastCity     = i === destinations.length - 1;
 
       let type: Day['type'] = 'stay';
-      let narrative = `Day in ${dest.cityName}. Use morning, afternoon and evening slots to add tours and experiences.`;
+      // Customer-facing text (shown on the shared proposal), so no builder instructions here.
+      let narrative = `A free day in ${dest.cityName} to explore at your own pace.`;
       const inclusions: DayInclusion[] = [];
 
       if (isFirstDayHere && isFirstCity) {

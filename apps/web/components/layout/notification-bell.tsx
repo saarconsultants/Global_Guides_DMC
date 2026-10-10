@@ -25,6 +25,7 @@ const kindIcon: Record<string, React.ComponentType<{ className?: string }>> = {
   PROPOSAL_VIEWED: Eye,
   PROPOSAL_ACCEPTED: PartyPopper,
   PROPOSAL_DECLINED: Undo2,
+  PROPOSAL_CHANGES_REQUESTED: Undo2,
   LEAD_NEW: Sparkles,
   LEAD_FOLLOWUP: Clock,
   BOOKING_CONFIRMED: CheckCircle2,

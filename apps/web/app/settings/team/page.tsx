@@ -12,6 +12,7 @@ import { Users as UsersIcon, MailPlus, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { InviteLinkCopyButton } from '@/components/settings/invite-link-copy';
 import { ActionForm } from '@/components/ui/action-form';
+import { ResetPasswordButton } from '@/components/settings/reset-password-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,6 +111,9 @@ export default async function TeamSettingsPage() {
                     <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs">{u.lastLoginAt ? formatDateShort(u.lastLoginAt) : 'never'}</td>
                     <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs">{formatDateShort(u.createdAt)}</td>
                     <td className="py-3 pr-4 text-right">
+                      {isOwner && u.id !== actor.userId && u.role !== 'SUPER_ADMIN' && (
+                        <ResetPasswordButton userId={u.id} email={u.email} />
+                      )}
                       {isOwner && u.id !== actor.userId && (
                         <ActionForm action={removeTeamMemberAction.bind(null, u.id)} confirm="Remove this team member? They lose access immediately." success="Member removed" className="inline">
                           <button className="text-danger-500 hover:underline text-xs font-medium">Remove</button>
