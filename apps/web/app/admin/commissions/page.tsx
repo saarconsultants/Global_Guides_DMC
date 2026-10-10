@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { saveCommissionRuleAction, deleteCommissionRuleAction } from '@/app/actions/admin';
 import { Percent, ShieldAlert } from 'lucide-react';
 import { AutoSubmitSelect, AutoSubmitNumber } from '@/components/admin/auto-submit';
+import { ActionForm } from '@/components/ui/action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,7 @@ export default async function AdminCommissionsPage() {
   const agencyRules   = rules.filter((r) =>  r.agencyId);
 
   return (
-    <div className="p-8 space-y-6 ambient">
+    <div className="p-4 sm:p-8 space-y-6 ambient">
       <PageHeader
         eyebrow="Platform"
         title="Commission rules"
@@ -147,9 +148,9 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                       </td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs max-w-xs truncate">{r.note ?? '—'}</td>
                       <td className="py-3 pr-4 text-right">
-                        <form action={deleteCommissionRuleAction.bind(null, r.id)} className="inline">
-                          <button className="text-danger-500 hover:underline text-xs font-medium opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Delete</button>
-                        </form>
+                        <ActionForm action={deleteCommissionRuleAction.bind(null, r.id)} confirm={`Delete the ${r.productType} commission rule? This can't be undone.`} success="Rule deleted" className="inline">
+                          <button type="submit" className="inline-flex items-center min-h-6 text-danger-500 hover:underline text-xs font-medium opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">Delete</button>
+                        </ActionForm>
                       </td>
                     </tr>
                   ))}

@@ -58,7 +58,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <StatCard label="Confirmed value" value={fmt(totalSpend)} mono />
       </div>
 
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-[rgb(var(--text-secondary))] mr-1">Filter:</span>
         <FilterPill href="/bookings" label="All" active={!sp.status} />
         {['PENDING', 'CONFIRMED', 'CANCELLED'].map((s) => (
@@ -77,7 +77,32 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
               secondary={{ label: 'Build a new trip', href: '/itinerary/new' }}
             />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Phones: stacked cards instead of a sideways-scrolling table. */}
+            <ul className="md:hidden divide-y divide-border-subtle">
+              {rows.map((b) => (
+                <li key={b.id} className="py-4 space-y-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link href={`/itinerary/${b.proposal.id}/customize` as any} className="inline-flex items-center min-h-6 font-mono text-[12.5px] font-bold text-crimson-700 hover:underline">{b.proposal.code}</Link>
+                      <div className="font-bold text-ink truncate">{b.proposal.lead?.customerName ?? '—'}</div>
+                      <div className="text-[13px] text-[rgb(var(--text-secondary))] break-words">{b.proposal.name}</div>
+                    </div>
+                    <Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
+                    <span className="text-[rgb(var(--text-secondary))]">Travel <span className="text-ink">{formatDateShort(b.proposal.travelDate)}</span> · Booked {formatDateShort(b.bookedAt)}</span>
+                    <span className="money font-bold text-[13.5px]">{fmt(b.paidPaise)}</span>
+                  </div>
+                  {b.pnrs && <div className="font-mono text-xs text-[rgb(var(--text-secondary))] break-all">PNR {b.pnrs}</div>}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                    {b.supplierJson && <SupplierItems bookingId={b.id} code={b.proposal.code} items={supplierRows(b.supplierJson)} />}
+                    <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-[13.5px] tnum">
                 <thead>
                   <tr className="text-left label border-b border-border">
@@ -105,13 +130,14 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
                       <td className="py-3 pl-4 text-right whitespace-nowrap space-x-3">
                         {b.supplierJson && <SupplierItems bookingId={b.id} code={b.proposal.code} items={supplierRows(b.supplierJson)} />}
-                        <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
+                        <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>

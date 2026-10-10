@@ -45,7 +45,7 @@ export function SupplierItems({ bookingId, code, items }: { bookingId: string; c
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1 text-xs font-semibold text-crimson-700 hover:underline" title="Hotels and transfers in this booking">
+      <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-crimson-700 hover:underline" title="Hotels and transfers in this booking">
         <Settings2 className="w-3.5 h-3.5" />Manage
       </button>
       <Dialog open={open} onClose={() => { setOpen(false); setPreview(null); }} title={`Suppliers · ${code}`} size="md">

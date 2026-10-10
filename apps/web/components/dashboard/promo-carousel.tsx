@@ -108,15 +108,18 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="absolute top-5 right-6 flex items-center gap-1.5">
+          {/* Each dot sits in a 24px-tall hit area (WCAG 2.5.8) while the visual dot stays small. */}
+          <div className="absolute top-[11px] right-4 flex items-center">
             {banners.map((b, i) => (
               <button
                 key={b.key}
                 type="button"
                 aria-label={`Go to promotion ${i + 1}`}
                 onClick={() => setIdx(i)}
-                className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
-              />
+                className="group/dot h-6 min-w-6 px-[3px] inline-flex items-center justify-center rounded-full"
+              >
+                <span aria-hidden="true" className={`block h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/50 group-hover/dot:bg-white/80'}`} />
+              </button>
             ))}
           </div>
         </>

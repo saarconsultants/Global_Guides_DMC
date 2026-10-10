@@ -109,7 +109,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
 
           {/* Slots: filled cells and ghost cells share one geometry. */}
           {day.type !== 'transit' && (
-            <div className="grid grid-cols-3 gap-2.5 mt-4">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-3 gap-2 min-[400px]:gap-2.5 mt-4">
               {(['morning','afternoon','evening'] as const).map((s) => {
                 const act = day[s];
                 return (
@@ -117,13 +117,13 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                     key={s}
                     type="button"
                     onClick={() => setSlotOpen(s)}
-                    className={`text-left rounded-md px-3 py-2.5 min-h-[64px] transition-colors cursor-pointer ${act ? 'border border-border-subtle bg-surface hover:border-crimson-300' : 'border-2 border-dashed border-border bg-surface-2/60 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
+                    className={`text-left rounded-md px-3 py-2 min-[400px]:py-2.5 min-h-[44px] min-[400px]:min-h-[64px] flex items-baseline gap-3 min-[400px]:block transition-colors cursor-pointer ${act ? 'border border-border-subtle bg-surface hover:border-crimson-300' : 'border-2 border-dashed border-border bg-surface-2/60 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
                   >
-                    <span className="label">{s}</span>
+                    <span className="label w-[72px] flex-shrink-0 min-[400px]:w-auto">{s}</span>
                     {act ? (
-                      <span className="mt-1 block text-[13px] text-ink font-bold line-clamp-2 leading-snug">{act.name}</span>
+                      <span className="min-[400px]:mt-1 block min-w-0 text-[13px] text-ink font-bold line-clamp-2 leading-snug">{act.name}</span>
                     ) : (
-                      <span className="mt-1 block text-[13px] text-crimson-700 font-bold inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Add</span>
+                      <span className="min-[400px]:mt-1 block text-[13px] text-crimson-700 font-bold inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Add</span>
                     )}
                   </button>
                 );

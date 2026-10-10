@@ -44,7 +44,7 @@ export function WidgetForm({ slug, accent, primary }: { slug: string; accent: st
         <label className="block text-xs font-semibold text-gray-700 mb-1">Your name *</label>
         <input name="customerName" required className={inputCls} style={{ '--tw-ring-color': primary } as any} placeholder="Rakesh Mehta" />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
           <input type="email" name="customerEmail" className={inputCls} placeholder="you@example.com" />
@@ -58,7 +58,7 @@ export function WidgetForm({ slug, accent, primary }: { slug: string; accent: st
         <label className="block text-xs font-semibold text-gray-700 mb-1">Where do you want to go? *</label>
         <input name="destinations" required className={inputCls} placeholder="Bali, Phuket, Dubai…" />
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">From</label>
           <input name="originCity" className={inputCls} placeholder="Delhi" />
