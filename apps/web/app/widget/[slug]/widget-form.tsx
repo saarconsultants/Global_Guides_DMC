@@ -77,7 +77,7 @@ export function WidgetForm({ slug, accent, primary }: { slug: string; accent: st
       <button type="submit" disabled={busy} className="w-full h-11 rounded text-white font-semibold text-sm disabled:opacity-60 transition-opacity" style={{ background: primary }}>
         {busy ? 'Sending…' : 'Request a proposal'}
       </button>
-      <p className="text-[10px] text-center text-gray-400 pt-1">Powered by Global Guides DMC</p>
+      <p className="text-[10px] text-center text-[rgb(var(--text-tertiary))] pt-1">Powered by Global Guides DMC</p>
     </form>
   );
 }

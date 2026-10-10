@@ -73,7 +73,7 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
                         <Pill variant={open ? 'info' : 'success'}>{r.status}</Pill>
                         <span className="text-[10px] text-[rgb(var(--text-secondary))] font-mono">{formatDateShort(r.createdAt)} · {new Date(r.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
-                      <h3 className="text-base font-semibold text-ink">{r.title}</h3>
+                      <h2 className="text-base font-semibold text-ink">{r.title}</h2>
                       <p className="text-sm text-[rgb(var(--text-primary))] mt-1 whitespace-pre-wrap">{r.body}</p>
                       <div className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-[rgb(var(--text-secondary))]">
                         <div><span className="font-semibold">Reporter:</span> {r.userName ?? r.userEmail ?? <span className="italic">anonymous (customer page)</span>}</div>

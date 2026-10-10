@@ -49,7 +49,7 @@ export default function NewAgencyPage() {
 
       <Card>
         <CardContent className="pt-6">
-          <h3 className="text-sm font-semibold text-ink mb-2">Alternative · share the public signup link</h3>
+          <h2 className="text-sm font-semibold text-ink mb-2">Alternative · share the public signup link</h2>
           <p className="text-xs text-[rgb(var(--text-secondary))] mb-3">Let the agency owner set up their own account, brand, and password. Recommended for self-serve onboarding.</p>
           <div className="flex items-center gap-2">
             <SelectOnFocusInput value="https://app.globalguides.com/signup" className="font-mono text-xs" aria-label="Public signup link" />

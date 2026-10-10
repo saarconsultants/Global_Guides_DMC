@@ -74,7 +74,7 @@ export default async function MarketingPage() {
                         href={`https://wa.me/?text=${encodeURIComponent(`Have a look at this ${t.totalNights}-night ${t.title} trip we put together. Starting from ${fmt(t.startingPricePaise)}. Ask us for the PDF brochure!`)}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-[#25D366] text-white text-sm font-semibold hover:bg-[#1ebe57] transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-[#107C41] text-white text-sm font-semibold hover:bg-[#0B6334] transition-colors"
                       >
                         <MessageCircle className="w-4 h-4" />Pitch
                       </a>

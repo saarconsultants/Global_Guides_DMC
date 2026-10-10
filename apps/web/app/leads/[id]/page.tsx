@@ -168,7 +168,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                       <MessageCircle className="w-4 h-4 text-[#25D366]" /><span className="flex-1">WhatsApp</span>
                     </a>
                     {latestProposal && (
-                      <a href={`https://wa.me/${lead.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${lead.customerName.split(' ')[0]}, here's the proposal I prepared for you (${latestProposal.code}): ${typeof window === 'undefined' ? '' : window.location.origin}/p/${latestProposal.shareToken}`)}`} target="_blank" rel="noreferrer" className="block px-3 py-2 rounded-md bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 text-xs font-semibold transition-colors text-center">Send latest proposal on WhatsApp</a>
+                      <a href={`https://wa.me/${lead.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${lead.customerName.split(' ')[0]}, here's the proposal I prepared for you (${latestProposal.code}): ${typeof window === 'undefined' ? '' : window.location.origin}/p/${latestProposal.shareToken}`)}`} target="_blank" rel="noreferrer" className="block px-3 py-2 rounded-md bg-[#107C41]/10 text-[#0B6334] hover:bg-[#107C41]/20 text-xs font-semibold transition-colors text-center">Send latest proposal on WhatsApp</a>
                     )}
                   </>
                 )}

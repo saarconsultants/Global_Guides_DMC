@@ -125,7 +125,7 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
           <div>
             <Label>Share now</Label>
             <div className="grid grid-cols-2 gap-2">
-              <a href={waUrl()} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-[#25D366] text-white text-sm font-semibold hover:bg-[#1ebe57] transition-colors">
+              <a href={waUrl()} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-[#107C41] text-white text-sm font-semibold hover:bg-[#0B6334] transition-colors">
                 <MessageCircle className="w-4 h-4" />WhatsApp
               </a>
               <a href={mailtoUrl()} className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-md bg-action-500 text-white text-sm font-semibold hover:bg-action-600 transition-colors">

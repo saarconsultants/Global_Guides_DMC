@@ -153,7 +153,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
         <div className="space-y-4">
           <p className="text-sm text-ink">Use this when something blocks a booking <strong>right now</strong>: payment stuck, customer waiting on the phone, API error during a live demo. We pick these up within 15 minutes in business hours.</p>
           <div className="grid grid-cols-2 gap-2">
-            <a href="https://wa.me/918378073375?text=ESCALATE%3A%20" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 h-11 rounded-md bg-[#25D366] text-white font-bold hover:bg-[#1ebe57] transition-colors"><MessageCircle className="w-4 h-4" /> WhatsApp now</a>
+            <a href="https://wa.me/918378073375?text=ESCALATE%3A%20" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 h-11 rounded-md bg-[#107C41] text-white font-bold hover:bg-[#0B6334] transition-colors"><MessageCircle className="w-4 h-4" /> WhatsApp now</a>
             <a href="tel:+918378073375" className="inline-flex items-center justify-center gap-2 h-11 rounded-md bg-crimson-700 text-white font-bold hover:bg-crimson-900 transition-colors"><Phone className="w-4 h-4" /> Call now</a>
           </div>
           <p className="rounded-md bg-surface-2 border border-border-subtle px-3 py-2 text-xs text-[rgb(var(--text-secondary))]">For non-urgent feedback, use the <strong>Report</strong> button at the bottom right, or press <kbd className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-mono">⌘⇧B</kbd>.</p>
