@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
+import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
@@ -61,10 +62,10 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
             </div>
             <select name="status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
               <option value="">All statuses</option>
-              {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
+              {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
             <Button variant="secondary" className="gap-1.5"><Filter className="w-4 h-4" />Filter</Button>
-            {(sp.q || sp.status) && <Link href="/leads" className="text-xs text-danger-500 hover:underline">× clear</Link>}
+            {(sp.q || sp.status) && <Link href="/leads" className="text-xs text-danger-500 hover:underline">Clear filters</Link>}
           </form>
         </CardContent>
       </Card>
@@ -75,7 +76,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
             <EmptyState
               icon={<ClipboardList className="w-7 h-7" />}
               title="No leads yet"
-              body="Save a proposal to auto-create your first lead. Leads appear here as soon as you click Save As Proposal in the builder."
+              body="Save a proposal to auto-create your first lead. Leads appear here as soon as you click Save as proposal in the builder."
               primary={{ label: 'Create your first trip', href: '/itinerary/new' }}
               secondary={{ label: 'Browse templates', href: '/suggested' }}
             />
@@ -141,7 +142,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                         <td className="py-3 pr-4">{l.originCity ?? '—'}</td>
                         <td className="py-3 pr-4">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</td>
                         <td className="py-3 pr-4 font-mono">{l.nights ?? '—'}</td>
-                        <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{l.status}</Pill></td>
+                        <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{statusLabel(l.status)}</Pill></td>
                         <td className="py-3 pr-4">{latest ? <span><span className="font-mono text-[12px] font-bold">{latest.code}</span> <span className="money">{fmt(latest.pricePaise)}</span></span> : <span className="text-[rgb(var(--text-tertiary))]">—</span>}</td>
                         <td className="py-3 pl-4">
                           <LeadActions

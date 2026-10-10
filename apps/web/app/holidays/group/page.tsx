@@ -2,8 +2,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Pill } from '@/components/ui/pill';
-import { Button } from '@/components/ui/button';
 import { BlockSeatsButton } from './block-seats-button';
+import { getDisplayMoney } from '@/lib/money-server';
 import { Users, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 
@@ -16,9 +16,8 @@ const DEPARTURES = [
   { code: 'GIT-DUBAI-JAN',  dest: 'Dubai + Abu Dhabi', nights: 5, date: '11 Jan 2027', seats: 18, sold: 4,  price: 5950000 },
 ];
 
-const fmt = (paise: number) => `₹ ${(paise / 100).toLocaleString('en-IN')}`;
-
-export default function GroupToursPage() {
+export default async function GroupToursPage() {
+  const { fmt } = await getDisplayMoney();
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
@@ -64,7 +63,7 @@ export default function GroupToursPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                     <span className="font-mono text-sm font-bold text-crimson-900">{fmt(d.price)} <span className="text-xs text-[rgb(var(--text-secondary))] font-normal">/ pax</span></span>
-                    <BlockSeatsButton code={d.code} />
+                    <BlockSeatsButton code={d.code} dest={d.dest} date={d.date} />
                   </div>
                 </CardContent>
               </Card>

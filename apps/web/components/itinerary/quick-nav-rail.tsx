@@ -1,10 +1,13 @@
 'use client';
-import { Plane, Banknote, Car, Shield } from 'lucide-react';
+import { Plane, Banknote, Bed, Car, Shield } from 'lucide-react';
 
+// Each key jumps to the element with id `section-${key}` on the customize page.
+// Transfers are added per day, so "Transfers" lands on the Day by day section.
 const items = [
   { key: 'flights', icon: Plane,    label: 'Flights' },
   { key: 'price',   icon: Banknote, label: 'Price' },
-  { key: 'trans',   icon: Car,      label: 'Transfers' },
+  { key: 'stays',   icon: Bed,      label: 'Stays' },
+  { key: 'days',    icon: Car,      label: 'Transfers' },
   { key: 'ins',     icon: Shield,   label: 'Insurance' },
 ] as const;
 

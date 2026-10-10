@@ -8,6 +8,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { useMoney } from '@/components/providers/currency-provider';
+import { statusLabel } from '@/lib/labels';
 import { Settings2, Loader2 } from 'lucide-react';
 
 export interface SupplierRow {
@@ -59,7 +60,7 @@ export function SupplierItems({ bookingId, code, items }: { bookingId: string; c
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-mono text-xs">{it.supplier === 'HOTELBEDS' ? 'HB' : 'LM'} {it.reference ?? '—'}</p>
-                  <p className={`text-xs font-semibold ${it.status === 'CONFIRMED' ? 'text-emerald-700' : it.status === 'CANCELLED' ? 'text-[rgb(var(--text-tertiary))]' : 'text-danger-500'}`}>{it.status}</p>
+                  <p className={`text-xs font-semibold ${it.status === 'CONFIRMED' ? 'text-emerald-700' : it.status === 'CANCELLED' ? 'text-[rgb(var(--text-tertiary))]' : 'text-danger-500'}`}>{statusLabel(it.status)}</p>
                 </div>
               </div>
               {it.error && <p className="text-xs text-danger-500">{it.error}</p>}

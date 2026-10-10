@@ -66,16 +66,18 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
   return (
     <>
       <article className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
-        <header className="flex items-center gap-4 px-5 pt-4 pb-3">
+        <header className="flex items-start sm:items-center gap-4 px-5 pt-4 pb-3">
           <div className="w-14 shrink-0 rounded-md bg-ink text-white text-center py-1.5">
             <div className="label text-white/60">Day</div>
             <div className="font-mono text-[20px] font-bold leading-none tnum">{String(day.dayNo).padStart(2, '0')}</div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[16px] font-extrabold text-ink tracking-[-0.01em] truncate">{heading(day)}</p>
-            <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum">{dow}, {dm} · {day.cityName}</p>
+          <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1.5">
+            <div className="min-w-0 flex-1">
+              <p className="text-[16px] font-extrabold text-ink tracking-[-0.01em] leading-snug break-words">{heading(day)}</p>
+              <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum">{dow}, {dm} · {day.cityName}</p>
+            </div>
+            {points > 0 && <span className="shrink-0 self-start sm:self-auto"><Pill variant="warning">{points} points to note</Pill></span>}
           </div>
-          {points > 0 && <Pill variant="warning">{points} points to note</Pill>}
         </header>
 
         <div className="px-5 pb-4">
@@ -171,7 +173,6 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           {showAddTransfer && (
             <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
           )}
-          <Button size="sm" variant="ghost" onClick={() => toast.info('Coming in the next release', 'You will be able to swap a city or change nights on this day.')}>Change day</Button>
         </footer>
       </article>
 

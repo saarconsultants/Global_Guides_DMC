@@ -87,7 +87,11 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
     setError(null); setBusy(true); setResult(null); setTrip(null);
     const r = await aiSuggestAction({ destinationsText, totalNights, notes: notes || undefined, budget, travelers: { adults, children } });
     setBusy(false);
-    if (r.ok) setResult(r.result); else setError(r.error);
+    if (r.ok) setResult(r.result);
+    else {
+      console.error('[ai-suggest] route failed', r.error);
+      setError('We couldn\'t suggest a route just now. Please try again in a minute.');
+    }
   }
 
   async function buildTrip() {
@@ -103,7 +107,11 @@ export function AiSuggestModal({ open, onClose, onApply, onTrip, defaults }: Pro
       });
       const j = await res.json().catch(() => null);
       if (j?.ok) setTrip({ itinerary: j.itinerary, summary: j.summary, warnings: j.warnings ?? [] });
-      else setError(j?.error ?? `Trip build failed (HTTP ${res.status}). Please try again.`);
+      else if (res.status === 400 && j?.error) setError(j.error); // form validation — already plain English
+      else {
+        console.error('[ai-trip] build failed', res.status, j?.error);
+        setError('We couldn\'t build this trip just now. Please try again in a minute.');
+      }
     } catch {
       setError('Could not reach the trip builder. Check your connection and try again.');
     } finally {

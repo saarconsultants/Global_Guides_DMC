@@ -14,6 +14,8 @@ import { HotelPhoto } from './hotel-photo';
 interface Props {
   hotels: Hotel[];
   nights: number;
+  checkin?: string;
+  adults?: string;
 }
 
 /**
@@ -40,7 +42,7 @@ function freeUntil(policies?: Array<{ from: string }>): string | null {
   return `${m[2]} ${mon}, ${m[3]}:${m[4]}`;
 }
 
-export function HotelResults({ hotels, nights }: Props) {
+export function HotelResults({ hotels, nights, checkin, adults }: Props) {
   const money = useMoney();
   const [q, setQ] = useState('');
 
@@ -116,7 +118,7 @@ export function HotelResults({ hotels, nights }: Props) {
             <div className="label">Per night</div>
             <div className="money text-[24px] text-ink leading-none">{money(h.pricePerNightPaise)}</div>
             <div className="text-[12px] text-[rgb(var(--text-secondary))] tnum">{money(h.pricePerNightPaise * nights)} for {nights} night{nights !== 1 ? 's' : ''}</div>
-            <SelectHotelButton hotelName={h.name} />
+            <SelectHotelButton hotelName={h.name} cityCode={h.cityCode} checkin={checkin} nights={nights} adults={adults} />
           </PassStub>
         </Pass>
       ))}

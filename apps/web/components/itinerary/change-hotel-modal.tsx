@@ -57,18 +57,18 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
         if (myReq !== requestId.current) return;
         if (!r.ok) {
           setSource('mock');
-          setWarning(r.error);
+          console.error("[supplier-search]", r.error); setWarning(r.error);
           setLiveHotels([]);
           return;
         }
         setSource(r.source);
-        setWarning(r.warning);
+        if (r.warning) console.error("[supplier-search]", r.warning); setWarning(r.warning);
         setLiveHotels(r.hotels);
       })
       .catch((e) => {
         if (myReq !== requestId.current) return;
         setSource('mock');
-        setWarning(String(e?.message ?? e));
+        console.error("[supplier-search]", e); setWarning(String(e?.message ?? e));
         setLiveHotels([]);
       });
   }, [open, cityCode, checkIn, checkOut, rooms]);
@@ -104,14 +104,14 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs mb-3">
-          {warning} — showing mock inventory.
+          Live prices couldn&apos;t load. Try again in a minute. Showing sample prices for now.
         </div>
       )}
 
       <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
         {source === 'loading' && (
           <div className="text-center py-12 text-sm text-[rgb(var(--text-secondary))]">
-            <Spinner size="sm" className="inline mr-2" /> Searching Hotelbeds for {cityName}…
+            <Spinner size="sm" className="inline mr-2" /> Searching live hotels in {cityName}…
           </div>
         )}
         {source !== 'loading' && filtered.map((h) => (
@@ -155,7 +155,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
 
 function SourceBadge({ source, liveCount }: { source: Source; liveCount: number }) {
   if (source === 'loading') return null;
-  if (source === 'live') return <Pill variant="success">{liveCount} LIVE results · Hotelbeds</Pill>;
-  if (source === 'unsupported-city') return <Pill variant="warning">City not on Hotelbeds · mock data</Pill>;
-  return <Pill variant="warning">MOCK · set HOTELBEDS_API_KEY for live</Pill>;
+  if (source === 'live') return <Pill variant="success">{liveCount} with live prices</Pill>;
+  if (source === 'unsupported-city') return <Pill variant="warning">Sample prices — live rates aren&apos;t available for this city</Pill>;
+  return <Pill variant="warning">Sample prices — live rates unavailable right now</Pill>;
 }

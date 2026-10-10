@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
+import { statusLabel } from '@/lib/labels';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -51,7 +52,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
   // Build a simple activity timeline from lead + proposal events
   const events: Array<{ at: Date; title: string; sub?: string; icon: 'create' | 'quote' | 'view' | 'accept' | 'decline' | 'book' }> = [];
-  events.push({ at: lead.createdAt, title: `Lead created · ${lead.source}`, sub: `Status: ${lead.status}`, icon: 'create' });
+  events.push({ at: lead.createdAt, title: `Lead created · ${lead.source}`, sub: `Status: ${statusLabel(lead.status)}`, icon: 'create' });
   for (const p of lead.proposals) {
     events.push({ at: p.createdAt, title: `Proposal ${p.code} sent`, sub: `${p.name} · ${fmt(p.pricePaise)}`, icon: 'quote' });
     if (p.lastViewedAt) events.push({ at: p.lastViewedAt, title: `Customer viewed ${p.code}`, icon: 'view' });
@@ -73,11 +74,11 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           <>
             <ActionForm action={setLeadStatusAction.bind(null, lead.id)} success="Lead status updated" className="inline-flex items-center gap-2">
               <select name="status" defaultValue={lead.status} className="h-10 rounded-md border border-border bg-surface px-3 text-sm">
-                {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
+                {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
               <Button size="sm" variant="secondary" type="submit">Update</Button>
             </ActionForm>
-            <Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New proposal</Button></Link>
+            <Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New trip</Button></Link>
           </>
         }
       />
@@ -96,7 +97,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
               <p className="label">Status</p>
-              <p className="mt-1.5"><Pill variant={statusVariant[lead.status] ?? 'neutral'}>{lead.status}</Pill></p>
+              <p className="mt-1.5"><Pill variant={statusVariant[lead.status] ?? 'neutral'}>{statusLabel(lead.status)}</Pill></p>
             </CardContent></Card>
           </div>
 
@@ -133,7 +134,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                           <td className="py-3 pr-4">{p.name}</td>
                           <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs">{formatDateShort(p.createdAt)}</td>
                           <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
-                          <td className="py-3 pr-4"><Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
+                          <td className="py-3 pr-4"><Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill></td>
                           <td className="py-3 pr-4 text-right">
                             <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity inline-flex items-center gap-1 min-h-6">Open <ExternalLink className="w-3 h-3" /></a>
                           </td>

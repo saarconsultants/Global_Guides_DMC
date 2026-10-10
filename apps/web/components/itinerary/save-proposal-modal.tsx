@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,9 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [markup, setMarkup] = useState(String(defaultMarkupPct));
+  // The agency's markup arrives after first render; follow it until the agent edits the field.
+  const [markupTouched, setMarkupTouched] = useState(false);
+  useEffect(() => { if (!markupTouched) setMarkup(String(defaultMarkupPct)); }, [defaultMarkupPct, markupTouched]);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ code: string; shareToken: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +47,7 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
     }
   }
 
-  function reset() { setName(''); setEmail(''); setPhone(''); setMarkup(String(defaultMarkupPct)); setResult(null); setError(null); onClose(); }
+  function reset() { setName(''); setEmail(''); setPhone(''); setMarkup(String(defaultMarkupPct)); setMarkupTouched(false); setResult(null); setError(null); onClose(); }
 
   const shareUrl = result ? `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${result.shareToken}` : '';
   const customerFirstName = (name || 'there').split(/\s+/)[0];
@@ -81,7 +84,7 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
               <Percent className="w-4 h-4 text-crimson-700" />
               <Label className="!mb-0 flex-1">Agency markup this proposal</Label>
               <div className="flex items-center gap-1.5">
-                <Input type="number" value={markup} onChange={(e) => setMarkup(e.target.value)} step={0.5} min={0} max={100} className="w-20 h-8 text-sm" />
+                <Input type="number" value={markup} onChange={(e) => { setMarkupTouched(true); setMarkup(e.target.value); }} step={0.5} min={0} max={100} className="w-20 h-8 text-sm" />
                 <span className="text-sm text-[rgb(var(--text-secondary))]">%</span>
               </div>
             </div>
@@ -137,7 +140,7 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
             <a href={`/p/${result.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex"><Button variant="ghost" className="gap-1.5"><ExternalLink className="w-4 h-4" />Preview as customer</Button></a>
             <div className="flex gap-2">
               <Button variant="ghost" onClick={reset}>Close</Button>
-              <a href="/proposals" className="inline-flex"><Button variant="primary">Go to My Proposals</Button></a>
+              <a href="/proposals" className="inline-flex"><Button variant="primary">Go to My proposals</Button></a>
             </div>
           </div>
         </div>

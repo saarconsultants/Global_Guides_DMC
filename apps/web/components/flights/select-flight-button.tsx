@@ -30,7 +30,18 @@ export function SelectFlightButton({ offer, returnTo, cabin, leg = 'outbound' }:
     };
 
     if (!returnTo) {
-      toast.info('Flight noted', 'Open this search from inside an itinerary to attach it.');
+      // Standalone search: start a new trip to this flight's destination,
+      // leaving from its departure airport on its date. The flight itself is
+      // added from the trip's Flights section once the trip exists.
+      const first = offer.segments[0]!;
+      const last = offer.segments[offer.segments.length - 1]!;
+      const qs = new URLSearchParams({
+        dest: last.arrivalAirport.city || last.arrivalAirport.code,
+        from: first.departureAirport.code,
+      });
+      if (first.departureAt) qs.set('date', first.departureAt.slice(0, 10));
+      setBusy(true);
+      router.push(`/itinerary/new?${qs.toString()}` as any);
       return;
     }
 
@@ -41,13 +52,13 @@ export function SelectFlightButton({ offer, returnTo, cabin, leg = 'outbound' }:
       router.push(`/itinerary/${returnTo}/customize`);
     } catch {
       setBusy(false);
-      toast.error('Could not save selection', 'Your browser blocked sessionStorage — try again.');
+      toast.error('Could not save selection', 'Your browser blocked this step. Please try again.');
     }
   }
 
   return (
     <Button onClick={pick} disabled={busy} className="gap-1.5 w-full mt-1">
-      {busy ? <><Check className="w-4 h-4" />Selected</> : 'Select'}
+      {busy ? <><Check className="w-4 h-4" />Selected</> : returnTo ? 'Select' : 'Plan a trip on this route'}
     </Button>
   );
 }

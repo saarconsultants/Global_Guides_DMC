@@ -423,7 +423,7 @@ function ProposalPdf({ agency, code, version, customerName, currency = 'INR', ra
             ))}
             {it.insurance && (
               <View wrap={false}>
-                <Text style={s.docName}>Travel Insurance</Text>
+                <Text style={s.docName}>Travel insurance</Text>
                 <View style={s.docBullet}><View style={s.bulletDot} /><Text style={s.docText}>{it.insurance.description}</Text></View>
                 <View style={it.insurance.included ? s.pillOn : s.pillOff}><Text style={it.insurance.included ? s.pillOnText : s.pillOffText}>{it.insurance.included ? 'INCLUDED' : 'NOT INCLUDED'}</Text></View>
               </View>

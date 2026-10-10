@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
+import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <span className="text-[rgb(var(--text-secondary))] mr-1">Filter:</span>
         <FilterPill href="/bookings" label="All" active={!sp.status} />
         {['PENDING', 'CONFIRMED', 'CANCELLED'].map((s) => (
-          <FilterPill key={s} href={`/bookings?status=${s}`} label={s} active={sp.status === s} />
+          <FilterPill key={s} href={`/bookings?status=${s}`} label={statusLabel(s)} active={sp.status === s} />
         ))}
       </div>
 
@@ -126,7 +127,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4">{formatDateShort(b.proposal.travelDate)}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(b.bookedAt)}</td>
                       <td className="py-3 pr-4 money text-right">{fmt(b.paidPaise)}</td>
-                      <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill></td>
+                      <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{statusLabel(b.status)}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
                       <td className="py-3 pl-4 text-right whitespace-nowrap space-x-3">
                         {b.supplierJson && <SupplierItems bookingId={b.id} code={b.proposal.code} items={supplierRows(b.supplierJson)} />}
