@@ -75,14 +75,6 @@ export default function LoginPage() {
             <p className="mt-6 text-sm text-[rgb(var(--text-secondary))] text-center">
               New to Global Guides? <Link href="/signup" className="text-crimson-700 hover:underline font-medium">Create your agency</Link>
             </p>
-            <details className="mt-6 text-xs text-[rgb(var(--text-tertiary))] cursor-pointer group">
-              <summary className="hover:text-[rgb(var(--text-secondary))] select-none">Dev test accounts ▾</summary>
-              <div className="mt-2 space-y-1 font-mono bg-surface-2 rounded p-3">
-                <p>admin@globalguides.com / admin123 — <span className="text-crimson-700">super-admin</span></p>
-                <p>travel@globalguidesdmc.com / agent123 — <span className="text-crimson-700">your agency</span></p>
-                <p>demo@wandermark.in / agent123 — <span className="text-crimson-700">demo agency</span></p>
-              </div>
-            </details>
           </CardContent>
         </Card>
       </main>
