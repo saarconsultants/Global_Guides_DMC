@@ -51,7 +51,7 @@ export default function GroupToursPage() {
                     <Pill variant={remaining < 5 ? 'warning' : 'success'}>{remaining} seats left</Pill>
                     <span className="font-mono text-[10px] text-[rgb(var(--text-secondary))]">{d.code}</span>
                   </div>
-                  <h3 className="text-base font-bold text-ink">{d.dest}</h3>
+                  <h2 className="text-base font-bold text-ink">{d.dest}</h2>
                   <div className="flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span>{d.date} · {d.nights} nights</span>

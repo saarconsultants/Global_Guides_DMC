@@ -36,7 +36,7 @@ export function ResponseButtons({ token, accent = '#C9A24A' }: { token: string; 
     return (
       <div className="mt-6 rounded-md bg-white/10 backdrop-blur-md border border-white/20 p-4 text-sm space-y-3">
         <p>Sorry to hear it doesn't work. Tell us what to change and we'll send a revised proposal.</p>
-        <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="e.g. Different hotel in Paris, fewer activities, July dates instead of June..." className="w-full h-24 rounded-md p-3 text-sm bg-white/10 border border-white/20 text-white placeholder:text-navy-200 focus:outline-none focus:ring-2 focus:ring-crimson-500" />
+        <textarea aria-label="What should we change?" value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="e.g. Different hotel in Paris, fewer activities, July dates instead of June..." className="w-full h-24 rounded-md p-3 text-sm bg-white/10 border border-white/20 text-white placeholder:text-navy-200 focus:outline-none focus:ring-2 focus:ring-crimson-500" />
         <div className="flex gap-2 justify-end">
           <button onClick={() => setConfirming(null)} className="px-4 py-2 rounded-md text-sm text-navy-100 hover:text-white">Cancel</button>
           <button disabled={pending} onClick={() => submit('DECLINE')} className="px-5 py-2 rounded-md text-sm font-semibold bg-danger-500 hover:bg-danger-500/90 text-white inline-flex items-center gap-1.5">

@@ -72,7 +72,7 @@ export default async function AdminAgenciesPage() {
                     <th className="py-3 pr-4 font-semibold text-right">Markup</th>
                     <th className="py-3 pr-4 font-semibold text-right">Wallet</th>
                     <th className="py-3 pr-4 font-semibold">Joined</th>
-                    <th className="py-3 pr-4 font-semibold"></th>
+                    <th className="py-3 pr-4 font-semibold"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>

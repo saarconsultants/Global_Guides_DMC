@@ -39,7 +39,7 @@ export function EmptyState({ icon, title, body, primary, secondary, className, d
       ) : (
         <GhostPass icon={icon} />
       )}
-      <h3 className={cn('text-ink tracking-[-0.01em]', dense ? 'text-lg font-bold' : 'text-[22px] font-extrabold')}>{title}</h3>
+      <h2 className={cn('text-ink tracking-[-0.01em]', dense ? 'text-lg font-bold' : 'text-[22px] font-extrabold')}>{title}</h2>
       {body && <p className="mt-1.5 text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>}
       {(primary || secondary) && (
         <div className="mt-6 flex items-center justify-center gap-2">

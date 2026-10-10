@@ -15,12 +15,12 @@ export function HotelDetailGallery({ images, hotelName }: { images: string[]; ho
     <>
       <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[340px] rounded-lg overflow-hidden">
         {/* Hero — spans 2x2 */}
-        <button onClick={() => openAt(0)} className="col-span-2 row-span-2 group relative overflow-hidden">
+        <button type="button" onClick={() => openAt(0)} aria-label={`View photo 1 of ${images.length}`} className="col-span-2 row-span-2 group relative overflow-hidden">
           <img src={hero} alt={hotelName} className="w-full h-full object-cover bg-navy-900 transition-transform group-hover:scale-105" />
         </button>
         {/* Up to 4 smaller tiles */}
         {rest.map((src, i) => (
-          <button key={i} onClick={() => openAt(i + 1)} className="group relative overflow-hidden">
+          <button key={i} type="button" onClick={() => openAt(i + 1)} aria-label={i === rest.length - 1 && images.length > 5 ? `+${images.length - 5} more — view photo ${i + 2} of ${images.length}` : `View photo ${i + 2} of ${images.length}`} className="group relative overflow-hidden">
             <img src={src} alt="" className="w-full h-full object-cover bg-navy-900 transition-transform group-hover:scale-105" />
             {/* "+N more" overlay on the last visible tile */}
             {i === rest.length - 1 && images.length > 5 && (

@@ -48,7 +48,7 @@ export default async function FITPackagesPage() {
                   <Pill variant="neutral">{t.totalNights}N</Pill>
                   <span className="font-mono text-xs text-[rgb(var(--text-secondary))]">{t.destinations}</span>
                 </div>
-                <h3 className="text-base font-semibold text-ink">{t.title}</h3>
+                <h2 className="text-base font-semibold text-ink">{t.title}</h2>
                 <p className="text-sm text-[rgb(var(--text-secondary))] line-clamp-2">A handpicked itinerary you can clone and customise.</p>
                 <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                   <span className="font-mono text-sm font-bold text-crimson-900">From {fmt(t.startingPricePaise)}</span>

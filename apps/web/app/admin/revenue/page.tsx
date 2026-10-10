@@ -114,7 +114,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-crimson-700" />Top earning agencies</h3>
+            <h2 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-crimson-700" />Top earning agencies</h2>
             {topAgencies.length === 0 ? (
               <EmptyState dense title="No earnings yet" body="Commission entries appear here as agencies save proposals." />
             ) : (
@@ -137,7 +137,7 @@ export default async function AdminRevenuePage({ searchParams }: Props) {
         </Card>
         <Card>
           <CardContent className="pt-5">
-            <h3 className="text-sm font-semibold text-ink mb-3">Where it came from</h3>
+            <h2 className="text-sm font-semibold text-ink mb-3">Where it came from</h2>
             {topProducts.length === 0 ? (
               <EmptyState dense title="No breakdown yet" body="Commission by product type appears once you have entries." />
             ) : (

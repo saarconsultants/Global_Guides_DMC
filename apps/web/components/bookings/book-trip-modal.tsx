@@ -224,18 +224,18 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                   <div className="rounded-md border border-border-subtle p-3 space-y-2">
                     <p className="label">Lead passenger — for drivers and activity suppliers</p>
                     <div className="grid grid-cols-[90px_1fr_1fr] gap-2">
-                      <select className="control" value={contact.salutation} onChange={(e) => setContact({ ...contact, salutation: e.target.value as Contact['salutation'] })}>
+                      <select className="control" aria-label="Lead passenger title" value={contact.salutation} onChange={(e) => setContact({ ...contact, salutation: e.target.value as Contact['salutation'] })}>
                         {['Mr', 'Mrs', 'Ms', 'Miss', 'Dr'].map((x) => <option key={x}>{x}</option>)}
                       </select>
-                      <input className="control" placeholder="First name" value={contact.firstName} onChange={(e) => setContact({ ...contact, firstName: e.target.value })} />
-                      <input className="control" placeholder="Last name" value={contact.lastName} onChange={(e) => setContact({ ...contact, lastName: e.target.value })} />
+                      <input className="control" aria-label="Lead passenger first name" placeholder="First name" value={contact.firstName} onChange={(e) => setContact({ ...contact, firstName: e.target.value })} />
+                      <input className="control" aria-label="Lead passenger last name" placeholder="Last name" value={contact.lastName} onChange={(e) => setContact({ ...contact, lastName: e.target.value })} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <input className="control" type="email" placeholder="Email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
-                      <input className="control" type="tel" placeholder="Mobile, e.g. +919876543210" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
+                      <input className="control" type="email" aria-label="Lead passenger email" placeholder="Email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
+                      <input className="control" type="tel" aria-label="Lead passenger mobile" placeholder="Mobile, e.g. +919876543210" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
                     </div>
                     {prep.transfers.some((t) => t.kind === 'arrival' || t.kind === 'departure') && (
-                      <input className="control w-full" placeholder="Flight number (optional, helps the driver track delays)" value={contact.flightNumber} onChange={(e) => setContact({ ...contact, flightNumber: e.target.value })} />
+                      <input className="control w-full" aria-label="Arrival flight number" placeholder="Flight number (optional, helps the driver track delays)" value={contact.flightNumber} onChange={(e) => setContact({ ...contact, flightNumber: e.target.value })} />
                     )}
                   </div>
                 )}
@@ -245,8 +245,8 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                     {(['adults', 'children'] as const).map((kind) => room[kind].map((g, gi) => (
                       <div key={kind + gi} className="grid grid-cols-[90px_1fr_1fr] gap-2 items-center">
                         <span className="text-xs text-[rgb(var(--text-secondary))]">{kind === 'adults' ? 'Adult' : 'Child'} {gi + 1}{ri === 0 && kind === 'adults' && gi === 0 ? ' (lead)' : ''}</span>
-                        <input className="control" placeholder="First name" value={g.name} onChange={(e) => setGuest(ri, kind, gi, 'name', e.target.value)} />
-                        <input className="control" placeholder="Last name" value={g.surname} onChange={(e) => setGuest(ri, kind, gi, 'surname', e.target.value)} />
+                        <input className="control" aria-label={`Room ${ri + 1}, ${kind === 'adults' ? 'adult' : 'child'} ${gi + 1} first name`} placeholder="First name" value={g.name} onChange={(e) => setGuest(ri, kind, gi, 'name', e.target.value)} />
+                        <input className="control" aria-label={`Room ${ri + 1}, ${kind === 'adults' ? 'adult' : 'child'} ${gi + 1} last name`} placeholder="Last name" value={g.surname} onChange={(e) => setGuest(ri, kind, gi, 'surname', e.target.value)} />
                       </div>
                     )))}
                   </div>

@@ -92,7 +92,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                     <th className="py-3 pr-4 font-semibold">Applies to</th>
                     <th className="py-3 pr-4 font-semibold">Active</th>
                     <th className="py-3 pr-4 font-semibold">Note</th>
-                    <th className="py-3 pr-4 font-semibold"></th>
+                    <th className="py-3 pr-4 font-semibold"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -106,7 +106,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                           <input type="hidden" name="appliesTo" value={r.appliesTo} />
                           <input type="hidden" name="note" value={r.note ?? ''} />
                           <input type="hidden" name="active" value={r.active ? 'on' : ''} />
-                          <AutoSubmitSelect name="productType" defaultValue={r.productType} options={productTypes} />
+                          <AutoSubmitSelect name="productType" defaultValue={r.productType} options={productTypes} ariaLabel={`Product type, ${r.agency?.name ?? "platform default"} rule`} />
                         </form>
                       </td>
                       <td className="py-3 pr-4 text-right">
@@ -117,7 +117,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                           <input type="hidden" name="appliesTo" value={r.appliesTo} />
                           <input type="hidden" name="note" value={r.note ?? ''} />
                           <input type="hidden" name="active" value={r.active ? 'on' : ''} />
-                          <AutoSubmitNumber name="percent" defaultValue={r.percent} step="0.1" />
+                          <AutoSubmitNumber name="percent" defaultValue={r.percent} step="0.1" ariaLabel={`Commission percent, ${r.agency?.name ?? "platform default"} ${r.productType} rule`} />
                           <span className="ml-0.5 text-xs text-[rgb(var(--text-secondary))]">%</span>
                         </form>
                       </td>
@@ -130,7 +130,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                           <input type="hidden" name="percent" value={r.percent ?? ''} />
                           <input type="hidden" name="note" value={r.note ?? ''} />
                           <input type="hidden" name="active" value={r.active ? 'on' : ''} />
-                          <AutoSubmitSelect name="appliesTo" defaultValue={r.appliesTo} options={appliesToOpts} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs" />
+                          <AutoSubmitSelect name="appliesTo" defaultValue={r.appliesTo} options={appliesToOpts} ariaLabel={`Applies to, ${r.agency?.name ?? "platform default"} ${r.productType} rule`} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs" />
                         </form>
                       </td>
                       <td className="py-3 pr-4">
@@ -142,7 +142,7 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
                           <input type="hidden" name="percent" value={r.percent ?? ''} />
                           <input type="hidden" name="note" value={r.note ?? ''} />
                           <input type="hidden" name="active" value={!r.active ? 'on' : ''} />
-                          <button className="cursor-pointer"><Pill variant={r.active ? 'success' : 'neutral'}>{r.active ? 'ON' : 'OFF'}</Pill></button>
+                          <button className="cursor-pointer" aria-pressed={r.active} aria-label={`${r.agency?.name ?? "Platform default"} ${r.productType} commission rule active`}><Pill variant={r.active ? "success" : "neutral"}>{r.active ? 'ON' : 'OFF'}</Pill></button>
                         </form>
                       </td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))] text-xs max-w-xs truncate">{r.note ?? '—'}</td>
@@ -166,20 +166,20 @@ function RuleTable({ title, subtitle, rows, agencies, platform }: { title: strin
 function RuleForm({ agencies }: { agencies: any[] }) {
   return (
     <form action={saveCommissionRuleAction} className="grid gap-3 md:grid-cols-7">
-      <select name="agencyId" className="h-10 col-span-2 rounded-sm border border-border bg-surface px-3 text-sm" defaultValue="">
+      <select name="agencyId" aria-label="Agency" className="h-10 col-span-2 rounded-sm border border-border bg-surface px-3 text-sm" defaultValue="">
         <option value="">Platform-wide (default)</option>
         {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
       </select>
-      <select name="productType" className="control" defaultValue="HOTEL">
+      <select name="productType" aria-label="Product type" className="control" defaultValue="HOTEL">
         {productTypes.map((p) => <option key={p}>{p}</option>)}
       </select>
-      <Input name="percent" placeholder="% e.g. 5" type="number" step="0.1" />
-      <Input name="flatPaise" placeholder="Flat (paise)" type="number" />
-      <select name="appliesTo" className="control" defaultValue="TOTAL">
+      <Input name="percent" aria-label="Commission percent" placeholder="% e.g. 5" type="number" step="0.1" />
+      <Input name="flatPaise" aria-label="Flat commission (paise)" placeholder="Flat (paise)" type="number" />
+      <select name="appliesTo" aria-label="Applies to" className="control" defaultValue="TOTAL">
         {appliesToOpts.map((p) => <option key={p}>{p}</option>)}
       </select>
       <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="active" defaultChecked /> Active</label>
-      <Input name="note" placeholder="Note — e.g. Negotiated rate Q3 2026" className="md:col-span-7" />
+      <Input name="note" aria-label="Note" placeholder="Note — e.g. Negotiated rate Q3 2026" className="md:col-span-7" />
       <div className="md:col-span-7 text-right"><Button type="submit">Save rule</Button></div>
     </form>
   );

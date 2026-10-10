@@ -46,7 +46,7 @@ export default async function AdminTemplatesPage() {
                     <th className="py-3 pr-4 font-semibold text-right">Price from</th>
                     <th className="py-3 pr-4 font-semibold">Created</th>
                     <th className="py-3 pr-4 font-semibold">Status</th>
-                    <th className="py-3 pr-4 font-semibold"></th>
+                    <th className="py-3 pr-4 font-semibold"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>

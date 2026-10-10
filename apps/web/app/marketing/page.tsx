@@ -54,7 +54,7 @@ export default async function MarketingPage() {
                       <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
                       <Pill variant="info">{t.category}</Pill>
                     </div>
-                    <h3 className="text-[16px] font-bold text-ink tracking-[-0.01em]">{t.title}</h3>
+                    <h2 className="text-[16px] font-bold text-ink tracking-[-0.01em]">{t.title}</h2>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-1 line-clamp-2">{t.blurb}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">{cities.join(' → ') || '—'}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">

@@ -41,35 +41,35 @@ export function WidgetForm({ slug, accent, primary }: { slug: string; accent: st
     <form onSubmit={submit} className="px-6 py-6 space-y-3">
       <input type="text" name="_hp" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
       <div>
-        <label className="block text-xs font-semibold text-gray-700 mb-1">Your name *</label>
-        <input name="customerName" required className={inputCls} style={{ '--tw-ring-color': primary } as any} placeholder="Rakesh Mehta" />
+        <label htmlFor="w-customerName" className="block text-xs font-semibold text-gray-700 mb-1">Your name *</label>
+        <input id="w-customerName" name="customerName" required className={inputCls} style={{ '--tw-ring-color': primary } as any} placeholder="Rakesh Mehta" />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
-          <input type="email" name="customerEmail" className={inputCls} placeholder="you@example.com" />
+          <label htmlFor="w-customerEmail" className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+          <input id="w-customerEmail" type="email" name="customerEmail" className={inputCls} placeholder="you@example.com" />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Phone / WhatsApp</label>
-          <input name="customerPhone" className={inputCls} placeholder="+91 9XXXXXXXXX" />
+          <label htmlFor="w-customerPhone" className="block text-xs font-semibold text-gray-700 mb-1">Phone / WhatsApp</label>
+          <input id="w-customerPhone" name="customerPhone" className={inputCls} placeholder="+91 9XXXXXXXXX" />
         </div>
       </div>
       <div>
-        <label className="block text-xs font-semibold text-gray-700 mb-1">Where do you want to go? *</label>
-        <input name="destinations" required className={inputCls} placeholder="Bali, Phuket, Dubai…" />
+        <label htmlFor="w-destinations" className="block text-xs font-semibold text-gray-700 mb-1">Where do you want to go? *</label>
+        <input id="w-destinations" name="destinations" required className={inputCls} placeholder="Bali, Phuket, Dubai…" />
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">From</label>
-          <input name="originCity" className={inputCls} placeholder="Delhi" />
+          <label htmlFor="w-originCity" className="block text-xs font-semibold text-gray-700 mb-1">From</label>
+          <input id="w-originCity" name="originCity" className={inputCls} placeholder="Delhi" />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Travel date</label>
-          <input type="date" name="travelDate" className={inputCls} />
+          <label htmlFor="w-travelDate" className="block text-xs font-semibold text-gray-700 mb-1">Travel date</label>
+          <input id="w-travelDate" type="date" name="travelDate" className={inputCls} />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">Nights</label>
-          <input type="number" name="nights" min={1} max={60} className={inputCls} placeholder="6" />
+          <label htmlFor="w-nights" className="block text-xs font-semibold text-gray-700 mb-1">Nights</label>
+          <input id="w-nights" type="number" name="nights" min={1} max={60} className={inputCls} placeholder="6" />
         </div>
       </div>
       <p className="text-[11px] text-gray-500">Provide either email or phone so we can send you the proposal.</p>

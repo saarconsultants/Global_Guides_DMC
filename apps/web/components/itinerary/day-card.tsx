@@ -90,13 +90,13 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           {!missing && day.type === 'arrival' && day.arrivalDetails && (
             <div className="rounded-md bg-success-100 text-success-600 px-3.5 py-2.5 text-sm flex items-center justify-between mb-3">
               <span className="font-semibold inline-flex items-center gap-2"><Plane className="w-3.5 h-3.5" />Arriving on <span className="font-mono">{day.arrivalDetails.flightNumber}</span> at <span className="tnum">{day.arrivalDetails.arrivalTime}</span></span>
-              <button onClick={() => setFlightOpen(true)} className="text-xs font-bold underline hover:no-underline">Edit</button>
+              <button onClick={() => setFlightOpen(true)} aria-label={`Edit arrival flight details, day ${day.dayNo}`} className="text-xs font-bold underline hover:no-underline">Edit</button>
             </div>
           )}
           {!missing && day.type === 'departure' && day.departureDetails && (
             <div className="rounded-md bg-success-100 text-success-600 px-3.5 py-2.5 text-sm flex items-center justify-between mb-3">
               <span className="font-semibold inline-flex items-center gap-2"><Plane className="w-3.5 h-3.5" />Departing on <span className="font-mono">{day.departureDetails.flightNumber}</span> at <span className="tnum">{day.departureDetails.departureTime}</span></span>
-              <button onClick={() => setFlightOpen(true)} className="text-xs font-bold underline hover:no-underline">Edit</button>
+              <button onClick={() => setFlightOpen(true)} aria-label={`Edit departure flight details, day ${day.dayNo}`} className="text-xs font-bold underline hover:no-underline">Edit</button>
             </div>
           )}
 
@@ -117,6 +117,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                     key={s}
                     type="button"
                     onClick={() => setSlotOpen(s)}
+                    aria-label={act ? `${s[0]!.toUpperCase() + s.slice(1)} activity, day ${day.dayNo}: ${act.name}. Change` : `Add ${s} activity, day ${day.dayNo}`}
                     className={`text-left rounded-md px-3 py-2.5 min-h-[64px] transition-colors cursor-pointer ${act ? 'border border-border-subtle bg-surface hover:border-crimson-300' : 'border-2 border-dashed border-border bg-surface-2/60 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
                   >
                     <span className="label">{s}</span>

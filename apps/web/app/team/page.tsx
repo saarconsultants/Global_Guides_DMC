@@ -74,7 +74,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
               body="Once your team starts sending proposals, their conversion stats will show up here."
             />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Team performance table">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left label border-b border-border">

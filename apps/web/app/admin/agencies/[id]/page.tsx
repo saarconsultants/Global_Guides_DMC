@@ -72,7 +72,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
           <CardContent className="pt-5">
             <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><UsersIcon className="w-4 h-4 text-crimson-700" />Account status</h3>
             <ActionForm action={setAgencyStatusAction.bind(null, agency.id)} success="Status updated" className="space-y-2">
-              <select name="status" defaultValue={agency.status} className="control">
+              <select name="status" aria-label="Account status" defaultValue={agency.status} className="control">
                 <option value="ACTIVE">ACTIVE — full access</option>
                 <option value="PENDING">PENDING — onboarding</option>
                 <option value="SUSPENDED">SUSPENDED — login blocked</option>
@@ -86,7 +86,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h3>
             <ActionForm action={updateAgencyMarkupAction.bind(null, agency.id)} success="Markup saved" className="space-y-2">
               <div className="flex items-center gap-2">
-                <Input type="number" name="markupPct" defaultValue={agency.markupPct} step={0.5} min={0} max={100} className="flex-1" />
+                <Input type="number" name="markupPct" aria-label="Default markup percent" defaultValue={agency.markupPct} step={0.5} min={0} max={100} className="flex-1" />
                 <span className="text-sm text-[rgb(var(--text-secondary))]">%</span>
               </div>
               <Button size="sm" variant="secondary" className="w-full">Save markup</Button>
@@ -97,8 +97,8 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
           <CardContent className="pt-5">
             <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><Wallet className="w-4 h-4 text-crimson-700" />Wallet credit</h3>
             <ActionForm action={creditAgencyWalletAction.bind(null, agency.id)} confirm="Credit this agency's wallet?" success="Wallet credited" className="space-y-2">
-              <Input type="number" name="rupees" placeholder="₹ amount" min={1} step={500} />
-              <Input type="text" name="note" placeholder="Note (optional)" />
+              <Input type="number" name="rupees" aria-label="Credit amount in rupees" placeholder="₹ amount" min={1} step={500} />
+              <Input type="text" name="note" aria-label="Credit note" placeholder="Note (optional)" />
               <Button size="sm" className="w-full">Credit wallet</Button>
             </ActionForm>
             <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">Adds a CREDIT WalletTxn row.</p>
@@ -114,7 +114,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
           {commissionRules.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left label border-b border-border"><th className="py-2 pr-4">Product</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4">Applies to</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Note</th><th></th></tr></thead>
+                <thead><tr className="text-left label border-b border-border"><th className="py-2 pr-4">Product</th><th className="py-2 pr-4">Rate</th><th className="py-2 pr-4">Applies to</th><th className="py-2 pr-4">Status</th><th className="py-2 pr-4">Note</th><th><span className="sr-only">Actions</span></th></tr></thead>
                 <tbody>
                   {commissionRules.map((r) => (
                     <tr key={r.id} className="border-b border-border-subtle/60">
@@ -159,7 +159,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             </div>
             <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" />Add override</Button>
             <div className="sm:col-span-4">
-              <Input name="note" placeholder="Note (optional) — e.g. negotiated rate for FY26" />
+              <Input name="note" aria-label="Override note" placeholder="Note (optional) — e.g. negotiated rate for FY26" />
             </div>
           </form>
         </CardContent></Card>

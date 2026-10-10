@@ -51,7 +51,7 @@ export default async function SalesSettingsPage() {
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><Globe className="w-4 h-4 text-crimson-700" />Display currency</h2>
             <p className="text-xs text-[rgb(var(--text-secondary))]">Quote your customers in this currency. Live exchange rates convert supplier costs automatically — your internal books stay in INR.</p>
             <div className="max-w-xs">
-              <select name="currency" defaultValue={agency.currency ?? 'INR'} className="control">
+              <select name="currency" aria-label="Display currency" defaultValue={agency.currency ?? 'INR'} className="control">
                 {SUPPORTED_CURRENCIES.map((c) => (
                   <option key={c.code} value={c.code}>{c.code} · {c.name} ({c.symbol})</option>
                 ))}
@@ -65,7 +65,7 @@ export default async function SalesSettingsPage() {
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h2>
             <p className="text-xs text-[rgb(var(--text-secondary))]">Applied across all products unless an override below kicks in.</p>
             <div className="flex items-center gap-3 max-w-xs">
-              <Input name="markupPct" type="number" defaultValue={agency.markupPct} step={0.5} min={0} max={100} required />
+              <Input name="markupPct" aria-label="Default markup percent" type="number" defaultValue={agency.markupPct} step={0.5} min={0} max={100} required />
               <span className="text-sm text-[rgb(var(--text-secondary))]">%</span>
             </div>
           </CardContent>

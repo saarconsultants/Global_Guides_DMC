@@ -108,7 +108,7 @@ export function BrandingForm({ initial }: Props) {
                     )}
                   </div>
                 </div>
-                <Input value={logoUrl.startsWith('data:') ? '' : logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="…or paste an image URL" className="mt-2" />
+                <Input aria-label="Logo image URL" value={logoUrl.startsWith('data:') ? '' : logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="…or paste an image URL" className="mt-2" />
                 <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Square PNG/JPG, 256×256+ recommended (under 250 KB). Uploads are stored with your branding.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -152,8 +152,8 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
     <div>
       <Label>{label}</Label>
       <div className="flex items-center gap-2">
-        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="h-10 w-12 rounded border border-border cursor-pointer" />
-        <Input value={value} onChange={(e) => onChange(e.target.value)} className="font-mono" />
+        <input type="color" aria-label={`${label} colour picker`} value={value} onChange={(e) => onChange(e.target.value)} className="h-10 w-12 rounded border border-border cursor-pointer" />
+        <Input aria-label={`${label} hex value`} value={value} onChange={(e) => onChange(e.target.value)} className="font-mono" />
         <button type="button" onClick={() => navigator.clipboard.writeText(value).then(() => toast.success('Copied', value))} className="h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-navy-50 cursor-pointer text-[rgb(var(--text-tertiary))]" aria-label="Copy hex">
           <Copy className="w-4 h-4" />
         </button>

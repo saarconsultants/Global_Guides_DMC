@@ -84,7 +84,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                     </div>
                   </div>
                   <div className="px-4 pt-4 pb-3 flex-1 flex flex-col">
-                    <h3 className="text-[17px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h3>
+                    <h2 className="text-[17px] font-bold tracking-[-0.01em] text-ink group-hover:text-crimson-700 transition-colors">{t.title}</h2>
                     <p className="text-[13.5px] text-[rgb(var(--text-secondary))] mt-1.5 flex-1 leading-relaxed">{t.blurb}</p>
                     <div className="mt-3 grid grid-cols-3 gap-2">
                       <div><div className="label">Nights</div><div className="mt-1 font-mono font-bold text-[14px] tnum">{t.totalNights}</div></div>
