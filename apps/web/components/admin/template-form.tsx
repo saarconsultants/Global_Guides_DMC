@@ -230,6 +230,7 @@ export function TemplateForm({ initial }: { initial: TemplateFormValues }) {
             <div className="mt-3 pt-3 border-t border-border-subtle flex items-center justify-between">
               <div>
                 <p className="label">From</p>
+                {/* INR on purpose: platform admins enter template prices in INR (the canonical currency). */}
                 <p className="money text-ink">₹ {Number(priceRupees).toLocaleString('en-IN')}</p>
               </div>
               <span className="text-xs text-crimson-700 font-semibold inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />Use this</span>

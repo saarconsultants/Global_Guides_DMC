@@ -5,7 +5,7 @@ import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { composeItineraryAction } from '@/app/actions/compose-itinerary';
 import { useItineraryStore } from '@/lib/itinerary/store';
-import { findCity } from '@/lib/cities';
+import { findCity, findCityCodeByName } from '@/lib/cities';
 import type { IntakeForm, StarRating, Room } from '@/lib/itinerary/types';
 import { AiSuggestModal } from '@/components/itinerary/ai-suggest-modal';
 import { SortableDestinationRow } from '@/components/itinerary/sortable-destination-row';
@@ -58,6 +58,19 @@ function NewItineraryForm() {
     if (paramDefaults.originIATA) setLeavingFromCode(paramDefaults.originIATA);
     if (paramDefaults.adults) setRooms([{ adults: paramDefaults.adults, children: 0 }]);
     if (params.get('ai') === '1') setAiOpen(true);
+    else if (paramDefaults.destinationsText) {
+      // Arriving from a hotel or flight result (?dest=PAR or ?dest=Paris):
+      // start the trip with that city instead of the sample route.
+      const codes = paramDefaults.destinationsText.split(',')
+        .map((t) => t.trim()).filter(Boolean)
+        .map((t) => findCity(t)?.code ?? findCityCodeByName(t))
+        .filter((c): c is string => !!c);
+      const unique = [...new Set(codes)];
+      if (unique.length) {
+        const n = paramDefaults.totalNights && paramDefaults.totalNights > 0 ? paramDefaults.totalNights : 3;
+        setDestinations(unique.map((c, i) => ({ id: newId(), cityCode: c, nights: i === 0 ? n : 2 })));
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -116,7 +129,8 @@ function NewItineraryForm() {
       upsert(itin);
       router.push(`/itinerary/${itin.id}/customize`);
     } catch (err: any) {
-      setError(`Could not compose trip: ${err?.message ?? err}`);
+      console.error('[itinerary-new] compose failed', err);
+      setError('We couldn\'t build this trip just now. Please try again in a minute.');
       setComposing(false);
     }
   }

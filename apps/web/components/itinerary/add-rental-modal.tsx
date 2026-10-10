@@ -35,8 +35,14 @@ export function AddRentalModal({ open, onClose, cityName, hotelName, hotel, date
     try {
       const r = await fetch('/api/search-rentals', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hotel: { name: hotelName, ...hotel }, pickupDate: date, pickupTime: time, hours, passengers }) }).then((x) => x.json());
-      setRentals(r.ok ? r.rentals : []); setWarning(r.ok ? r.warning : r.error);
-    } catch (e: any) { setRentals([]); setWarning(String(e?.message ?? e)); }
+      setRentals(r.ok ? r.rentals : []);
+      const problem = r.ok ? r.warning : r.error;
+      if (problem) console.error('[rental-search]', problem);
+      setWarning(problem ? 'Live prices couldn\'t load. Try again in a minute.' : undefined);
+    } catch (e: any) {
+      console.error('[rental-search]', e);
+      setRentals([]); setWarning('Live prices couldn\'t load. Try again in a minute.');
+    }
     setState('done');
   }
 
@@ -67,7 +73,7 @@ export function AddRentalModal({ open, onClose, cityName, hotelName, hotel, date
           {rentals.map((t) => (
             <div key={t.id} className="p-4 rounded-md border border-border-subtle bg-surface flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-ink inline-flex items-center gap-2"><Car className="w-4 h-4 text-crimson-700" />{t.leamigoRental?.vehicleName}<Pill variant="success">Live · Leamigo</Pill></p>
+                <p className="font-semibold text-ink inline-flex items-center gap-2"><Car className="w-4 h-4 text-crimson-700" />{t.leamigoRental?.vehicleName}<Pill variant="success">Live price</Pill></p>
                 {t.description && <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">{t.description}</p>}
               </div>
               <div className="text-right flex-shrink-0">

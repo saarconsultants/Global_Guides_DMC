@@ -1,6 +1,5 @@
 'use client';
 import { use, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,12 +17,12 @@ import { cityInfo } from '@/lib/itinerary/mock-inventory';
 import { useMoney } from '@/components/providers/currency-provider';
 import { saveProposalAction } from '@/app/actions/save-proposal';
 import { loadItineraryByIdAction } from '@/app/actions/load-itinerary';
+import { getTripMarkupPctAction } from '@/app/actions/trip-markup';
 import { toast } from '@/components/ui/toast';
 import { Plane, ShieldCheck, FileText, Check, Loader2 } from 'lucide-react';
 
 export default function CustomizePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
   const money = useMoney();
   const itinerary = useItineraryStore((s) => s.byId[id]);
   const upsert = useItineraryStore((s) => s.upsert);
@@ -51,7 +50,32 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     }).finally(() => setHydrating(false));
   }, [id, itinerary, hydrating, hydrateFailed, upsert]);
 
-  useEffect(() => { if (hydrateFailed) router.replace('/itinerary/new'); }, [hydrateFailed, router]);
+  // Pre-fill "Save as proposal" with the agency's own markup (Settings → Sales),
+  // including any destination/season rules, instead of a fixed 15%.
+  const [markupPct, setMarkupPct] = useState(15);
+  const markupKey = itinerary ? `${itinerary.destinations.map((d) => d.cityCode).join(',')}|${itinerary.intake.departureDate}` : '';
+  useEffect(() => {
+    if (!itinerary) return;
+    let cancelled = false;
+    getTripMarkupPctAction({ destinationCodes: itinerary.destinations.map((d) => d.cityCode), travelDate: itinerary.intake.departureDate })
+      .then((pct) => { if (!cancelled && Number.isFinite(pct)) setMarkupPct(pct); })
+      .catch((e) => console.error('[customize] markup lookup failed', e));
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markupKey]);
+
+  // Removing a flight or transfer is instant; offer a short-lived Undo that
+  // puts back the trip exactly as it was.
+  function removeWithUndo(title: string, remove: () => void) {
+    const snapshot = useItineraryStore.getState().byId[id];
+    remove();
+    const tid = toast.show({
+      variant: 'info',
+      title,
+      duration: 8000,
+      action: { label: 'Undo', onClick: () => { if (snapshot) upsert(snapshot); toast.dismiss(tid); } },
+    });
+  }
 
   // Pick up a flight selection handed off from /flights via sessionStorage.
   // The handoff payload carries `leg: 'outbound' | 'return'` so we route to
@@ -76,6 +100,19 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     }
   }, [itinerary, id, setFlight, setReturnFlight]);
 
+  if (!itinerary && hydrateFailed) return (
+    <div className="min-h-[60vh] flex items-center justify-center px-6">
+      <div className="max-w-md text-center" role="alert">
+        <h1 className="text-[20px] font-extrabold text-ink">We couldn&apos;t open this trip</h1>
+        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">It may have been deleted, or it was never saved as a proposal. Unsaved trips are lost when the page is refreshed.</p>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <Link href="/proposals"><Button>Go to My proposals</Button></Link>
+          <Link href="/itinerary/new"><Button variant="secondary">New trip</Button></Link>
+        </div>
+      </div>
+    </div>
+  );
+
   if (!itinerary) return (
     <div className="min-h-[60vh] flex items-center justify-center text-[rgb(var(--text-secondary))]">
       <span className="inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Loading proposal…</span>
@@ -93,7 +130,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4">
           <Stepper step={2} />
           <div className="text-right">
-            <p className="hidden sm:block text-[12px] text-[rgb(var(--text-secondary))] tnum">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room · {adults} adult{adults !== 1 ? 's' : ''}</p>
+            <p className="hidden sm:block text-[12px] text-[rgb(var(--text-secondary))] tnum">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room{rooms !== 1 ? 's' : ''} · {adults} adult{adults !== 1 ? 's' : ''}</p>
             <p className="money text-[18px] text-ink leading-tight">{money(itinerary.pricePaise)}</p>
           </div>
         </div>
@@ -144,7 +181,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                         <SelectedFlightCard
                           flight={itinerary.flights}
                           searchHref={outboundSearchHref}
-                          onRemove={() => { setFlight(id, undefined); toast.info('Outbound flight removed'); }}
+                          onRemove={() => removeWithUndo('Outbound flight removed', () => setFlight(id, undefined))}
                         />
                       </div>
 
@@ -154,7 +191,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                           <SelectedFlightCard
                             flight={{ ...itinerary.flights.return }}
                             searchHref={returnSearchHref}
-                            onRemove={() => { setReturnFlight(id, undefined); toast.info('Return flight removed'); }}
+                            onRemove={() => removeWithUndo('Return flight removed', () => setReturnFlight(id, undefined))}
                           />
                         </div>
                       ) : (
@@ -175,7 +212,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
           </section>
 
           {/* Stays per destination */}
-          <section id="section-trans">
+          <section id="section-stays" className="scroll-mt-32">
             {itinerary.destinations.map((d) => (
               d.stay ? (
                 <div key={d.cityCode} className="mb-6">
@@ -192,8 +229,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
             ))}
           </section>
 
-          {/* Day-by-day */}
-          <section>
+          {/* Day-by-day (transfers live on each day) */}
+          <section id="section-days" className="scroll-mt-32">
             <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3">Day by day</h2>
             <div className="space-y-4">
               {itinerary.days.map((d) => {
@@ -215,10 +252,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                       setActivity(itinerary.id, d.dayNo, slot, a);
                       if (a) toast.success(`Added "${a.name}" to Day ${d.dayNo} ${slot}`);
                     }}
-                    onRemoveTransfer={(tid) => {
-                      removeInclusion(itinerary.id, d.dayNo, tid);
-                      toast.info('Transfer removed');
-                    }}
+                    onRemoveTransfer={(tid) => removeWithUndo('Transfer removed', () => removeInclusion(itinerary.id, d.dayNo, tid))}
                     onSetArrivalDetails={(details) => setArrivalDetails(itinerary.id, d.dayNo, details)}
                     onSetDepartureDetails={(details) => setDepartureDetails(itinerary.id, d.dayNo, details)}
                     arrivalPrefill={(() => {
@@ -245,7 +279,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                   <div key={v.countryCode} className="flex items-center justify-between gap-4 py-2">
                     <div>
                       <p className="text-sm font-medium text-ink">{v.description}</p>
-                      <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{v.included ? 'Included' : 'Not Included'}</p>
+                      <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{v.included ? 'Included' : 'Not included'}</p>
                     </div>
                     <Button size="sm" variant={v.included ? 'secondary' : 'outline'} onClick={() => toggleVisa(itinerary.id, v.countryCode, !v.included)}>
                       {v.included ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />Included</span> : 'Include'}
@@ -259,12 +293,12 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
           {/* Insurance */}
           <section id="section-ins">
-            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-crimson-700" />Travel Insurance</h2>
+            <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-crimson-700" />Travel insurance</h2>
             <Card>
               <CardContent className="pt-5 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-ink">{itinerary.insurance.description}</p>
-                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? `Included — ${money(itinerary.insurance.pricePaise)}` : 'Not Included'}</p>
+                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? `Included — ${money(itinerary.insurance.pricePaise)}` : 'Not included'}</p>
                 </div>
                 <Button size="sm" variant={itinerary.insurance.included ? 'secondary' : 'outline'} onClick={() => toggleInsurance(itinerary.id, !itinerary.insurance.included)}>
                   {itinerary.insurance.included ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />Added</span> : '+ Add'}
@@ -284,7 +318,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
       <SaveProposalModal
         open={saveOpen}
         onClose={() => setSaveOpen(false)}
-        defaultMarkupPct={15}
+        defaultMarkupPct={markupPct}
         netPaise={itinerary.pricePaise}
         currentTotalPaise={itinerary.pricePaise}
         onSave={async ({ customer, markupPct }) => saveProposalAction({ itinerary, customer, markupPct })}

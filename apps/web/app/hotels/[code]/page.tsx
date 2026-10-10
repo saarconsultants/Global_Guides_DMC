@@ -23,7 +23,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
   if (!isLive('hotels')) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <PageHeader title="Hotel details" description="Live hotel content isn't available — set HOTELBEDS_API_KEY to enable property pages." />
+        <PageHeader title="Hotel details" description="Hotel details aren't available right now. Please try again later." />
       </div>
     );
   }

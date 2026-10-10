@@ -28,9 +28,9 @@ export default async function FlightsPage({ searchParams }: PageProps) {
 
   const [results, returnResults] = hasQuery
     ? await Promise.all([
-        searchFlights({ legs: [{ fromIATA: sp.from!.toUpperCase(), toIATA: sp.to!.toUpperCase(), date: sp.date! }], ...common }).catch((e) => ({ error: e.userMessage ?? e.message, upstream: e.upstream ?? false } as any)),
+        searchFlights({ legs: [{ fromIATA: sp.from!.toUpperCase(), toIATA: sp.to!.toUpperCase(), date: sp.date! }], ...common }).catch((e) => { console.error('[flights-search] supplier error', e); return { error: e.userMessage ?? e.message, upstream: e.upstream ?? false } as any; }),
         isRoundTrip
-          ? searchFlights({ legs: [{ fromIATA: sp.to!.toUpperCase(), toIATA: sp.from!.toUpperCase(), date: sp.rdate! }], ...common }).catch((e) => ({ error: e.userMessage ?? e.message, upstream: e.upstream ?? false } as any))
+          ? searchFlights({ legs: [{ fromIATA: sp.to!.toUpperCase(), toIATA: sp.from!.toUpperCase(), date: sp.rdate! }], ...common }).catch((e) => { console.error('[flights-search] return leg supplier error', e); return { error: e.userMessage ?? e.message, upstream: e.upstream ?? false } as any; })
           : Promise.resolve(null),
       ])
     : [null, null];
@@ -58,7 +58,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
             </div>
             <PageHeader
               title="Flights"
-              description="Live fares via Tripjack."
+              description="Live fares from our airline partner."
             />
             {searchForm}
           </>
@@ -89,7 +89,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
         {results && !('error' in results) && (
           <div className="flex justify-end">
             <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
-              {results.source === 'live' ? 'LIVE · Tripjack' : 'MOCK · set TRIPJACK_API_KEY to go live'}
+              {results.source === 'live' ? 'Live fares' : 'Sample prices — live rates unavailable right now'}
             </Pill>
           </div>
         )}
@@ -99,8 +99,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
             <span className="w-11 h-11 rounded-md bg-danger-100 text-danger-500 inline-flex items-center justify-center shrink-0"><RefreshCw className="w-5 h-5" /></span>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-bold text-ink">Live fares are unavailable right now</p>
-              <p className="text-[13px] text-[rgb(var(--text-secondary))] mt-0.5">The fare supplier did not answer this search. Nothing was charged. {String(results.error).includes('rate-limited') ? 'Identical searches are deduplicated for 90 seconds, so a quick retry will not add load.' : 'Try again in a moment, or adjust the route or date.'}</p>
-              <details className="mt-2"><summary className="cursor-pointer text-[12px] font-bold text-navy-500 hover:text-ink select-none">Technical detail</summary><pre className="mt-1.5 text-[11px] font-mono text-[rgb(var(--text-secondary))] whitespace-pre-wrap break-all bg-surface-2 rounded-md p-2.5 border border-border-subtle">{String(results.error)}</pre></details>
+              <p className="text-[13px] text-[rgb(var(--text-secondary))] mt-0.5">Live prices couldn&apos;t load. Try again in a minute, or adjust the route or date. Nothing was charged.</p>
             </div>
             {(results as any).upstream && (
               <Link
@@ -121,7 +120,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       )}
 
       {isRoundTrip && returnResults && 'error' in returnResults && (
-        <div className="rounded-lg bg-surface border border-border-subtle shadow-sm p-4 text-sm text-ink" role="alert"><span className="font-bold">Return fares unavailable:</span> <span className="text-[rgb(var(--text-secondary))]">{returnResults.error}</span></div>
+        <div className="rounded-lg bg-surface border border-border-subtle shadow-sm p-4 text-sm text-ink" role="alert"><span className="font-bold">Return fares unavailable:</span> <span className="text-[rgb(var(--text-secondary))]">Live prices couldn&apos;t load. Try again in a minute.</span></div>
       )}
 
         {isRoundTrip && returnResults && !('error' in returnResults) && (

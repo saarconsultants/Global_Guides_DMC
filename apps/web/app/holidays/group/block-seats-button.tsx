@@ -1,20 +1,21 @@
-'use client';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/toast';
+import { MessageCircle } from 'lucide-react';
 
-export function BlockSeatsButton({ code }: { code: string }) {
+const SUPPORT_WHATSAPP = '918378073375';
+
+/**
+ * Seats on group departures are held by our team on request, so this opens a
+ * WhatsApp chat with the departure details already written out.
+ */
+export function BlockSeatsButton({ code, dest, date }: { code: string; dest: string; date: string }) {
+  const text = `Hi, I'd like to request seats on the group departure ${code} (${dest}, ${date}). Number of travellers: `;
   return (
-    <Button
-      size="sm"
-      variant="secondary"
-      onClick={() =>
-        toast.info(
-          'GIT inventory coming Phase 2',
-          `Group departure ${code} is illustrative. Real GIT booking via Tripjack is on the next milestone — block-seat will go live then.`,
-        )
-      }
+    <a
+      href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-bold bg-surface text-ink border border-border hover:border-border-strong hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson-500 focus-visible:ring-offset-2"
     >
-      Block seats
-    </Button>
+      <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />Request seats
+    </a>
   );
 }

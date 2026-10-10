@@ -20,6 +20,12 @@ export const dynamic = 'force-dynamic';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Only compare periods when both have activity; a 0 on either side would show
+// a misleading "−100%" or "new" rather than a real trend.
+function trend(curr: number, prev: number) {
+  return curr > 0 && prev > 0 ? { curr, prev } : undefined;
+}
+
 const DESTINATIONS: Array<{ city: string; country: string; code: string; img: string; tint: string }> = [
   { city: 'Paris',     country: 'France',      code: 'PAR', img: 'paris.jpg',     tint: 'from-[#5B6E9E] to-[#1E2A4A]' },
   { city: 'Dubai',     country: 'UAE',         code: 'DXB', img: 'dubai.jpg',     tint: 'from-[#C89A5B] to-[#6A4416]' },
@@ -195,7 +201,7 @@ export default async function DashboardPage() {
                   <span className="text-[12px] text-[rgb(var(--text-tertiary))]">{greeting}, {firstName}</span>
                 </div>
                 {attentionCount === 0 ? (
-                  <EmptyState dense icon={<CheckCircle2 className="w-6 h-6 text-success-500" />} title="Inbox zero" body="No open follow-ups. Start a trip or use a package." />
+                  <EmptyState dense icon={<CheckCircle2 className="w-6 h-6 text-success-500" />} title="Inbox zero" body="No open follow-ups. Start a new trip or use a package." />
                 ) : (
                   <ul className="mt-3 -mx-1">
                     {newLeads.map((l) => (
@@ -247,7 +253,7 @@ export default async function DashboardPage() {
             firstName={firstName}
             steps={[
               { done: !!agency?.logoUrl,        title: 'Brand the customer view', body: 'Upload your logo and brand colours so every proposal shows your identity, not ours.', cta: { label: agency?.logoUrl ? 'Edit branding' : 'Set up branding', href: '/settings' } },
-              { done: totalProposals > 0,       title: 'Build your first trip',    body: 'Drag-reorder cities, pick hotels and activities, save as proposal — under 10 minutes.', cta: { label: 'Start a trip', href: '/itinerary/new' } },
+              { done: totalProposals > 0,       title: 'Build your first trip',    body: 'Drag-reorder cities, pick hotels and activities, save as proposal — under 10 minutes.', cta: { label: 'New trip', href: '/itinerary/new' } },
               { done: totalProposals > 0,       title: 'Send to a customer',       body: 'After saving, share the link via WhatsApp or email. They can accept without logging in.', cta: { label: 'See proposals', href: '/proposals' } },
               { done: viewedAny > 0,            title: 'Track who opened it',      body: 'Status moves from DRAFT to SENT, VIEWED and ACCEPTED automatically.', cta: { label: 'View leads', href: '/leads' } },
               { done: (wallet?.walletPaise ?? 0n) > 0n, title: 'Set markup + recharge', body: 'Pick your default markup and prepay your wallet so bookings confirm instantly.', cta: { label: 'Sales settings', href: '/settings/sales' } },
@@ -289,9 +295,9 @@ export default async function DashboardPage() {
             <Link href="/statement" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Statement <ArrowRight className="w-3.5 h-3.5" /></Link>
           </div>
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Leads"     value={String(leadCount)}   delta={{ curr: leadCount, prev: leadPrev }}     sub="enquiries" />
-            <StatCard label="Proposals" value={String(propCount)}   delta={{ curr: propCount, prev: propPrev }}     sub="quotes sent" />
-            <StatCard label="Converted" value={String(bookedCount)} delta={{ curr: bookedCount, prev: bookedPrev }} sub={`${convRate}% win rate`} tone="gold" />
+            <StatCard label="Leads"     value={String(leadCount)}   delta={trend(leadCount, leadPrev)}     sub="enquiries" />
+            <StatCard label="Proposals" value={String(propCount)}   delta={trend(propCount, propPrev)}     sub="quotes sent" />
+            <StatCard label="Converted" value={String(bookedCount)} delta={trend(bookedCount, bookedPrev)} sub={`${convRate}% win rate`} tone="gold" />
             <StatCard label="Wallet"    value={fmt(wallet?.walletPaise ?? 0n)} sub="recharge for instant bookings" mono />
           </div>
         </section>

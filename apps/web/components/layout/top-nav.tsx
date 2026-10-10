@@ -6,6 +6,7 @@ import { Menu, X, ChevronDown, Plus, Sparkles, Users, Megaphone, Wallet, Setting
 import { cn } from '@/lib/utils';
 import { NotificationBell } from './notification-bell';
 import { NavAccount, type Actor } from './nav-account';
+import { useMoney } from '@/components/providers/currency-provider';
 
 type NavLink = { href: string; label: string; match?: string[] };
 type NavGroup = { label: string; items: Array<NavLink & { desc: string; icon: React.ComponentType<{ className?: string }> }> };
@@ -41,7 +42,9 @@ function isActive(pathname: string, href: string, match?: string[]) {
   return (match ?? []).some((m) => pathname.startsWith(m));
 }
 
-export function TopNav({ walletLabel = '₹ 0', actor, notif }: Props) {
+export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
+  const money = useMoney();
+  const walletLabel = walletLabelProp ?? money(0);
   const pathname = usePathname() ?? '';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState<string | null>(null);

@@ -35,6 +35,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
         const res = await searchActivities({ cityCode: city, fromDate: from, toDate: to, paxAdults: parseInt(adults, 10) || 2 });
         source = res.source;
         warning = res.warning;
+        if (warning) console.error('[activities-search] supplier warning', warning);
         const live: Activity[] = res.activities.map((a) => ({
           id: a.id, name: a.name, category: 'tour', durationMin: a.durationMin,
           pricePaise: a.pricePaise, cityCode: a.cityCode, thumb: a.thumb, description: a.description,
@@ -44,7 +45,8 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           ? [...live, ...activitiesForCity(city).filter((a) => !liveNames.has(a.name.toLowerCase()))]
           : activitiesForCity(city);
       } catch (e: any) {
-        source = 'mock'; warning = `Hotelbeds error: ${e?.message ?? e}`;
+        console.error('[activities-search] supplier error', e);
+        source = 'mock'; warning = 'Live prices couldn\'t load. Try again in a minute.';
         activities = activitiesForCity(city);
       }
     } else {
@@ -54,10 +56,9 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
 
   const liveCount = activities.filter((a) => a.id.startsWith('ACT-')).length;
   const badge =
-    source === 'live' ? { variant: 'success' as const, label: `${liveCount} LIVE · Hotelbeds` }
-    : source === 'unsupported-city' ? { variant: 'warning' as const, label: `${city} not on Hotelbeds · mock data` }
-    : isLive('activities') ? { variant: 'warning' as const, label: 'MOCK · no live results' }
-    : { variant: 'warning' as const, label: 'MOCK · set HOTELBEDS_ACTIVITIES_API_KEY' };
+    source === 'live' ? { variant: 'success' as const, label: `${liveCount} with live prices` }
+    : source === 'unsupported-city' ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
+    : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
 
   return (
     <div className="pb-12">
@@ -85,7 +86,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
       )}
 
       {warning && source !== 'live' && (
-        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">{warning}</div>
+        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">Live prices couldn&apos;t load. Try again in a minute. Showing sample prices for now.</div>
       )}
 
       {hasQuery && (

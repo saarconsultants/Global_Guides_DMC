@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
+import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -34,8 +35,8 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
     <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My proposals"
-        description="Quotes you've prepared. Click a row to open it. Customer views update status automatically."
-        actions={<Link href="/itinerary/new"><Button>New proposal</Button></Link>}
+        description="Proposals you've prepared. Click a row to open it. Customer views update status automatically."
+        actions={<Link href="/itinerary/new"><Button>New trip</Button></Link>}
       />
 
       <Card>
@@ -47,10 +48,10 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
             </div>
             <select name="status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
               <option value="">All statuses</option>
-              {Object.keys(statusVariant).map((s) => <option key={s}>{s}</option>)}
+              {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
             <Button variant="secondary" className="gap-1.5"><Filter className="w-4 h-4" />Filter</Button>
-            {(sp.q || sp.status) && <Link href="/proposals" className="text-xs text-danger-500 hover:underline">× clear</Link>}
+            {(sp.q || sp.status) && <Link href="/proposals" className="text-xs text-danger-500 hover:underline">Clear filters</Link>}
           </form>
         </CardContent>
       </Card>
@@ -61,7 +62,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
             <EmptyState
               icon={<FileText className="w-7 h-7" />}
               title="No proposals yet"
-              body="Build a trip and click Save As Proposal. Your saved quotes will live here, with status updates the moment your customer opens the share link."
+              body="Build a trip and click Save as proposal. Your saved proposals will live here, with status updates the moment your customer opens the share link."
               primary={{ label: 'Build a proposal', href: '/itinerary/new' }}
               secondary={{ label: 'See templates', href: '/suggested' }}
             />
@@ -92,7 +93,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                       <td className="py-3 pr-4">{formatDateShort(p.travelDate)}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(p.createdAt)}</td>
                       <td className="py-3 pr-4 money text-right">{fmt(p.pricePaise)}</td>
-                      <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
+                      <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill></td>
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-3">
                           {BOOKABLE.includes(p.status) && (

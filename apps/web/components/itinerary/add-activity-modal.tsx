@@ -56,18 +56,18 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
         if (myReq !== requestId.current) return; // stale
         if (!r.ok) {
           setSource('mock');
-          setWarning(r.error);
+          console.error("[supplier-search]", r.error); setWarning(r.error);
           setLiveActivities([]);
           return;
         }
         setSource(r.source);
-        setWarning(r.warning);
+        if (r.warning) console.error("[supplier-search]", r.warning); setWarning(r.warning);
         setLiveActivities(r.activities);
       })
       .catch((e) => {
         if (myReq !== requestId.current) return;
         setSource('mock');
-        setWarning(String(e?.message ?? e));
+        console.error("[supplier-search]", e); setWarning(String(e?.message ?? e));
         setLiveActivities([]);
       });
   }, [open, cityCode, date, paxAdults, paxChildren]);
@@ -123,13 +123,13 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs mb-3">
-          {warning} — showing mock data.
+          Live prices couldn&apos;t load. Try again in a minute. Showing sample prices for now.
         </div>
       )}
 
       {source === 'loading' ? (
         <div className="text-center py-12 text-sm text-[rgb(var(--text-secondary))]">
-          <Spinner size="sm" className="inline mr-2" /> Searching Hotelbeds activities in {cityName}…
+          <Spinner size="sm" className="inline mr-2" /> Searching live activities in {cityName}…
         </div>
       ) : merged.length === 0 ? (
         <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">No activities for {cityName} yet.</p>
@@ -230,7 +230,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
 
 function SourceBadge({ source, liveCount }: { source: Source; liveCount: number }) {
   if (source === 'loading') return null;
-  if (source === 'live') return <Pill variant="success">{liveCount} LIVE · Hotelbeds</Pill>;
-  if (source === 'unsupported-city') return <Pill variant="warning">City not on Hotelbeds · mock data</Pill>;
-  return <Pill variant="warning">MOCK · set HOTELBEDS_ACTIVITIES_API_KEY for live</Pill>;
+  if (source === 'live') return <Pill variant="success">{liveCount} with live prices</Pill>;
+  if (source === 'unsupported-city') return <Pill variant="warning">Sample prices — live rates aren&apos;t available for this city</Pill>;
+  return <Pill variant="warning">Sample prices — live rates unavailable right now</Pill>;
 }

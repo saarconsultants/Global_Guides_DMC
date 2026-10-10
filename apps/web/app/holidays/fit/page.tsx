@@ -29,7 +29,7 @@ export default async function FITPackagesPage() {
         eyebrow="Free Independent Traveller"
         title="FIT packages"
         description="Privately curated trips for individuals, couples, and families. Every quote is built from net hotel and transfer rates with your markup applied — no fixed-date constraints."
-        actions={<Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />Start new FIT proposal</Button></Link>}
+        actions={<Link href="/itinerary/new"><Button className="gap-1.5"><Sparkles className="w-4 h-4" />New trip</Button></Link>}
       />
 
       {templates.length === 0 ? (

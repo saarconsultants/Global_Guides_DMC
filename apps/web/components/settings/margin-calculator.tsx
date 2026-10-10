@@ -3,6 +3,8 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
 import { Calculator } from 'lucide-react';
+import { useCurrency } from '@/components/providers/currency-provider';
+import { formatMoney, currencyMeta } from '@/lib/money';
 
 interface Props {
   defaultMarkupPct: number;
@@ -29,7 +31,11 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
     return { effectivePct: pct, customerTotal: total, margin: total - net };
   }, [netInr, product, defaultMarkupPct, overrides]);
 
-  const fmt = (n: number) => `₹ ${n.toLocaleString('en-IN')}`;
+  // Markup is a percentage, so the what-if works in whatever currency the agency
+  // displays: the agent types an amount in that currency and sees results in it
+  // (rate 1 = format only, no conversion).
+  const { currency } = useCurrency();
+  const fmt = (n: number) => formatMoney(Math.round(n * 100), currency, 1);
 
   return (
     <Card>
@@ -42,7 +48,7 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
         </p>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <Label>Net supplier cost (₹)</Label>
+            <Label>Net supplier cost ({currencyMeta(currency).symbol})</Label>
             <Input type="number" min={0} step={100} value={netInr} onChange={(e) => setNetInr(e.target.value)} />
           </div>
           <div>

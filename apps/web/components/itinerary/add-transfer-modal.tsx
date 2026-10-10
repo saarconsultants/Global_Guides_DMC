@@ -59,18 +59,18 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
         if (myReq !== requestId.current) return;
         if (!r.ok) {
           setSource('mock');
-          setWarning(r.error);
+          console.error("[supplier-search]", r.error); setWarning(r.error);
           setAlternatives([]);
           return;
         }
         setSource(r.source === 'live' ? 'live' : 'mock');
-        setWarning(r.warning);
+        if (r.warning) console.error("[supplier-search]", r.warning); setWarning(r.warning);
         setAlternatives(r.alternatives);
       })
       .catch((e) => {
         if (myReq !== requestId.current) return;
         setSource('mock');
-        setWarning(String(e?.message ?? e));
+        console.error("[supplier-search]", e); setWarning(String(e?.message ?? e));
         setAlternatives([]);
       });
   }, [open, kind, airportCode, hotelAtlasCode, pickupDate, pickupTime, adults, children, airportName, hotelName, hotel?.latitude, hotel?.longitude, hotel?.address]);
@@ -84,12 +84,12 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
           {kind === 'arrival' ? `${airportName ?? airportCode} → ${hotelName}` : `${hotelName} → ${airportName ?? airportCode}`}
         </p>
         {source === 'live'   && <Pill variant="success">{alternatives.length} live option{alternatives.length !== 1 ? 's' : ''}</Pill>}
-        {source === 'mock'   && <Pill variant="warning">MOCK · no live options for this route</Pill>}
+        {source === 'mock'   && <Pill variant="warning">Sample prices — live rates unavailable right now</Pill>}
       </div>
 
       {warning && source !== 'live' && (
         <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs mb-3">
-          {warning}
+          Live prices couldn&apos;t load. Try again in a minute.
         </div>
       )}
 
@@ -99,7 +99,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
         </div>
       ) : alternatives.length === 0 ? (
         <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-8">
-          No live transfers available for this route + date. Try changing the hotel, or use the mock transfer (we'll quote you a private premium at standard pricing).
+          No live transfers for this route and date. Try changing the hotel, or keep the standard private transfer already on the trip.
         </p>
       ) : (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
@@ -109,8 +109,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, airp
                 <p className="font-semibold text-ink inline-flex items-center gap-2">
                   <Car className="w-4 h-4 text-crimson-700" />
                   {vehicleLabel(t.vehicle)}
-                  {t.id.startsWith('TR-') && <Pill variant="success">Live · Hotelbeds</Pill>}
-                  {t.id.startsWith('LM-') && <Pill variant="success">Live · Leamigo</Pill>}
+                  {(t.id.startsWith('TR-') || t.id.startsWith('LM-')) && <Pill variant="success">Live price</Pill>}
                 </p>
                 {t.description && <p className="text-xs text-ink mt-1">{t.description}</p>}
                 <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Up to {t.bagsAllowed} bags · {kind === 'arrival' ? 'Airport pickup' : 'Hotel pickup'} on {pickupDate}{pickupTime ? ` at ${pickupTime}` : ''}</p>

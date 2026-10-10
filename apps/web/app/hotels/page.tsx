@@ -48,6 +48,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
         });
         source = res.source;
         warning = res.warning;
+        if (warning) console.error('[hotels-search] supplier warning', warning);
         const liveHotels: Hotel[] = res.hotels.map((h) => ({
           id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
           thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
@@ -60,7 +61,8 @@ export default async function HotelsPage({ searchParams }: PageProps) {
           : hotelsForCity(city);
       } catch (e: any) {
         source = 'mock';
-        warning = `Hotelbeds error: ${e?.message ?? e}`;
+        console.error('[hotels-search] supplier error', e);
+        warning = 'Live prices couldn\'t load. Try again in a minute.';
         void captureException(e, { scope: 'hotels-search', city, checkin, checkout });
         hotels = hotelsForCity(city);
       }
@@ -89,12 +91,10 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   const liveCount = hotels.filter((h) => h.id.startsWith('HB-')).length;
   const badge =
     source === 'live'
-      ? { variant: 'success' as const, label: `${liveCount} LIVE · Hotelbeds` }
+      ? { variant: 'success' as const, label: `${liveCount} with live prices` }
       : source === 'unsupported-city'
-      ? { variant: 'warning' as const, label: `${city} not on Hotelbeds · mock data` }
-      : isLive()
-      ? { variant: 'warning' as const, label: 'MOCK · Hotelbeds returned no results' }
-      : { variant: 'warning' as const, label: 'MOCK · set HOTELBEDS_API_KEY for live' };
+      ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
+      : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
 
   return (
     <div className="pb-12">
@@ -109,7 +109,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
         {!dateInvalid && warning && source !== 'live' && (
           <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">
-            {warning.length > 180 ? warning.slice(0, 180) + '…' : warning}
+            Live prices couldn&apos;t load. Try again in a minute. Showing sample prices for now.
           </div>
         )}
 
@@ -144,7 +144,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
               <span>Hotels in <span className="font-bold text-ink">{cityName}</span> · <span className="tnum">{checkin} → {checkout}</span>{filteredOut > 0 && <span className="text-xs ml-2">({filteredOut} hidden by filters)</span>}</span>
               <Pill variant={badge.variant}>{badge.label}</Pill>
             </div>
-            <HotelResults hotels={hotels} nights={nights} />
+            <HotelResults hotels={hotels} nights={nights} checkin={checkin} adults={adults} />
           </>
         )}
       </div>
