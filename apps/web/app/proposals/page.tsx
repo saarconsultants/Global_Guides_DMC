@@ -80,7 +80,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                       <div className="font-bold text-ink truncate">{p.lead?.customerName ?? '—'}</div>
                       <div className="text-[13px] text-[rgb(var(--text-secondary))] break-words">{p.name}</div>
                     </div>
-                    <Pill variant={statusVariant[p.status] ?? 'neutral'}>{p.status}</Pill>
+                    <Pill variant={statusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill>
                   </div>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
                     <span className="text-[rgb(var(--text-secondary))]">Travel <span className="text-ink">{formatDateShort(p.travelDate)}</span> · Created {formatDateShort(p.createdAt)}</span>

@@ -93,7 +93,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                         <Link href={`/leads/${l.id}` as any} className="inline-flex items-center min-h-6 font-bold text-ink hover:text-crimson-700 break-words">{l.customerName}</Link>
                         {l.customerPhone && <div className="text-[12.5px] text-[rgb(var(--text-secondary))]">{l.customerPhone}</div>}
                       </div>
-                      <Pill variant={statusVariant[l.status] ?? 'neutral'}>{l.status}</Pill>
+                      <Pill variant={statusVariant[l.status] ?? 'neutral'}>{statusLabel(l.status)}</Pill>
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-[rgb(var(--text-secondary))]">
                       <RouteCode codes={l.destinations.split(',').map((c) => c.trim()).filter(Boolean)} />

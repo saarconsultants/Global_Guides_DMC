@@ -89,7 +89,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <div className="font-bold text-ink truncate">{b.proposal.lead?.customerName ?? '—'}</div>
                       <div className="text-[13px] text-[rgb(var(--text-secondary))] break-words">{b.proposal.name}</div>
                     </div>
-                    <Pill variant={statusVariant[b.status] ?? 'neutral'}>{b.status}</Pill>
+                    <Pill variant={statusVariant[b.status] ?? 'neutral'}>{statusLabel(b.status)}</Pill>
                   </div>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
                     <span className="text-[rgb(var(--text-secondary))]">Travel <span className="text-ink">{formatDateShort(b.proposal.travelDate)}</span> · Booked {formatDateShort(b.bookedAt)}</span>
