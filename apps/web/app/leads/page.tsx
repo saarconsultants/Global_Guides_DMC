@@ -80,7 +80,40 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
               secondary={{ label: 'Browse templates', href: '/suggested' }}
             />
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Phones: stacked cards instead of a sideways-scrolling table. */}
+            <ul className="md:hidden divide-y divide-border-subtle">
+              {rows.map((l) => {
+                const latest = l.proposals?.[0];
+                return (
+                  <li key={l.id} className="py-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link href={`/leads/${l.id}` as any} className="inline-flex items-center min-h-6 font-bold text-ink hover:text-crimson-700 break-words">{l.customerName}</Link>
+                        {l.customerPhone && <div className="text-[12.5px] text-[rgb(var(--text-secondary))]">{l.customerPhone}</div>}
+                      </div>
+                      <Pill variant={statusVariant[l.status] ?? 'neutral'}>{l.status}</Pill>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-[rgb(var(--text-secondary))]">
+                      <RouteCode codes={l.destinations.split(',').map((c) => c.trim()).filter(Boolean)} />
+                      {l.originCity && <span>from {l.originCity}</span>}
+                    </div>
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
+                      <span className="text-[rgb(var(--text-secondary))]">
+                        Travel <span className="text-ink">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</span>
+                        {l.nights != null && <> · {l.nights}N</>} · Created {formatDateShort(l.createdAt)}
+                      </span>
+                      {latest && <span><span className="font-mono text-[12px] font-bold">{latest.code}</span> <span className="money font-bold">{fmt(latest.pricePaise)}</span></span>}
+                    </div>
+                    <LeadActions
+                      lead={{ id: l.id, customerName: l.customerName, customerEmail: l.customerEmail, customerPhone: l.customerPhone, status: l.status }}
+                      latestProposalId={latest?.id ?? null}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-[13.5px] tnum">
                 <thead>
                   <tr className="text-left label border-b border-border">
@@ -122,6 +155,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>

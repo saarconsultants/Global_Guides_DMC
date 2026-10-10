@@ -110,7 +110,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
   return (
     <>
       {variant === 'link' ? (
-        <button onClick={begin} className="inline-flex items-center gap-1 text-xs font-semibold text-crimson-700 hover:underline" title="Convert to booking">
+        <button onClick={begin} className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-crimson-700 hover:underline" title="Convert to booking">
           <Briefcase className="w-3 h-3" />Book
         </button>
       ) : (

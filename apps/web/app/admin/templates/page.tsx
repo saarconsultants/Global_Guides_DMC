@@ -8,13 +8,14 @@ import { toggleTemplatePublishedAction, deleteTemplateAction } from '@/app/actio
 import { formatINR, formatDateShort } from '@/lib/utils';
 import { Sparkles, Plus, Edit, Eye } from 'lucide-react';
 import Link from 'next/link';
+import { ActionForm } from '@/components/ui/action-form';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminTemplatesPage() {
   const rows = await db.itineraryTemplate.findMany({ orderBy: { createdAt: 'desc' } });
   return (
-    <div className="p-8 space-y-6 ambient">
+    <div className="p-4 sm:p-8 space-y-6 ambient">
       <PageHeader
         eyebrow="Platform"
         title="Itinerary templates"
@@ -70,14 +71,14 @@ export default async function AdminTemplatesPage() {
                         </form>
                       </td>
                       <td className="py-3 pr-4 text-right">
-                        <div className="inline-flex items-center gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">
-                          <Link href={`/admin/templates/${t.id}` as any} className="text-xs text-crimson-700 hover:underline inline-flex items-center gap-1"><Edit className="w-3 h-3" />Edit</Link>
+                        <div className="inline-flex items-center gap-2 opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity">
+                          <Link href={`/admin/templates/${t.id}` as any} className="text-xs text-crimson-700 hover:underline inline-flex items-center gap-1 min-h-6"><Edit className="w-3 h-3" />Edit</Link>
                           {t.published && (
-                            <Link href={`/suggested?region=${t.region}` as any} target="_blank" className="text-xs text-[rgb(var(--text-secondary))] hover:text-navy-700 inline-flex items-center gap-1"><Eye className="w-3 h-3" />Preview</Link>
+                            <Link href={`/suggested?region=${t.region}` as any} target="_blank" className="text-xs text-[rgb(var(--text-secondary))] hover:text-navy-700 inline-flex items-center gap-1 min-h-6"><Eye className="w-3 h-3" />Preview</Link>
                           )}
-                          <form action={deleteTemplateAction.bind(null, t.id)} className="inline">
-                            <button className="text-xs text-danger-500 hover:underline">Delete</button>
-                          </form>
+                          <ActionForm action={deleteTemplateAction.bind(null, t.id)} confirm={`Delete template ${t.code}? Agencies will no longer see it in Suggested. This can't be undone.`} success="Template deleted" className="inline">
+                            <button type="submit" className="inline-flex items-center min-h-6 text-xs text-danger-500 hover:underline">Delete</button>
+                          </ActionForm>
                         </div>
                       </td>
                     </tr>

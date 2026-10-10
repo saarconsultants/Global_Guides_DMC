@@ -13,9 +13,11 @@ export function HotelDetailGallery({ images, hotelName }: { images: string[]; ho
 
   return (
     <>
-      <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[340px] rounded-lg overflow-hidden">
-        {/* Hero — spans 2x2 */}
-        <button onClick={() => openAt(0)} className="col-span-2 row-span-2 group relative overflow-hidden">
+      {/* Phones: full-width hero with a strip of up to 4 thumbnails below.
+          sm+: hero spans 2x2 with the thumbnails in a 2x2 block beside it. */}
+      <div className={`grid grid-cols-4 gap-2 rounded-lg overflow-hidden ${rest.length ? 'grid-rows-[220px_64px]' : 'grid-rows-[220px]'} sm:grid-rows-2 sm:h-[340px]`}>
+        {/* Hero — full width on phones, spans 2x2 from sm */}
+        <button onClick={() => openAt(0)} className="col-span-4 sm:col-span-2 sm:row-span-2 group relative overflow-hidden">
           <img src={hero} alt={hotelName} className="w-full h-full object-cover bg-navy-900 transition-transform group-hover:scale-105" />
         </button>
         {/* Up to 4 smaller tiles */}
@@ -24,7 +26,7 @@ export function HotelDetailGallery({ images, hotelName }: { images: string[]; ho
             <img src={src} alt="" className="w-full h-full object-cover bg-navy-900 transition-transform group-hover:scale-105" />
             {/* "+N more" overlay on the last visible tile */}
             {i === rest.length - 1 && images.length > 5 && (
-              <span className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-semibold text-sm">
+              <span className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
                 +{images.length - 5} more
               </span>
             )}

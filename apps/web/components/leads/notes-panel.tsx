@@ -107,7 +107,7 @@ export function LeadNotesPanel({ leadId, notes, currentUserId, isOwner }: Props)
                 </div>
                 {n.kind !== 'SYSTEM' && canDelete && (
                   <ActionForm action={deleteLeadNoteAction.bind(null, n.id, leadId)} confirm="Delete this note?" success="Note deleted" className="self-start">
-                    <button type="submit" aria-label="Delete note" className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity text-[rgb(var(--text-tertiary))] hover:text-danger-500 p-1 cursor-pointer">
+                    <button type="submit" aria-label="Delete note" className="opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity text-[rgb(var(--text-tertiary))] hover:text-danger-500 p-1 cursor-pointer">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </ActionForm>

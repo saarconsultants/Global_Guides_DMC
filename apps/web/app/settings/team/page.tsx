@@ -82,7 +82,7 @@ export default async function TeamSettingsPage() {
                       <td className="py-3 pr-4 text-right">
                         {isOwner && (
                           <ActionForm action={revokeInviteAction.bind(null, inv.id)} confirm="Revoke this invite?" success="Invite revoked" className="inline">
-                            <button className="text-danger-500 hover:underline text-xs font-medium">Revoke</button>
+                            <button className="inline-flex items-center min-h-6 text-danger-500 hover:underline text-xs font-medium">Revoke</button>
                           </ActionForm>
                         )}
                       </td>
@@ -112,7 +112,7 @@ export default async function TeamSettingsPage() {
                     <td className="py-3 pr-4 text-right">
                       {isOwner && u.id !== actor.userId && (
                         <ActionForm action={removeTeamMemberAction.bind(null, u.id)} confirm="Remove this team member? They lose access immediately." success="Member removed" className="inline">
-                          <button className="text-danger-500 hover:underline text-xs font-medium">Remove</button>
+                          <button className="inline-flex items-center min-h-6 text-danger-500 hover:underline text-xs font-medium">Remove</button>
                         </ActionForm>
                       )}
                     </td>

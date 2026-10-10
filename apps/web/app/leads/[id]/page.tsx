@@ -85,14 +85,14 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* KPI strip */}
-          <div className="grid gap-3 grid-cols-3 stagger">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3 stagger">
             <Card className="lift"><CardContent className="pt-5">
               <p className="label">Proposals</p>
               <p className="mt-1 text-3xl font-bold text-ink">{lead.proposals.length}</p>
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
               <p className="label">Total quoted</p>
-              <p className="mt-1 text-2xl font-bold text-ink money">{fmt(BigInt(totalQuoted))}</p>
+              <p className="mt-1 text-2xl sm:text-xl lg:text-2xl font-bold text-ink money break-words min-w-0">{fmt(BigInt(totalQuoted))}</p>
             </CardContent></Card>
             <Card className="lift"><CardContent className="pt-5">
               <p className="label">Status</p>
@@ -135,7 +135,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                           <td className="py-3 pr-4 font-mono text-right">{fmt(p.pricePaise)}</td>
                           <td className="py-3 pr-4"><Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{p.status}</Pill></td>
                           <td className="py-3 pr-4 text-right">
-                            <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity inline-flex items-center gap-1">Open <ExternalLink className="w-3 h-3" /></a>
+                            <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity inline-flex items-center gap-1 min-h-6">Open <ExternalLink className="w-3 h-3" /></a>
                           </td>
                         </tr>
                       ))}

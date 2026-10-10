@@ -38,7 +38,7 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
   const openCount = (countByStatus.OPEN ?? 0) + (countByStatus.TRIAGED ?? 0) + (countByStatus.IN_PROGRESS ?? 0);
 
   return (
-    <div className="p-8 space-y-6 ambient">
+    <div className="p-4 sm:p-8 space-y-6 ambient">
       <PageHeader
         eyebrow="Platform · QA"
         title="Bug reports"
@@ -65,7 +65,7 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
             return (
               <Card key={r.id} className={open ? '' : 'opacity-60'}>
                 <CardContent className="pt-5">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <Pill variant={sev.variant}><sev.icon className="w-3 h-3 inline mr-0.5" />{r.severity}</Pill>
@@ -78,8 +78,8 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
                       <div className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-[rgb(var(--text-secondary))]">
                         <div><span className="font-semibold">Reporter:</span> {r.userName ?? r.userEmail ?? <span className="italic">anonymous (customer page)</span>}</div>
                         <div><span className="font-semibold">Viewport:</span> {r.viewport ?? '—'}</div>
-                        <div className="truncate"><span className="font-semibold">URL:</span> <a href={r.pageUrl ?? '#'} className="text-crimson-700 hover:underline">{r.pageUrl ?? '—'}</a></div>
-                        <div className="truncate"><span className="font-semibold">UA:</span> {r.userAgent ?? '—'}</div>
+                        <div className="flex items-center gap-1 min-w-0"><span className="font-semibold flex-shrink-0">URL:</span> {r.pageUrl ? <a href={r.pageUrl} target="_blank" rel="noreferrer" title={r.pageUrl} className="inline-flex items-center min-h-6 min-w-0 text-crimson-700 hover:underline"><span className="truncate">{r.pageUrl}</span></a> : '—'}</div>
+                        <div className="truncate" title={r.userAgent ?? undefined}><span className="font-semibold">UA:</span> {r.userAgent ?? '—'}</div>
                       </div>
                       {r.resolution && (
                         <div className="mt-3 rounded-md bg-success-100 text-success-500 text-xs px-3 py-2">
@@ -88,7 +88,7 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
                       )}
                     </div>
 
-                    <form action={resolveBugReportAction.bind(null, r.id)} className="flex flex-col gap-2 flex-shrink-0 w-44">
+                    <form action={resolveBugReportAction.bind(null, r.id)} className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-44">
                       <select name="status" defaultValue={r.status} className="h-8 rounded-sm border border-border bg-surface px-2 text-xs">
                         {STATUSES.map((s) => <option key={s}>{s}</option>)}
                       </select>
