@@ -38,13 +38,16 @@ const cityCache = new Map<string, { at: number; id: number | null }>();
 const optCache = new Map<number, { at: number; v: any }>();
 const detCache = new Map<number, { at: number; v: any }>();
 
-async function cityId(name: string): Promise<number | null> {
-  const k = name.trim().toLowerCase();
+async function cityId(name: string, countryCode?: string): Promise<number | null> {
+  const cc = countryCode?.toUpperCase();
+  const k = name.trim().toLowerCase() + (cc ? `|${cc}` : '');
   const hit = cityCache.get(k);
   if (hit && Date.now() - hit.at < TTL) return hit.id;
   const res = await lmCall<any>('/v1/activities/cities', { query: { search: name, limit: '20' } });
   const rows: any[] = res?.data ?? [];
-  const exact = rows.find((r) => String(r.city).toLowerCase() === k) ?? null;
+  const named = rows.filter((r) => String(r.city).toLowerCase() === name.trim().toLowerCase());
+  // Same city name exists in several countries (Paris FR / CA / US) — prefer ours.
+  const exact = (cc ? named.find((r) => String(r.country_code).toUpperCase() === cc) : undefined) ?? (cc ? null : named[0] ?? null);
   const id = exact ? Number(exact.id) : null;
   cityCache.set(k, { at: Date.now(), id });
   return id;
@@ -84,9 +87,9 @@ function pickOption(options: any[], pax: number) {
   return best;
 }
 
-export async function searchLeamigoActivities(input: { cityName: string; pax: number; limit?: number }): Promise<{ activities: LeamigoActivity[]; warning?: string }> {
+export async function searchLeamigoActivities(input: { cityName: string; countryCode?: string; pax: number; limit?: number }): Promise<{ activities: LeamigoActivity[]; warning?: string }> {
   if (!isLive()) return { activities: [] };
-  const cid = await cityId(input.cityName);
+  const cid = await cityId(input.cityName, input.countryCode);
   if (!cid) return { activities: [], warning: `Leamigo has no activities in ${input.cityName}.` };
   const list = await lmCall<any>('/v1/activities', { query: { city_id: String(cid), limit: String(input.limit ?? 20), page: '1' }, timeoutMs: 10_000 });
   const rates = await inrRates();

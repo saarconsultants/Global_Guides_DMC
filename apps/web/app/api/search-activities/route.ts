@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     const pax = Math.max(1, (input.paxAdults ?? 1) + (input.paxChildren ?? 0));
     const [res, lm] = await Promise.all([
       searchActivities(input).catch((e) => ({ activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: String(e?.message ?? e) })),
-      leamigoLive() ? within(searchLeamigoActivities({ cityName: cityInfo(input.cityCode).name, pax }), 12_000, { activities: [] as LeamigoActivity[] }) : Promise.resolve({ activities: [] as LeamigoActivity[] }),
+      leamigoLive() ? within(searchLeamigoActivities({ cityName: cityInfo(input.cityCode).name, countryCode: cityInfo(input.cityCode).countryCode, pax }), 12_000, { activities: [] as LeamigoActivity[] }) : Promise.resolve({ activities: [] as LeamigoActivity[] }),
     ]);
     const activities = [...res.activities.map(toApp), ...lm.activities.map(lmToApp(input.cityCode))];
     return NextResponse.json({
