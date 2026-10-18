@@ -106,7 +106,13 @@ export interface Activity {
   description?: string;        // Hotelbeds activity description (live inventory)
   category: 'sightseeing' | 'museum' | 'tour' | 'experience';
   /** Live Leamigo activity — the exact option/ticket priced for this party. */
-  leamigo?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean; freeCancellation: boolean; cancellationRules: Array<{ hoursBefore: number; chargePct: number }> };
+  leamigo?: {
+    activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean;
+    freeCancellation: boolean; cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
+    /** Needs a start time (date_time_required). Picked in the builder; required to book. */
+    timed?: boolean;
+    startTime?: string;          // HH:mm
+  };
 }
 
 export type DayInclusion =

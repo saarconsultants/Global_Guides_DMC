@@ -97,7 +97,7 @@ function groupByCity(days: Day[]): { groups: CityGroup[]; transfers: TransferIte
     const lines: DayBlock['lines'] = [];
     for (const slot of ['morning', 'afternoon', 'evening'] as const) {
       const a = day[slot];
-      if (a) lines.push({ when: slot[0]!.toUpperCase() + slot.slice(1), text: a.name });
+      if (a) lines.push({ when: slot[0]!.toUpperCase() + slot.slice(1), text: a.leamigo?.startTime ? `${a.leamigo.startTime} · ${a.name}` : a.name });
     }
     if (lines.length === 0) {
       const text = (day.type !== 'stay' && day.narrative) ? day.narrative : 'At Leisure';

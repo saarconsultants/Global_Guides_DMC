@@ -34,6 +34,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   const [warning, setWarning] = useState<string | undefined>();
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Activity | null>(null);
+  const [timing, setTiming] = useState<Activity | null>(null);   // timed Leamigo activity awaiting a start time
   // requestId guards against a stale response from an earlier fetch overwriting
   // state when the effect re-runs (e.g. parent re-render shifts paxAdults ref).
   const requestId = useRef(0);
@@ -73,7 +74,13 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   }, [open, cityCode, date, paxAdults, paxChildren]);
 
   // Reset the search box + detail view whenever the modal opens or context changes.
-  useEffect(() => { if (open) { setQuery(''); setDetail(null); } }, [open, cityCode, slot]);
+  useEffect(() => { if (open) { setQuery(''); setDetail(null); setTiming(null); } }, [open, cityCode, slot]);
+
+  // Activities that need a start time go through the time picker first.
+  const choose = (a: Activity) => {
+    if (a.leamigo?.timed && date) { setTiming(a); return; }
+    onPick(a); onClose();
+  };
 
   const mock = activitiesForCity(cityCode);
   // Live first, then mock entries not already in live (dedupe by name)
@@ -91,13 +98,15 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
     : merged;
 
   return (
-    <Dialog open={open} onClose={onClose} title={detail ? 'Activity details' : `Add activity — ${slot} in ${cityName}`} size="lg">
-      {detail ? (
+    <Dialog open={open} onClose={onClose} title={timing ? 'Choose a start time' : detail ? 'Activity details' : `Add activity — ${slot} in ${cityName}`} size="lg">
+      {timing && date ? (
+        <StartTimePicker a={timing} date={date} slot={slot} onBack={() => setTiming(null)} onConfirm={(a) => { onPick(a); onClose(); }} />
+      ) : detail ? (
         <ActivityDetail
           a={detail}
           isCurrent={detail.id === currentId}
           onBack={() => setDetail(null)}
-          onAdd={() => { onPick(detail); onClose(); }}
+          onAdd={() => choose(detail)}
         />
       ) : (
       <>
@@ -164,7 +173,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-mono font-semibold text-ink">{money(a.pricePaise)}</p>
-                <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); onPick(a); onClose(); }} disabled={a.id === currentId}>
+                <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); choose(a); }} disabled={a.id === currentId}>
                   {a.id === currentId ? 'Added' : 'Add'}
                 </Button>
               </div>
@@ -235,4 +244,93 @@ function SourceBadge({ source, liveCount }: { source: Source; liveCount: number 
   if (source === 'live') return <Pill variant="success">{liveCount} with live prices</Pill>;
   if (source === 'unsupported-city') return <Pill variant="warning">Sample prices — live rates aren&apos;t available for this city</Pill>;
   return <Pill variant="warning">Sample prices — live rates unavailable right now</Pill>;
+}
+
+interface TimeOption { start: string; end?: string; available: boolean; seatsLeft: number | null; ticketId: string | null; pricePaise: number | null }
+const SLOT_DEFAULT = { morning: '09:00', afternoon: '14:00', evening: '18:00' } as const;
+
+/** Start-time step for Leamigo activities that need one. */
+function StartTimePicker({ a, date, slot, onBack, onConfirm }: { a: Activity; date: string; slot: 'morning' | 'afternoon' | 'evening'; onBack: () => void; onConfirm: (a: Activity) => void }) {
+  const money = useMoney();
+  const lm = a.leamigo!;
+  const [state, setState] = useState<'loading' | 'ready' | 'error' | 'soldout'>('loading');
+  const [times, setTimes] = useState<TimeOption[]>([]);
+  const [anyTime, setAnyTime] = useState(false);
+  const [chosen, setChosen] = useState<string>(lm.startTime ?? '');
+  const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    let live = true;
+    fetch('/api/activity-times', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, date }) })
+      .then((r) => r.json())
+      .then((r) => {
+        if (!live) return;
+        if (!r.ok) { setError(r.error); setState('error'); return; }
+        if (!r.available) { setState('soldout'); return; }
+        setTimes(r.times); setAnyTime(r.anyTime);
+        if (!lm.startTime) {
+          const want = SLOT_DEFAULT[slot];
+          const open = (r.times as TimeOption[]).filter((t) => t.available);
+          setChosen(r.anyTime ? want : (open.find((t) => t.start >= want) ?? open[0])?.start ?? '');
+        }
+        setState('ready');
+      })
+      .catch(() => { if (live) { setError("Start times couldn't load. Try again in a minute."); setState('error'); } });
+    return () => { live = false; };
+  }, [lm.activityId, lm.optionId, lm.ticketId, lm.quantity, lm.startTime, date, slot]);
+
+  const pick = times.find((t) => t.start === chosen);
+  const valid = anyTime ? /^\d{2}:\d{2}$/.test(chosen) : !!pick?.available;
+  const confirm = () => {
+    if (!valid) return;
+    onConfirm({
+      ...a,
+      pricePaise: pick?.pricePaise ?? a.pricePaise,
+      leamigo: { ...lm, startTime: chosen, ticketId: pick?.ticketId ?? lm.ticketId },
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="font-semibold text-ink">{a.name}</p>
+        <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{new Date(date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · {lm.quantity} ticket{lm.quantity !== 1 ? 's' : ''}</p>
+      </div>
+
+      {state === 'loading' && <div className="py-8 text-center text-sm text-[rgb(var(--text-secondary))]"><Spinner size="sm" className="inline mr-2" />Checking start times…</div>}
+      {state === 'error' && <div role="alert" className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">{error}</div>}
+      {state === 'soldout' && <div role="alert" className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">Sold out on this day. Pick another day or another activity.</div>}
+
+      {state === 'ready' && (anyTime ? (
+        <label className="block text-sm">
+          <span className="label block mb-1">Start time</span>
+          <input type="time" className="control" value={chosen} onChange={(e) => setChosen(e.target.value)} />
+          <span className="block text-xs text-[rgb(var(--text-secondary))] mt-1">The supplier accepts any start time on this day.</span>
+        </label>
+      ) : (
+        <fieldset>
+          <legend className="label mb-2">Available start times</legend>
+          <div className="flex flex-wrap gap-2">
+            {times.map((t) => (
+              <button key={t.start} type="button" disabled={!t.available} onClick={() => setChosen(t.start)} aria-pressed={chosen === t.start}
+                className={`min-h-[44px] px-3 py-1.5 rounded-md border text-sm text-left disabled:opacity-40 disabled:line-through ${chosen === t.start ? 'bg-ink text-white border-ink' : 'border-border-subtle hover:border-crimson-300'}`}>
+                <span className="font-mono font-semibold">{t.start}{t.end ? `–${t.end}` : ''}</span>
+                {t.pricePaise !== null && <span className="block text-[11px] opacity-80">{money(t.pricePaise)}</span>}
+                {t.available && t.seatsLeft !== null && t.seatsLeft <= 5 && <span className="block text-[11px] opacity-80">{t.seatsLeft} left</span>}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+
+      <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+        <p className="money text-lg text-ink">{money(pick?.pricePaise ?? a.pricePaise)}</p>
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={onBack}>Back</Button>
+          <Button onClick={confirm} disabled={state !== 'ready' || !valid}>Add at {chosen || '—'}</Button>
+        </div>
+      </div>
+    </div>
+  );
 }

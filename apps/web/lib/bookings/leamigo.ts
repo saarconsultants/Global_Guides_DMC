@@ -39,7 +39,7 @@ export interface TransferQuote {
   freeCancellation: boolean;
   cancellationRules: Rules;
   cancellationText: string;
-  activity?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean };
+  activity?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean; startTime?: string };
 }
 
 export interface SupplierTransferBooking {
@@ -168,23 +168,29 @@ async function quoteRental(t: Transfer, key: string, dayNo: number): Promise<Tra
 async function quoteActivity(a: Activity, key: string, dayNo: number, date: string): Promise<TransferQuote | string> {
   const lm = a.leamigo;
   if (!lm) return 'Missing activity details. Re-add it in the builder.';
+  if (lm.timed && !lm.startTime) return 'Needs a start time. Open this day in the builder and re-add the activity to pick one.';
   if (!lm.openDated) {
-    const av = await activityAvailability(lm.activityId, lm.optionId, date);
+    const av = await activityAvailability(lm.activityId, lm.optionId, date, lm.startTime);
     if (!av.available) return `Sold out on ${date}. Pick another day or activity.`;
     if (av.capacity !== null && av.capacity < lm.quantity) return `Only ${av.capacity} places left on ${date}.`;
+    if (lm.startTime && av.timeslots.length) {
+      const slot = av.timeslots.find((t) => t.start === lm.startTime);
+      if (!slot || !slot.available) return `The ${lm.startTime} start is no longer available on ${date}. Re-add the activity to pick another time.`;
+      if (slot.capacity !== null && slot.capacity < lm.quantity) return `Only ${slot.capacity} places left at ${lm.startTime} on ${date}.`;
+    }
     const perGuest = av.requiredFields.filter((f) => f.required && f.level === 'ALL_CUSTOMER' && !['NAME', 'FULL_NAME'].includes(f.id.toUpperCase()));
     if (perGuest.length) return `The supplier needs per-guest details (${perGuest.map((f) => f.id).join(', ')}). Our team will book this one.`;
   }
   return {
     product: 'activity', key, dayNo, kind: 'activity', fromName: a.name, toName: a.description?.split(' · ')[0] ?? '',
-    pickupDate: date, pickupTime: '', passengers: lm.quantity,
+    pickupDate: date, pickupTime: lm.startTime ?? '', passengers: lm.quantity,
     vehicleName: `${lm.quantity} ticket${lm.quantity !== 1 ? 's' : ''}`, provider: 'Leamigo',
     prebookingId: '', prebookExpiresAt: '',
     // The exact supplier total is restated when the place is reserved at confirm.
     netPaise: a.pricePaise, quotedPaise: a.pricePaise, priceChangePct: 0, sameVehicle: true,
     freeCancellation: lm.freeCancellation, cancellationRules: lm.cancellationRules,
     cancellationText: lm.cancellationRules.length ? describeRules(lm.cancellationRules, 'the activity') : 'Non-refundable.',
-    activity: { activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, openDated: lm.openDated },
+    activity: { activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, openDated: lm.openDated, startTime: lm.startTime },
   };
 }
 
@@ -251,6 +257,7 @@ async function bookOneActivity(q: TransferQuote, base: Omit<SupplierTransferBook
   const hold = await reserveActivity({
     activityId: a.activityId, optionId: a.optionId, ticketId: a.ticketId, quantity: a.quantity,
     visitDate: a.openDated ? undefined : q.pickupDate,
+    timeslot: a.startTime,
     leadName: lead, email: c.email.trim(), phonePrefix: prefix, phoneNumber: number,
     guestNames: names, partnerReference: agentRef,
   });

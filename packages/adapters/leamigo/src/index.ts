@@ -6,4 +6,4 @@ export type { LeamigoPrebooking, LeamigoBookingRequest, LeamigoBooking, LeamigoA
 export { searchRentals, prebookRental, createRentalBooking, rentalCancellationPolicy, cancelRentalBooking } from './rentals';
 export type { LeamigoRental, LeamigoRentalSearchInput } from './rentals';
 export { searchLeamigoActivities, activityAvailability, reserveActivity, bookActivity, activityBookingDetails, activityCancellationPolicy, cancelActivityBooking, inrRatesFor } from './activities';
-export type { LeamigoActivity, ActivityReserveRequest } from './activities';
+export type { LeamigoActivity, ActivityReserveRequest, ActivityTimeslot } from './activities';

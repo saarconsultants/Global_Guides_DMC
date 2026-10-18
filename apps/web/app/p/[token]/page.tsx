@@ -146,7 +146,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                         return (
                           <div key={s} className="rounded-md bg-surface border border-border-subtle p-3">
                             <p className="label">{s}</p>
-                            <p className="text-sm font-medium text-ink mt-0.5">{a.name}</p>
+                            <p className="text-sm font-medium text-ink mt-0.5">{a.leamigo?.startTime && <span className="font-mono mr-1">{a.leamigo.startTime}</span>}{a.name}</p>
                           </div>
                         );
                       })}

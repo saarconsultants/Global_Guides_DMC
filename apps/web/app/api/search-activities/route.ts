@@ -76,5 +76,6 @@ const lmToApp = (cityCode: string) => (a: LeamigoActivity): Activity => ({
   leamigo: {
     activityId: a.activityId, optionId: a.optionId, ticketId: a.ticketId, quantity: a.quantity,
     openDated: a.bookingType === 'open_dated', freeCancellation: a.freeCancellation, cancellationRules: a.cancellationRules,
+    timed: a.bookingType === 'date_time_required',
   },
 });

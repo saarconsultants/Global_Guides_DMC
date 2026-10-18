@@ -26,7 +26,7 @@ export interface LeamigoActivity {
   pricePaise: number;          // supplier net for the whole party, INR (Leamigo fee excluded)
   thumb?: string;
   description?: string;
-  bookingType: 'date_required' | 'open_dated';
+  bookingType: 'date_required' | 'date_time_required' | 'open_dated';
   instantConfirmation: boolean;
   freeCancellation: boolean;
   cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
@@ -72,8 +72,10 @@ function durationMin(d: any): number {
 function pickOption(options: any[], pax: number) {
   let best: { opt: any; ticket: any; qty: number; minor: number } | null = null;
   for (const o of options ?? []) {
-    if (o.status !== 'active' || o.has_timeslots) continue;           // timeslot products need a slot picker
-    if (o.booking_type !== 'date_required' && !o.is_open_dated) continue;
+    if (o.status !== 'active') continue;
+    // Timed products (date_time_required / timeslots) are kept: the agent picks
+    // a start time in the builder before the activity is added to the day.
+    if (!['date_required', 'date_time_required'].includes(o.booking_type) && !o.is_open_dated) continue;
     const perGroup = ['per_vehicle', 'per_group'].includes(String(o.pricing_type));
     for (const t of o.tickets ?? []) {
       if (t.status !== 'active') continue;
@@ -112,7 +114,7 @@ export async function searchLeamigoActivities(input: { cityName: string; country
         title: a.title, optionName: p.opt.name, city: a.city?.name ?? input.cityName,
         durationMin: durationMin(det?.duration), quantity: p.qty, pricePaise: paise,
         thumb: a.media?.cover_image_url, description: det?.short_description ?? det?.full_description?.slice(0, 400),
-        bookingType: p.opt.is_open_dated ? 'open_dated' : 'date_required',
+        bookingType: p.opt.is_open_dated ? 'open_dated' : (p.opt.booking_type === 'date_time_required' || p.opt.has_timeslots) ? 'date_time_required' : 'date_required',
         instantConfirmation: !!p.opt.is_instant_confirmation,
         freeCancellation: !!cp.free_cancellation,
         cancellationRules: (cp.rules ?? []).map((r: any) => ({ hoursBefore: Number(r.min_hours_before ?? r.minHoursBefore ?? 0), chargePct: Number(r.charge_percentage ?? r.chargePercent ?? 0) })),
@@ -123,9 +125,27 @@ export async function searchLeamigoActivities(input: { cityName: string; country
   return { activities: out };
 }
 
-export async function activityAvailability(activityId: number, optionId: number, date: string): Promise<{ available: boolean; capacity: number | null; requiredFields: Array<{ id: string; level: string; required: boolean }> }> {
-  const res = await lmCall<any>(`/v1/activities/${activityId}/options/${optionId}/availability`, { query: { date }, timeoutMs: 15_000 });
+export interface ActivityTimeslot {
+  start: string;               // HH:mm — send back as the reserve `timeslot`
+  end?: string;
+  available: boolean;
+  capacity: number | null;
+  priceMinor?: number;         // live per-slot price, supplier minor units
+  currency?: string;
+  tickets: Array<{ id: string; name: string; priceMinor?: number; currency?: string; min?: number; max?: number }>;
+}
+
+export async function activityAvailability(activityId: number, optionId: number, date: string, timeslot?: string): Promise<{ available: boolean; capacity: number | null; bookingType: string; timeslots: ActivityTimeslot[]; requiredFields: Array<{ id: string; level: string; required: boolean }> }> {
+  const res = await lmCall<any>(`/v1/activities/${activityId}/options/${optionId}/availability`, { query: { date, timeslot }, timeoutMs: 15_000 });
   return {
+    bookingType: String(res?.booking_type ?? ''),
+    timeslots: (res?.timeslots ?? []).map((t: any): ActivityTimeslot => ({
+      start: String(t.start_time ?? '').slice(0, 5), end: t.end_time ? String(t.end_time).slice(0, 5) : undefined,
+      available: t.is_available !== false,
+      capacity: t.available_capacity === undefined || t.available_capacity === null ? null : Number(t.available_capacity),
+      priceMinor: typeof t.price === 'number' ? t.price : undefined, currency: t.currency ?? undefined,
+      tickets: (t.tickets ?? []).map((k: any) => ({ id: String(k.id), name: String(k.name ?? ''), priceMinor: typeof k.price === 'number' ? k.price : undefined, currency: k.currency ?? undefined, min: k.min_purchase_qty, max: k.max_purchase_qty })),
+    })).filter((t: ActivityTimeslot) => /^\d{2}:\d{2}$/.test(t.start)),
     available: !!res?.is_available,
     capacity: res?.is_unlimited ? null : Number(res?.available_capacity ?? 0),
     requiredFields: (res?.requiredInputFields ?? []).map((f: any) => ({ id: String(f.id), level: String(f.level ?? 'BOOKING'), required: !!f.required })),
@@ -135,6 +155,7 @@ export async function activityAvailability(activityId: number, optionId: number,
 export interface ActivityReserveRequest {
   activityId: number; optionId: number; ticketId: string; quantity: number;
   visitDate?: string;
+  timeslot?: string;           // HH:mm, required for date_time_required products
   leadName: string; email: string; phonePrefix: string; phoneNumber: string;
   guestNames: string[];        // length === quantity; [0] is the lead
   partnerReference?: string;
@@ -152,6 +173,7 @@ export async function reserveActivity(req: ActivityReserveRequest): Promise<{ pr
     method: 'POST', timeoutMs: 30_000,
     body: {
       ...(req.visitDate ? { visitDate: req.visitDate } : {}),
+      ...(req.timeslot ? { timeslot: req.timeslot } : {}),
       customerName: req.leadName, email: req.email, mobilePrefix: req.phonePrefix, mobileNumber: req.phoneNumber,
       ...(req.partnerReference ? { partnerReference: req.partnerReference.slice(0, 60) } : {}),
       ticketTypes: [{ id: req.ticketId, quantity: req.quantity, customers }],
