@@ -6,6 +6,7 @@ import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
+import { supplierOf, fmtDuration } from '@/lib/activities/format';
 import { ExpandableText } from '@/components/common/expandable-text';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock, Search, ArrowLeft, Tag, ChevronRight } from 'lucide-react';
@@ -82,12 +83,11 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
     onPick(a); onClose();
   };
 
-  const mock = activitiesForCity(cityCode);
-  // Live first, then mock entries not already in live (dedupe by name)
-  const liveNames = new Set(liveActivities.map((a) => a.name.toLowerCase()));
-  const merged = source === 'live'
-    ? [...liveActivities, ...mock.filter((a) => !liveNames.has(a.name.toLowerCase()))]
-    : mock;
+  // The search returns live activities from every supplier, or sample ones
+  // when nothing live is available — never a mix. Without a date we can't
+  // search, so sample inventory is shown.
+  const merged = date && liveActivities.length ? liveActivities : activitiesForCity(cityCode);
+  const party = paxAdults + paxChildren;
 
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -160,10 +160,10 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-ink text-sm inline-flex items-center gap-2">
                   {a.name}
-                  {a.id.startsWith('ACT-') && <Pill variant="success">LIVE</Pill>}
+                  {supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
-                  <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{Math.round(a.durationMin / 60)}h {a.durationMin % 60}m</span>
+                  {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{fmtDuration(a.durationMin)}</span>}
                   <Pill variant="neutral">{a.category}</Pill>
                 </div>
                 {a.description && (
@@ -173,6 +173,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-mono font-semibold text-ink">{money(a.pricePaise)}</p>
+                <p className="text-[11px] text-[rgb(var(--text-secondary))]">for {party} traveller{party !== 1 ? 's' : ''}</p>
                 <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); choose(a); }} disabled={a.id === currentId}>
                   {a.id === currentId ? 'Added' : 'Add'}
                 </Button>
@@ -208,10 +209,10 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
       <div>
         <h3 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
           {a.name}
-          {a.id.startsWith('ACT-') && <Pill variant="success">LIVE</Pill>}
+          {supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
         </h3>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
-          <span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{Math.round(a.durationMin / 60)}h {a.durationMin % 60}m</span>
+          {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{fmtDuration(a.durationMin)}</span>}
           <span className="inline-flex items-center gap-1"><Tag className="w-3.5 h-3.5" />{a.category}</span>
         </div>
       </div>
@@ -227,7 +228,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
 
       <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
         <div>
-          <p className="text-[11px] text-[rgb(var(--text-secondary))]">Price (per person)</p>
+          <p className="text-[11px] text-[rgb(var(--text-secondary))]">Price for this trip{a.perPersonPaise && a.priceBasis !== 'group' ? ` · ${money(a.perPersonPaise)} per person` : a.priceBasis === 'group' ? ' · private, whole group' : ''}</p>
           <p className="money text-xl text-ink">{money(a.pricePaise)}</p>
         </div>
         <div className="flex items-center gap-2">

@@ -31,7 +31,7 @@ export function ActivitySearchForm({ defaults }: Props) {
             {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
           </select>
         </HeroCell>
-        <HeroSubmit caption="Hotelbeds · live">Search tours</HeroSubmit>
+        <HeroSubmit caption="Live tours & tickets">Search tours</HeroSubmit>
       </HeroBar>
     </form>
   );

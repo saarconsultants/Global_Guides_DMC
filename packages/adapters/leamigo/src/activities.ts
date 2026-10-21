@@ -24,6 +24,8 @@ export interface LeamigoActivity {
   durationMin: number;
   quantity: number;            // tickets to buy for this party
   pricePaise: number;          // supplier net for the whole party, INR (Leamigo fee excluded)
+  perPersonPaise: number;      // one guest (per-person products) or the whole group (per-group products)
+  priceBasis: 'person' | 'group';
   thumb?: string;
   description?: string;
   bookingType: 'date_required' | 'date_time_required' | 'open_dated';
@@ -63,7 +65,7 @@ async function cached(cache: Map<number, { at: number; v: any }>, id: number, pa
 
 function durationMin(d: any): number {
   const v = Number(d?.value ?? 0);
-  if (!v) return 180;
+  if (!v) return 0;   // unknown — UI hides it
   const u = String(d?.unit ?? 'hours').toLowerCase();
   return Math.round(u.startsWith('min') ? v : u.startsWith('day') ? v * 480 : v * 60);
 }
@@ -113,6 +115,8 @@ export async function searchLeamigoActivities(input: { cityName: string; country
         activityId: a.id, optionId: p.opt.id, ticketId: String(p.ticket.id),
         title: a.title, optionName: p.opt.name, city: a.city?.name ?? input.cityName,
         durationMin: durationMin(det?.duration), quantity: p.qty, pricePaise: paise,
+        perPersonPaise: p.qty > 1 ? Math.round(paise / p.qty) : paise,
+        priceBasis: ['per_vehicle', 'per_group'].includes(String(p.opt.pricing_type)) ? 'group' : 'person',
         thumb: a.media?.cover_image_url, description: det?.short_description ?? det?.full_description?.slice(0, 400),
         bookingType: p.opt.is_open_dated ? 'open_dated' : (p.opt.booking_type === 'date_time_required' || p.opt.has_timeslots) ? 'date_time_required' : 'date_required',
         instantConfirmation: !!p.opt.is_instant_confirmation,

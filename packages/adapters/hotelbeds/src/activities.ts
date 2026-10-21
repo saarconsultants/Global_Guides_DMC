@@ -22,10 +22,14 @@ export interface HotelbedsActivity {
   id: string;                   // "ACT-<code>"
   name: string;
   slot: 'morning' | 'afternoon' | 'evening' | 'full-day';
+  /** Minutes; 0 when Hotelbeds didn't state a duration (UI then hides it). */
   durationMin: number;
   description?: string;
   thumb?: string;
-  pricePaise: number;           // converted to INR
+  /** Total for the searched party (adults × adult price + children × child price), INR paise. */
+  pricePaise: number;
+  /** One adult, INR paise — the "from, per person" figure. */
+  perPersonPaise: number;
   cityCode: string;
   // Hotelbeds-specific for booking confirmation
   activityCode?: string;
@@ -81,7 +85,7 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
       hbCall<HbActivitiesResponse>('/activity-api/3.0/activities', body, { product: 'activities', retries: 1 }),
       getRates(),
     ]);
-    return { activities: normalize(res, input.cityCode, rates), source: 'live' };
+    return { activities: normalize(res, input.cityCode, rates, input.paxAdults, input.paxChildren ?? 0), source: 'live' };
   })();
 
   cache.set(key, { at: Date.now(), promise });
@@ -98,6 +102,7 @@ interface HbActivity {
   name?: string;
   content?: { description?: string; media?: { images?: Array<{ urls?: Array<{ resource?: string; sizeType?: string }> }> } };
   modalities?: HbModality[];
+  duration?: { value?: number; metric?: string };
   durationValue?: number;
   durationType?: string;          // 'HOURS' | 'MINUTES' | 'DAYS'
 }
@@ -105,6 +110,7 @@ interface HbModality {
   code?: string;
   name?: string;
   amountsFrom?: Array<{ amount?: number; paxType?: string }>;
+  duration?: { value?: number; metric?: string };
   currency?: string;
   rateKey?: string;
 }
@@ -122,22 +128,27 @@ function pickBestImage(images?: Array<{ urls?: Array<{ resource?: string; sizeTy
   return urls.find((u) => u.resource)?.resource;
 }
 
-function normalize(res: HbActivitiesResponse, cityCode: string, rates: Rates): HotelbedsActivity[] {
+function normalize(res: HbActivitiesResponse, cityCode: string, rates: Rates, adults: number, children: number): HotelbedsActivity[] {
   const list = res.activities ?? [];
   return list.map((a): HotelbedsActivity => {
     const mod = a.modalities?.[0];
     const adultAmount = mod?.amountsFrom?.find((x) => x.paxType === 'ADULT')?.amount ?? mod?.amountsFrom?.[0]?.amount ?? 0;
+    // amountsFrom are per-person prices; children fall back to the adult price.
+    const childAmount = mod?.amountsFrom?.find((x) => x.paxType === 'CHILD')?.amount ?? adultAmount;
+    const groupAmount = adultAmount * Math.max(1, adults) + childAmount * Math.max(0, children);
     const currency = mod?.currency ?? 'EUR';
     const imgPath = pickBestImage(a.content?.media?.images);
-    const durationMin = computeMinutes(a.durationValue, a.durationType);
+    const d = mod?.duration ?? a.duration;
+    const durationMin = d?.value ? computeMinutes(d.value, d.metric) : a.durationValue ? computeMinutes(a.durationValue, a.durationType) : 0;
     return {
       id: `ACT-${a.code ?? Math.random().toString(36).slice(2, 8)}`,
       name: a.name ?? 'Activity',
-      slot: durationMin >= 360 ? 'full-day' : durationMin >= 240 ? 'afternoon' : 'morning',
+      slot: durationMin >= 360 ? 'full-day' : durationMin >= 240 ? 'afternoon' : 'morning',   // unknown (0) → morning
       durationMin,
       description: stripHtml(a.content?.description),
       thumb: imgPath,
-      pricePaise: toInrPaiseWith(rates, adultAmount, currency),
+      pricePaise: toInrPaiseWith(rates, groupAmount, currency),
+      perPersonPaise: toInrPaiseWith(rates, adultAmount, currency),
       cityCode,
       activityCode: a.code,
       modalityCode: mod?.code,
@@ -165,7 +176,7 @@ function stripHtml(s?: string): string | undefined {
 }
 
 function computeMinutes(val?: number, type?: string): number {
-  if (!val) return 120;
+  if (!val) return 0;
   const t = (type ?? 'HOURS').toUpperCase();
   if (t === 'MINUTES') return val;
   if (t === 'HOURS') return val * 60;

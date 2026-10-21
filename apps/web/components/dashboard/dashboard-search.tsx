@@ -121,7 +121,7 @@ export function DashboardSearch() {
             </HeroCell>
             <HeroCell eyebrow="Depart"><HeroDate value={date} min={iso(0)} onChange={setDate} label="Departure date" sub="One-way" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Tripjack · live fares">Search fares</HeroSubmit>
+            <HeroSubmit caption="Live fares">Search fares</HeroSubmit>
           </>
         )}
         {tab === 'hotels' && (
@@ -131,7 +131,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="Check-out"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="Check-out" sub="Depart" /></HeroCell>
             <HeroCell eyebrow="Rooms"><select value={rooms} onChange={(e) => setRooms(e.target.value)} className={heroControl} aria-label="Rooms">{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n} Room{n > 1 ? 's' : ''}</option>)}</select></HeroCell>
             <HeroCell eyebrow="Adults / room">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Hotelbeds · wholesale">Search rooms</HeroSubmit>
+            <HeroSubmit caption="Wholesale rates">Search rooms</HeroSubmit>
           </>
         )}
         {tab === 'activities' && (
@@ -140,7 +140,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="From"><HeroDate value={checkin} min={iso(0)} onChange={setCheckin} label="From date" sub="First tour" /></HeroCell>
             <HeroCell eyebrow="To"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="To date" sub="Last tour" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Hotelbeds · live">Search tours</HeroSubmit>
+            <HeroSubmit caption="Live tours & tickets">Search tours</HeroSubmit>
           </>
         )}
         {tab === 'ai' && (

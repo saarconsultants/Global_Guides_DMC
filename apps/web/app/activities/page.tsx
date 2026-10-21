@@ -1,5 +1,5 @@
-import { searchActivities, isLive } from '@gg/hotelbeds';
-import { activitiesForCity, CITY_BANK } from '@/lib/itinerary/mock-inventory';
+import { CITY_BANK } from '@/lib/itinerary/mock-inventory';
+import { searchAllActivities } from '@/lib/activities/search';
 import { ActivitySearchForm } from '@/components/activities/search-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
@@ -28,33 +28,14 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   let activities: Activity[] = [];
   let source: 'live' | 'mock' | 'unsupported-city' = 'mock';
   let warning: string | undefined;
+  let counts = { hotelbeds: 0, leamigo: 0 };
 
   if (hasQuery) {
-    if (isLive('activities')) {
-      try {
-        const res = await searchActivities({ cityCode: city, fromDate: from, toDate: to, paxAdults: parseInt(adults, 10) || 2 });
-        source = res.source;
-        warning = res.warning;
-        if (warning) console.error('[activities-search] supplier warning', warning);
-        const live: Activity[] = res.activities.map((a) => ({
-          id: a.id, name: a.name, category: 'tour', durationMin: a.durationMin,
-          pricePaise: a.pricePaise, cityCode: a.cityCode, thumb: a.thumb, description: a.description,
-        }));
-        const liveNames = new Set(live.map((a) => a.name.toLowerCase()));
-        activities = source === 'live'
-          ? [...live, ...activitiesForCity(city).filter((a) => !liveNames.has(a.name.toLowerCase()))]
-          : activitiesForCity(city);
-      } catch (e: any) {
-        console.error('[activities-search] supplier error', e);
-        source = 'mock'; warning = 'Live prices couldn\'t load. Try again in a minute.';
-        activities = activitiesForCity(city);
-      }
-    } else {
-      activities = activitiesForCity(city);
-    }
+    const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2 });
+    ({ activities, source, warning, counts } = res);
   }
 
-  const liveCount = activities.filter((a) => a.id.startsWith('ACT-')).length;
+  const liveCount = counts.hotelbeds + counts.leamigo;
   const badge =
     source === 'live' ? { variant: 'success' as const, label: `${liveCount} with live prices` }
     : source === 'unsupported-city' ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
@@ -86,7 +67,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
       )}
 
       {warning && source !== 'live' && (
-        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">Live prices couldn&apos;t load. Try again in a minute. Showing sample prices for now.</div>
+        <div role="status" className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">{warning} Showing sample activities for now — they can&apos;t be booked.</div>
       )}
 
       {hasQuery && (
@@ -98,7 +79,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (
-            <ActivitiesBrowser activities={activities} cityName={cityName} />
+            <ActivitiesBrowser activities={activities} cityName={cityName} travellers={parseInt(adults, 10) || 2} />
           )}
           <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-bold">Add activity</span> on any day.</p>
         </>

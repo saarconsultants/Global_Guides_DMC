@@ -101,9 +101,12 @@ export interface Activity {
   cityCode: string;
   name: string;
   durationMin: number;
-  pricePaise: number;
+  pricePaise: number;          // total for the trip's party
+  /** "From, per person" figure (or per group when priceBasis is 'group'). */
+  perPersonPaise?: number;
+  priceBasis?: 'person' | 'group';
   thumb?: string;
-  description?: string;        // Hotelbeds activity description (live inventory)
+  description?: string;        // supplier description (live inventory)
   category: 'sightseeing' | 'museum' | 'tour' | 'experience';
   /** Live Leamigo activity — the exact option/ticket priced for this party. */
   leamigo?: {

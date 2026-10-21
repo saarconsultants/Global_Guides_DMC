@@ -7,6 +7,7 @@ import { ExpandableText } from '@/components/common/expandable-text';
 import { useMoney } from '@/components/providers/currency-provider';
 import { Clock, MapPin, Tag, Ticket } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
+import { supplierOf, fmtDuration, unitPrice } from '@/lib/activities/format';
 
 /**
  * No supplier photo: the same ink plate the stay card uses, so the two
@@ -19,7 +20,7 @@ const ImgFallback = (
   </div>
 );
 
-export function ActivitiesBrowser({ activities, cityName }: { activities: Activity[]; cityName: string }) {
+export function ActivitiesBrowser({ activities, cityName, travellers }: { activities: Activity[]; cityName: string; travellers: number }) {
   const money = useMoney();
   const [detail, setDetail] = useState<Activity | null>(null);
 
@@ -31,17 +32,17 @@ export function ActivitiesBrowser({ activities, cityName }: { activities: Activi
             <article className="group h-full flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
               <div className="w-full h-40 bg-navy-50 relative">
                 <ImageWithFallback src={a.thumb} alt={a.name} className="w-full h-40 object-cover" fallback={ImgFallback} />
-                {a.id.startsWith('ACT-') && <span className="absolute top-2.5 left-2.5"><Pill variant="live">Live</Pill></span>}
+                <span className="absolute top-2.5 left-2.5">{supplierOf(a) ? <Pill variant="live">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}</span>
               </div>
               <div className="px-4 pt-3.5 pb-3 flex-1">
                 <h3 className="font-bold text-ink text-[15px] leading-snug group-hover:text-crimson-700 transition-colors">{a.name}</h3>
                 <div className="mt-2 flex items-center gap-3 text-[12px] font-medium text-[rgb(var(--text-secondary))]">
-                  <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{Math.floor(a.durationMin / 60)}h{a.durationMin % 60 ? ` ${a.durationMin % 60}m` : ''}</span>
+                  {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{fmtDuration(a.durationMin)}</span>}
                   <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
                 </div>
               </div>
               <div className="mt-auto border-t-2 border-dashed border-border-subtle px-4 py-3 flex items-end justify-between">
-                <div><div className="label">From, per person</div><div className="money text-[17px] text-ink mt-0.5">{money(a.pricePaise)}</div></div>
+                <div><div className="label">{unitPrice(a).basis === 'group' ? 'Private, per group' : 'From, per person'}</div><div className="money text-[17px] text-ink mt-0.5">{money(unitPrice(a).paise)}</div></div>
                 <span className="text-[12.5px] font-bold text-crimson-700">Details</span>
               </div>
             </article>
@@ -56,8 +57,8 @@ export function ActivitiesBrowser({ activities, cityName }: { activities: Activi
               <ImageWithFallback src={detail.thumb} alt={detail.name} className="w-full h-60 object-cover" fallback={ImgFallback} />
             </div>
             <div className="flex flex-wrap items-center gap-3 text-[13px] font-medium text-[rgb(var(--text-secondary))]">
-              {detail.id.startsWith('ACT-') && <Pill variant="live">Live · Hotelbeds</Pill>}
-              <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{Math.floor(detail.durationMin / 60)}h{detail.durationMin % 60 ? ` ${detail.durationMin % 60}m` : ''}</span>
+              {supplierOf(detail) ? <Pill variant="live">Live · {supplierOf(detail)}</Pill> : <Pill variant="warning">Sample · not bookable</Pill>}
+              {fmtDuration(detail.durationMin) && <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{fmtDuration(detail.durationMin)}</span>}
               <span className="inline-flex items-center gap-1 capitalize"><Tag className="w-3.5 h-3.5" />{detail.category}</span>
               <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
             </div>
@@ -71,8 +72,9 @@ export function ActivitiesBrowser({ activities, cityName }: { activities: Activi
             )}
             <div className="flex items-center justify-between pt-3 border-t-2 border-dashed border-border-subtle">
               <div>
-                <p className="label">From, per person</p>
-                <p className="money text-[22px] text-ink mt-0.5">{money(detail.pricePaise)}</p>
+                <p className="label">{unitPrice(detail).basis === 'group' ? 'Private, per group' : 'From, per person'}</p>
+                <p className="money text-[22px] text-ink mt-0.5">{money(unitPrice(detail).paise)}</p>
+                {supplierOf(detail) && <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5 tnum">{money(detail.pricePaise)} for {travellers} traveller{travellers !== 1 ? 's' : ''}</p>}
               </div>
               <p className="text-xs text-[rgb(var(--text-secondary))] max-w-[220px] text-right">To attach it to a trip, open the builder and use <span className="font-bold text-ink">Add activity</span> on any day.</p>
             </div>
