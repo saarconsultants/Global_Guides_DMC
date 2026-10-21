@@ -7,7 +7,6 @@ import { composeItineraryAction } from '@/app/actions/compose-itinerary';
 import { useItineraryStore } from '@/lib/itinerary/store';
 import { findCity, findCityCodeByName } from '@/lib/cities';
 import type { IntakeForm, StarRating, Room } from '@/lib/itinerary/types';
-import { AiSuggestModal } from '@/components/itinerary/ai-suggest-modal';
 import { SortableDestinationRow } from '@/components/itinerary/sortable-destination-row';
 import { AirportCombobox } from '@/components/flights/airport-combobox';
 import { airportByIata } from '@/lib/airports';
@@ -41,8 +40,6 @@ function NewItineraryForm() {
   const [starRating, setStarRating] = useState<StarRating | undefined>(4);
   const [addTransfers, setAddTransfers] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiUsed, setAiUsed] = useState(false);
 
   // Arriving from the home-page pass (?ai=1&dest=&nights=&date=&adults=&from=):
   // prefill what we can and open the AI sheet straight away.
@@ -57,8 +54,9 @@ function NewItineraryForm() {
     if (paramDefaults.departureDate) setDepartureDate(paramDefaults.departureDate);
     if (paramDefaults.originIATA) setLeavingFromCode(paramDefaults.originIATA);
     if (paramDefaults.adults) setRooms([{ adults: paramDefaults.adults, children: 0 }]);
-    if (params.get('ai') === '1') setAiOpen(true);
-    else if (paramDefaults.destinationsText) {
+    // Old links (?ai=1) go to the full-page AI planner.
+    if (params.get('ai') === '1') { const q = new URLSearchParams(params); q.delete('ai'); router.replace(`/itinerary/ai?${q}`); return; }
+    if (paramDefaults.destinationsText) {
       // Arriving from a hotel or flight result (?dest=PAR or ?dest=Paris):
       // start the trip with that city instead of the sample route.
       const codes = paramDefaults.destinationsText.split(',')
@@ -151,7 +149,13 @@ function NewItineraryForm() {
           <h1 className="mt-3 text-[28px] leading-[1.1] font-extrabold tracking-[-0.02em] text-ink">Where are they going?</h1>
           <p className="mt-2 text-[14.5px] text-[rgb(var(--text-secondary))] max-w-xl">Cities and nights first. We fetch live rooms, transfers and a day-by-day plan; you tune it in the builder.</p>
         </div>
-        <Button variant="outline" type="button" onClick={() => setAiOpen(true)} className="gap-1.5"><Sparkles className="w-4 h-4" />Build it with AI</Button>
+        <Button variant="outline" type="button" className="gap-1.5" onClick={() => router.push(`/itinerary/ai?${new URLSearchParams({
+          dest: destinations.map((d) => d.cityCode).join(','),
+          nights: String(destinations.reduce((n, d) => n + d.nights, 0)),
+          date: departureDate, from: leavingFromCode,
+          adults: String(totalAdults), children: String(totalChildren),
+          budget: starRating === 5 ? 'luxury' : starRating === 4 ? 'premium' : 'standard',
+        })}`)}><Sparkles className="w-4 h-4" />Build it with AI</Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
@@ -161,11 +165,6 @@ function NewItineraryForm() {
               <h2 className="text-[16px] font-extrabold text-ink">Destinations</h2>
               <p className="text-[12.5px] text-[rgb(var(--text-secondary))]">Drag to reorder · <span className="text-success-600 font-bold">Live</span> = full hotel inventory</p>
             </div>
-            {aiUsed && (
-              <div className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold text-crimson-700 bg-crimson-50 px-2.5 py-1 rounded-md">
-                <Sparkles className="w-3 h-3" /> Routed by AI. Adjust as needed.
-              </div>
-            )}
             <div className="mt-3">
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={destinations.map((d) => d.id)} strategy={verticalListSortingStrategy}>
@@ -308,28 +307,6 @@ function NewItineraryForm() {
         </aside>
       </div>
 
-      <AiSuggestModal
-        open={aiOpen}
-        onClose={() => setAiOpen(false)}
-        /* Inherit whatever the agent already filled in on this page (home-page pass params win). */
-        defaults={{
-          destinationsText: paramDefaults.destinationsText ?? destinations.map((d) => findCity(d.cityCode)?.name ?? d.cityCode).join(', '),
-          totalNights: paramDefaults.totalNights ?? destinations.reduce((s, d) => s + d.nights, 0),
-          departureDate,
-          originIATA: leavingFromCode,
-          adults: totalAdults,
-          children: totalChildren,
-          budget: starRating === 5 ? 'luxury' : starRating === 4 ? 'premium' : 'standard',
-        }}
-        onApply={(cities) => {
-          setDestinations(cities.map((c) => ({ id: newId(), cityCode: c.cityCode, nights: c.nights })));
-          setAiUsed(true);
-        }}
-        onTrip={(itin) => {
-          upsert(itin);
-          router.push(`/itinerary/${itin.id}/customize`);
-        }}
-      />
     </div>
   );
 }

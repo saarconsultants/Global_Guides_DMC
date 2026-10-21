@@ -17,9 +17,9 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ ok: false, error: 'Not signed in.' }, { status: 401 });
   }
-  if (!aiEnabled()) {
-    return NextResponse.json({ ok: false, error: aiKeyError() }, { status: 503 });
-  }
+  // No AI key is not fatal: the architect falls back to the typed city order
+  // and best-value picks, so the trip still builds from live inventory.
+  if (!aiEnabled()) console.warn('[ai-trip]', aiKeyError());
 
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ ok: false, error: 'Bad request.' }, { status: 400 }); }
@@ -46,11 +46,38 @@ export async function POST(req: Request) {
     notes: typeof body?.notes === 'string' ? body.notes.slice(0, 500) : undefined,
   };
 
+  // ?stream=1 → NDJSON: {type:'stage',stage,detail} … then {type:'done',…} or {type:'error',error}.
+  if (new URL(req.url).searchParams.get('stream') === '1') {
+    const enc = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(ctrl) {
+        const send = (o: unknown) => { try { ctrl.enqueue(enc.encode(JSON.stringify(o) + '\n')); } catch { /* closed */ } };
+        try {
+          const result = await architectTrip(input, (p) => send({ type: 'stage', ...p }));
+          send({ type: 'done', ...result });
+        } catch (e: any) {
+          console.error('[ai-trip]', e);
+          send({ type: 'error', error: friendly(e) });
+        } finally {
+          try { ctrl.close(); } catch { /* closed */ }
+        }
+      },
+    });
+    return new Response(stream, { headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' } });
+  }
+
   try {
     const result = await architectTrip(input);
     return NextResponse.json({ ok: true, ...result });
   } catch (e: any) {
     console.error('[ai-trip]', e);
-    return NextResponse.json({ ok: false, error: e?.message ?? 'Trip build failed. Please try again.' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: friendly(e) }, { status: 500 });
   }
+}
+
+/** Agent-facing message: validation-style errors pass through, everything else is generic. */
+function friendly(e: any): string {
+  const m = String(e?.message ?? '');
+  if (/recognise those destinations|unsupported cities/i.test(m)) return m;
+  return "We couldn't build this trip just now. Please try again in a minute.";
 }

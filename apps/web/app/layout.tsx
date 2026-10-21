@@ -4,6 +4,7 @@ import { Archivo, B612_Mono } from 'next/font/google';
 import { TopNav } from '@/components/layout/top-nav';
 import { Toaster } from '@/components/ui/toast';
 import { BugReportButton } from '@/components/feedback/bug-report-button';
+import { ScrollCalm } from '@/components/layout/scroll-calm';
 import { getActor } from '@/lib/auth/ctx';
 import { formatMoney } from '@/lib/money';
 import { getDisplayRate } from '@/lib/fx-display';
@@ -61,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
           <main id="main-content" className="min-h-screen">{children}</main>
           <BugReportButton />
+          <ScrollCalm />
         </CurrencyProvider>
         <Toaster />
       </body>

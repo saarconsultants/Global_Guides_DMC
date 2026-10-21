@@ -100,7 +100,7 @@ export default async function DashboardPage() {
       title: 'Type a few cities.',
       titleAccent: 'Get a trip.',
       body: 'Destinations in, routed day-by-day plan out — hotels, transfers and activities loaded straight into the builder. Quote in minutes, not hours.',
-      cta: { label: 'Build a trip with AI', href: '/itinerary/new?ai=1' },
+      cta: { label: 'Build a trip with AI', href: '/itinerary/ai' },
       cta2: { label: 'Browse templates', href: '/suggested' },
       img: promoSrc('banner-ai.jpg'),
       tint: 'from-crimson-500 via-crimson-700 to-crimson-900',

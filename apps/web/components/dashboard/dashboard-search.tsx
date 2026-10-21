@@ -82,7 +82,7 @@ export function DashboardSearch() {
     } else if (tab === 'activities') {
       router.push(`/activities?${new URLSearchParams({ city, from: checkin, to: checkout, adults })}`);
     } else {
-      router.push(`/itinerary/new?${new URLSearchParams({ ai: '1', dest, nights, date, adults, from })}`);
+      router.push(`/itinerary/ai?${new URLSearchParams({ dest, nights, date, adults, from })}`);
     }
   }
 

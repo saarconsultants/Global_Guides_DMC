@@ -15,7 +15,8 @@
 // Swapping the supplier layer (e.g. full Tripjack hotels when access lands)
 // only touches step 2 — the AI layer is source-agnostic.
 
-import { suggestItinerary } from './suggest-itinerary';
+import { suggestItinerary, type SuggestedCity } from './suggest-itinerary';
+import { findCity, findCityCodeByName } from '@/lib/cities';
 import { chat } from './openrouter';
 import { composeItineraryAction } from '@/app/actions/compose-itinerary';
 import { searchHotels, searchActivities, isLive as hbLive } from '@gg/hotelbeds';
@@ -71,20 +72,51 @@ function addDaysIso(iso: string, n: number): string {
   const d = new Date(iso); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10);
 }
 
-export async function architectTrip(input: ArchitectInput): Promise<ArchitectResult> {
+export type ArchitectStage = 'route' | 'inventory' | 'select' | 'compose';
+export interface ArchitectProgress { stage: ArchitectStage; detail?: string }
+
+/**
+ * No AI (no credit, outage, bad output): keep the agent's cities in the order
+ * typed and split the nights evenly, so the trip still builds from live
+ * inventory with best-value defaults.
+ */
+export function fallbackRoute(destinationsText: string, totalNights: number): { cities: SuggestedCity[]; summary: string; warnings: string[] } {
+  const codes = destinationsText.split(/,|\band\b|&|→|->|\+/i).map((t) => t.trim()).filter(Boolean)
+    .map((t) => (t.length === 3 && findCity(t.toUpperCase()) ? t.toUpperCase() : findCityCodeByName(t)))
+    .filter((c): c is string => !!c);
+  const unique = [...new Set(codes)].slice(0, Math.max(1, totalNights));
+  if (!unique.length) throw new Error("We couldn't recognise those destinations. Try city names like Paris, Dubai or Bali.");
+  const base = Math.floor(totalNights / unique.length), extra = totalNights % unique.length;
+  const cities = unique.map((code, i) => ({ cityCode: code, cityName: findCity(code)?.name ?? code, nights: base + (i < extra ? 1 : 0), rationale: 'Your order, nights split evenly.' }));
+  return { cities, summary: `${cities.map((c) => `${c.cityName} (${c.nights}N)`).join(' → ')}.`, warnings: [] };
+}
+
+export async function architectTrip(input: ArchitectInput, onProgress?: (p: ArchitectProgress) => void): Promise<ArchitectResult> {
   const warnings: string[] = [];
+  const progress = (stage: ArchitectStage, detail?: string) => { try { onProgress?.({ stage, detail }); } catch { /* client gone */ } };
+  progress('route');
   const adults = Math.max(1, input.adults);
   const children = Math.max(0, input.children ?? 0);
 
   // ── 1. ROUTE ──────────────────────────────────────────────────────────────
-  const route = await suggestItinerary({
-    destinationsText: input.destinationsText,
-    totalNights: input.totalNights,
-    budget: input.budget,
-    travelers: { adults, children },
-    notes: input.notes,
-  });
+  let route: { cities: SuggestedCity[]; summary: string; warnings: string[] };
+  let aiDown = false;
+  try {
+    route = await suggestItinerary({
+      destinationsText: input.destinationsText,
+      totalNights: input.totalNights,
+      budget: input.budget,
+      travelers: { adults, children },
+      notes: input.notes,
+    });
+  } catch (e: any) {
+    console.error('[architect] AI route failed — using the typed order', e?.message);
+    route = fallbackRoute(input.destinationsText, input.totalNights);
+    aiDown = true;
+    warnings.push('The AI planner is unavailable right now, so your cities are kept in the order you typed with nights split evenly.');
+  }
   warnings.push(...route.warnings);
+  progress('inventory', route.cities.map((c) => `${c.cityName} ${c.nights}N`).join(' · '));
 
   const starRating: StarRating | undefined = input.budget === 'luxury' ? 5 : input.budget === 'premium' ? 4 : undefined;
   const intake: IntakeForm = {
@@ -154,7 +186,7 @@ export async function architectTrip(input: ArchitectInput): Promise<ArchitectRes
       try {
         const res = await withTimeout(searchFlights({ legs: [{ fromIATA: input.originIATA!, toIATA: firstAirport!, date: input.departureDate }], adults, children, infants: 0, cabin, directOnly: false }), 12_000);
         return res.offers.slice(0, CAND_FLIGHTS);
-      } catch (e: any) { warnings.push(`Outbound flight search unavailable (${e?.message ?? 'error'}) — trip built without flights.`); return null; }
+      } catch (e: any) { console.error('[architect] outbound flights', e?.message); warnings.push("Flights couldn't be priced right now, so the trip was built without them. Add flights in the builder."); return null; }
     })(),
     (async () => {
       if (!wantFlights) return null;
@@ -198,16 +230,18 @@ Rules:
 {"hotels": {"CITYCODE": index, ...}, "days": [{"d": dayNo, "m": actIndex?, "a": actIndex?, "e": actIndex?}, ...], "out": index?, "ret": index?, "note": "one sentence on the overall selection logic"}
 Omit m/a/e keys for empty slots. Omit out/ret if no flight menus. Indices must exist in the menus.`;
 
+  progress('select', `${menus.reduce((n: number, m: any) => n + m.hotels.length, 0)} hotels · ${menus.reduce((n: number, m: any) => n + m.acts.length, 0)} activities${flightsOut?.length ? ` · ${flightsOut.length} flights` : ''}`);
   let sel: any = null;
-  try {
+  if (!aiDown) try {
     const text = await chat({ system: SELECT_SYSTEM, user: JSON.stringify(menuJson), maxTokens: 3000, temperature: 0.2 });
     const start = text.indexOf('{');
     const end = text.lastIndexOf('}');
     if (start !== -1 && end > start) sel = JSON.parse(text.slice(start, end + 1));
   } catch (e: any) {
-    warnings.push('AI selection unavailable — using best-value defaults.');
+    warnings.push('The AI couldn\'t choose between options this time, so the best-value hotels and activities were used.');
   }
 
+  progress('compose');
   // ── 4. ASSEMBLE + VALIDATE (off-menu picks are silently dropped) ─────────
   const itinerary: Itinerary = JSON.parse(JSON.stringify(base)); // deep clone; plain JSON data
 
@@ -303,5 +337,6 @@ Omit m/a/e keys for empty slots. Omit out/ret if no flight menus. Indices must e
   itinerary.pricePerAdultPaise = Math.round(total / adults);
 
   const note = typeof sel?.note === 'string' ? ` ${sel.note}` : '';
-  return { itinerary, summary: `${route.summary}${note}`.trim(), warnings };
+  const lead = route.summary.trim().replace(/([^.!?])$/, '$1.');
+  return { itinerary, summary: `${lead}${note.replace(/([^.!?])$/, '$1.')}`.trim(), warnings: [...new Set(warnings)] };
 }
