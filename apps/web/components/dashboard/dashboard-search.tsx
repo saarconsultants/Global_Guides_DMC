@@ -111,7 +111,7 @@ export function DashboardSearch() {
         })}
       </div>
 
-      <div className="bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch overflow-hidden">
+      <div className="relative z-20 bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch">
         {tab === 'flights' && (
           <>
             <HeroCell eyebrow="From" grow><CodeCell code={from} onPick={setFrom} label="From" /></HeroCell>

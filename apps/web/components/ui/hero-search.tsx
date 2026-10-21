@@ -56,7 +56,7 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
 /** The pass: white sheet, overlapping the band's bottom edge. */
 export function HeroBar({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="relative mx-auto max-w-7xl px-6 -mt-[60px]">
+    <div className="relative z-20 mx-auto max-w-7xl px-6 -mt-[60px]">
       <div className={cn('bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch', className)}>
         {children}
       </div>
