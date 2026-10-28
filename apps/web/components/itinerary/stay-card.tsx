@@ -8,6 +8,7 @@ import type { Hotel, Stay, Room } from '@/lib/itinerary/types';
 import { useMoney } from '@/components/providers/currency-provider';
 import { Star, Hotel as HotelIcon, Bed } from 'lucide-react';
 import { HotelPhoto } from '@/components/hotels/hotel-photo';
+import { formatWeekdayDate } from '@/lib/utils';
 
 interface Props {
   cityCode: string;
@@ -43,11 +44,11 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
                 <span className="text-[rgb(var(--text-secondary))]">{h.rating.label} · <span className="tnum">{h.rating.reviewCount}</span> ratings</span>
               </p>
             )}
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div><div className="label">Check-in</div><div className="mt-0.5 text-[13px] font-bold text-ink tnum">{fmt(stay.checkIn)}</div></div>
-              <div><div className="label">Check-out</div><div className="mt-0.5 text-[13px] font-bold text-ink tnum">{fmt(stay.checkOut)}</div></div>
-              <div><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.room.name}</div></div>
-              <div><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.mealPlan}{h.refundable ? '' : ''}</div></div>
+            <div className="mt-3 grid grid-cols-2 2xl:grid-cols-4 gap-x-4 gap-y-3">
+              <div className="min-w-0"><div className="label">Check-in</div><StayTime iso={stay.checkIn} /></div>
+              <div className="min-w-0"><div className="label">Check-out</div><StayTime iso={stay.checkOut} /></div>
+              <div className="min-w-0"><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink leading-snug line-clamp-2 break-words" title={h.room.name}>{h.room.name}</div></div>
+              <div className="min-w-0"><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink leading-snug line-clamp-2 break-words" title={h.mealPlan}>{h.mealPlan}</div></div>
             </div>
             <p className={`mt-2 text-[12px] font-semibold ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`}>{h.refundable ? 'Fully refundable before check-in' : 'Non-refundable rate'}</p>
           </div>
@@ -57,8 +58,8 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
           <div className="label">{nights} night{nights !== 1 ? 's' : ''} × {money(h.pricePerNightPaise)}</div>
           <div className="money text-[24px] text-ink leading-none">{money(h.pricePerNightPaise * nights)}</div>
           <div className="text-[12px] text-[rgb(var(--text-secondary))] mb-1">for the stay</div>
-          <Button size="sm" onClick={() => setOpen(true)} className="w-full">Change hotel</Button>
-          <Button size="sm" variant="secondary" className="w-full" onClick={() => setOpen(true)}>Change room</Button>
+          <Button size="sm" variant="secondary" onClick={() => setOpen(true)} className="w-full">Change hotel</Button>
+          <Button size="sm" variant="ghost" className="w-full" onClick={() => setOpen(true)}>Change room</Button>
         </PassStub>
       </Pass>
       <ChangeHotelModal
@@ -76,6 +77,14 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
   );
 }
 
-function fmt(iso: string) {
-  return new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+// "SUN 03 JAN" on one line, "14:00" under it — never wraps mid-value.
+function StayTime({ iso }: { iso: string }) {
+  const d = new Date(iso);
+  const time = isNaN(d.getTime()) ? '' : d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return (
+    <div className="mt-0.5 font-mono text-[12.5px] font-bold text-ink tnum leading-snug">
+      <div className="whitespace-nowrap">{formatWeekdayDate(iso)}</div>
+      {time && <div className="text-[rgb(var(--text-secondary))] font-semibold">{time}</div>}
+    </div>
+  );
 }

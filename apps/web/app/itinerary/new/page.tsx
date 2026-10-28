@@ -13,6 +13,7 @@ import { airportByIata } from '@/lib/airports';
 import { Sparkles, Plus, X, Calendar, Users, Star, Car } from 'lucide-react';
 import { RouteCode } from '@/components/ui/pass';
 import { Stepper } from '@/components/itinerary/stepper';
+import { formatDateShort } from '@/lib/utils';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
@@ -141,10 +142,10 @@ function NewItineraryForm() {
   const totalAdults = rooms.reduce((s, r) => s + r.adults, 0);
   const totalChildren = rooms.reduce((s, r) => s + (r.children ?? 0), 0);
   const codes = destinations.map((d) => d.cityCode);
-  const departLabel = departureDate ? new Date(departureDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '—';
+  const departLabel = departureDate ? formatDateShort(departureDate) : '—';
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <Stepper step={1} />
@@ -157,12 +158,12 @@ function NewItineraryForm() {
           date: departureDate, from: leavingFromCode,
           adults: String(totalAdults), children: String(totalChildren),
           budget: starRating === 5 ? 'luxury' : starRating === 4 ? 'premium' : 'standard',
-        })}`)}><Sparkles className="w-4 h-4" />Build it with AI</Button>
+        })}`)}><Sparkles className="w-4 h-4" />Plan with AI</Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
         <form onSubmit={submit} className="rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden">
-          <section className="p-5 lg:p-6">
+          <section className="p-4 sm:p-5 lg:p-6">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-[16px] font-extrabold text-ink">Destinations</h2>
               <p className="text-[12.5px] text-[rgb(var(--text-secondary))]">Drag to reorder · <span className="text-success-600 font-bold">Live</span> = full hotel inventory</p>

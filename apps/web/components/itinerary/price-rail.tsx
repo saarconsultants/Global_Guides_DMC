@@ -54,12 +54,12 @@ export function PriceRail({ itinerary, onSave }: Props) {
         </div>
         <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-end justify-between gap-3">
           <div>
-            <p className="label text-amber-500">Total price</p>
+            <p className="label text-white/70">Total price</p>
             <p className="text-[11px] text-white/60 mt-0.5">all taxes included</p>
           </div>
           <span className="money text-[26px] leading-none">{money(itinerary.pricePaise)}</span>
         </div>
-        <Button onClick={onSave} variant="accent" className="w-full mt-4">Save as proposal</Button>
+        <Button onClick={onSave} className="w-full mt-4">Save as proposal</Button>
       </div>
     </div>
   );

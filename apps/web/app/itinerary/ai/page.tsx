@@ -18,8 +18,10 @@ import { findCity, findCityCodeByName } from '@/lib/cities';
 import type { Itinerary } from '@/lib/itinerary/types';
 import {
   Sparkles, Wand2, Check, Loader2, Plane, BedDouble, Ticket, Car, AlertTriangle, ArrowRight, ArrowLeft,
-  RotateCcw, X, Route, Search, ListChecks, Star, Minus, Plus,
+  RotateCcw, X, Route, Search, ListChecks, Star, Minus, Plus, Calendar,
 } from 'lucide-react';
+import { Stepper } from '@/components/itinerary/stepper';
+import { formatDateShort } from '@/lib/utils';
 
 type Step = 'brief' | 'building' | 'review';
 type Stage = 'route' | 'inventory' | 'select' | 'compose';
@@ -153,31 +155,16 @@ function AiPlanner() {
 
   return (
     <div className="pb-16">
-      <header className="bg-ink text-white">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-8 pb-6">
-          <p className="label text-amber-500 inline-flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" />Plan with AI</p>
-          <h1 className="mt-2 text-[28px] sm:text-[34px] font-extrabold tracking-[-0.02em] leading-tight">
-            {step === 'review' ? 'Your trip is ready to review.' : 'Describe the trip. We build it from live inventory.'}
-          </h1>
-          <ol className="mt-5 flex flex-wrap items-center gap-2 text-[13px] font-bold" aria-label="Progress">
-            {(['brief', 'building', 'review'] as const).map((s, i) => {
-              const idx = ['brief', 'building', 'review'].indexOf(step);
-              const state = i < idx ? 'done' : i === idx ? 'now' : 'next';
-              return (
-                <li key={s} className="inline-flex items-center gap-2" aria-current={state === 'now' ? 'step' : undefined}>
-                  {i > 0 && <span aria-hidden className="w-6 h-px bg-white/25" />}
-                  <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center text-[12px] ${state === 'done' ? 'bg-amber-500 text-ink' : state === 'now' ? 'bg-white text-ink' : 'bg-white/10 text-white/60'}`}>
-                    {state === 'done' ? <Check className="w-3.5 h-3.5" /> : i + 1}
-                  </span>
-                  <span className={state === 'next' ? 'text-white/60' : ''}>{['Brief', 'Building', 'Review'][i]}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </header>
+      {/* Same header pattern as New trip: stepper, then the page title. */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 lg:pt-10">
+        <Stepper step={(['brief', 'building', 'review'].indexOf(step) + 1) as 1 | 2 | 3} steps={['Brief', 'Building', 'Review']} />
+        <h1 className="mt-3 text-[28px] leading-[1.1] font-extrabold tracking-[-0.02em] text-ink">
+          {step === 'review' ? 'Your trip is ready to review' : 'Plan a trip with AI'}
+        </h1>
+        {step !== 'review' && <p className="mt-2 text-[14.5px] text-[rgb(var(--text-secondary))] max-w-xl">Describe the trip. We build it from live hotel rooms, fares and activities; you fine-tune it in the builder.</p>}
+      </div>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 mt-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6">
         {step === 'brief' && (
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <section className="rounded-lg bg-surface border border-border-subtle shadow-sm p-5 sm:p-6 space-y-6">
@@ -194,7 +181,7 @@ function AiPlanner() {
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   {brief.cities.map((c, i) => (
                     <span key={c} className="inline-flex items-center gap-1.5 h-9 pl-3 pr-1.5 rounded-md bg-ink text-white text-sm font-bold">
-                      <span className="font-mono text-[11px] text-amber-500">{i + 1}</span>{findCity(c)?.name ?? c}
+                      <span className="font-mono text-[11px] text-white/60">{i + 1}</span>{findCity(c)?.name ?? c}
                       <button type="button" onClick={() => set('cities', brief.cities.filter((x) => x !== c))} aria-label={`Remove ${findCity(c)?.name ?? c}`} className="w-6 h-6 inline-flex items-center justify-center rounded hover:bg-white/15"><X className="w-3.5 h-3.5" /></button>
                     </span>
                   ))}
@@ -216,7 +203,11 @@ function AiPlanner() {
                 </div>
                 <div>
                   <Label htmlFor="ai-date">Departure</Label>
-                  <input id="ai-date" type="date" className="control" value={brief.date} min={inDays(1)} onChange={(e) => set('date', e.target.value)} />
+                  <div className="relative h-11 rounded-md border border-border bg-surface px-3.5 flex items-center hover:border-border-strong focus-within:border-crimson-700 focus-within:ring-2 focus-within:ring-crimson-700/15 transition-colors">
+                    <span className="font-mono text-[15px] font-bold text-ink tnum">{brief.date ? formatDateShort(brief.date) : 'Pick a date'}</span>
+                    <Calendar className="w-4 h-4 ml-auto text-[rgb(var(--text-tertiary))]" aria-hidden />
+                    <input id="ai-date" type="date" value={brief.date} min={inDays(1)} onChange={(e) => set('date', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                  </div>
                 </div>
                 <div>
                   <AirportCombobox label="Flying from" value={brief.from} onChange={(v) => set('from', v)} placeholder="City or airport" />
@@ -432,7 +423,7 @@ function Review({ trip, money, onOpen, onRebuild, onEdit }: {
             ))}
           </div>
           <div className="bg-ink text-white px-5 py-4">
-            <p className="label text-amber-500">Trip total · net</p>
+            <p className="label text-white/70">Trip total · net</p>
             <p className="money text-2xl mt-1">{money(it.pricePaise)}</p>
             <p className="text-xs text-white/70 mt-0.5 tnum">{money(Math.round(it.pricePaise / adults))} per adult · your markup is added in the builder</p>
           </div>

@@ -20,7 +20,8 @@ import { saveProposalAction } from '@/app/actions/save-proposal';
 import { loadItineraryByIdAction } from '@/app/actions/load-itinerary';
 import { getTripMarkupPctAction } from '@/app/actions/trip-markup';
 import { toast } from '@/components/ui/toast';
-import { Plane, ShieldCheck, FileText, Check, Loader2 } from 'lucide-react';
+import { Plane, ShieldCheck, FileText, Check, Loader2, Plus } from 'lucide-react';
+import { formatDateShort, formatDayMonth } from '@/lib/utils';
 
 export default function CustomizePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -128,10 +129,10 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     <div className="bg-canvas min-h-screen">
       {/* sticky stepper bar */}
       <div className="sticky top-16 z-20 bg-canvas/95 backdrop-blur border-b border-border-subtle">
-        <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between gap-x-4 gap-y-2">
           <Stepper step={2} />
           <div className="text-right">
-            <p className="hidden sm:block text-[12px] text-[rgb(var(--text-secondary))] tnum">{fmtDate(itinerary.intake.departureDate)} · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room{rooms !== 1 ? 's' : ''} · {adults} adult{adults !== 1 ? 's' : ''}</p>
+            <p className="hidden sm:block text-[12px] text-[rgb(var(--text-secondary))] tnum"><span className="font-mono">{formatDateShort(itinerary.intake.departureDate)}</span> · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room{rooms !== 1 ? 's' : ''} · {adults} adult{adults !== 1 ? 's' : ''}</p>
             <p className="money text-[18px] text-ink leading-tight">{money(itinerary.pricePaise)}</p>
           </div>
         </div>
@@ -169,7 +170,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                       <>
                         <p className="font-semibold text-ink text-sm mb-1">Add flights to my trip — {itinerary.intake.leavingFromName} to {firstDest?.cityName}</p>
                         <p className="text-crimson-700 text-sm mb-3">No flight included yet{!fromIATA && <span className="ml-1 text-[rgb(var(--text-secondary))]">(we'll let you type the origin airport on the next page)</span>}</p>
-                        <ButtonLink href={outboundSearchHref as any} className="gap-1.5"><Plane className="w-4 h-4" />Add outbound flight</ButtonLink>
+                        <ButtonLink href={outboundSearchHref as any} variant="secondary" className="gap-1.5"><Plane className="w-4 h-4" />Add outbound flight</ButtonLink>
                       </>
                     );
                   }
@@ -197,7 +198,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                       ) : (
                         <div className="pt-4 border-t border-border-subtle">
                           <p className="text-sm text-[rgb(var(--text-secondary))] mb-2">
-                            <span className="font-semibold text-ink">Return flight not added yet</span> — {lastDest?.cityName} → {itinerary.intake.leavingFromName} on {new Date(returnDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.
+                            <span className="font-semibold text-ink">Return flight not added yet</span> — {lastDest?.cityName} → {itinerary.intake.leavingFromName} on <span className="font-mono">{formatDateShort(returnDate)}</span>.
                           </p>
                           <ButtonLink href={returnSearchHref as any} variant="secondary" className="gap-1.5"><Plane className="w-4 h-4 -scale-x-100" />Add return flight</ButtonLink>
                         </div>
@@ -275,13 +276,12 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
               <CardContent className="pt-5 space-y-3">
                 {itinerary.visa.map((v) => (
                   <div key={v.countryCode} className="flex items-center justify-between gap-4 py-2">
-                    <div>
-                      <p className="text-sm font-medium text-ink">{v.description}</p>
-                      <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{v.included ? 'Included' : 'Not included'}</p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-ink">{v.country} tourist visa</p>
+                      <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{visaDetail(v.description)}</p>
+                      <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{v.included ? 'Included in the trip' : 'Not included'}</p>
                     </div>
-                    <Button size="sm" variant={v.included ? 'secondary' : 'outline'} onClick={() => toggleVisa(itinerary.id, v.countryCode, !v.included)}>
-                      {v.included ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />Included</span> : 'Include'}
-                    </Button>
+                    <AddToggle added={v.included} label={`${v.country} tourist visa`} onClick={() => toggleVisa(itinerary.id, v.countryCode, !v.included)} />
                   </div>
                 ))}
                 {itinerary.visa.length === 0 && <p className="text-sm text-[rgb(var(--text-secondary))]">Visa-free trip — nothing required.</p>}
@@ -294,13 +294,12 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
             <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-crimson-700" />Travel insurance</h2>
             <Card>
               <CardContent className="pt-5 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-ink">{itinerary.insurance.description}</p>
-                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? `Included — ${money(itinerary.insurance.pricePaise)}` : 'Not included'}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-ink">Travel insurance</p>
+                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{insuranceDetail(itinerary.insurance.description)}</p>
+                  <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{itinerary.insurance.included ? <>Included in the trip{itinerary.insurance.pricePaise > 0 && <> · <span className="money">{money(itinerary.insurance.pricePaise)}</span></>}</> : 'Not included'}</p>
                 </div>
-                <Button size="sm" variant={itinerary.insurance.included ? 'secondary' : 'outline'} onClick={() => toggleInsurance(itinerary.id, !itinerary.insurance.included)}>
-                  {itinerary.insurance.included ? <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />Added</span> : '+ Add'}
-                </Button>
+                <AddToggle added={itinerary.insurance.included} label="Travel insurance" onClick={() => toggleInsurance(itinerary.id, !itinerary.insurance.included)} />
               </CardContent>
             </Card>
           </section>
@@ -325,8 +324,33 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   );
 }
 
-function fmtDate(s: string) {
-  return new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+// Visa and insurance rows share one verb: "Add", then "Added" with a tick.
+function AddToggle({ added, label, onClick }: { added: boolean; label: string; onClick: () => void }) {
+  return (
+    <Button size="sm" variant="secondary" onClick={onClick} aria-pressed={added} aria-label={added ? `Remove ${label}` : `Add ${label}`} className="shrink-0 gap-1">
+      {added ? <><Check className="w-3.5 h-3.5 text-success-600" />Added</> : <><Plus className="w-3.5 h-3.5" />Add</>}
+    </Button>
+  );
+}
+
+// The stored descriptions are supplier-style strings ("France – Tourist Visa
+// Assistance Only – Visa Fees Directly Payable – …"). Keep the data, show a
+// plain sentence.
+function visaDetail(description: string): string {
+  const d = description.toLowerCase();
+  const bits: string[] = [];
+  if (d.includes('assistance')) bits.push('Application assistance');
+  if (d.includes('fees directly payable')) bits.push('visa fee paid separately');
+  if (d.includes('single entry')) bits.push('single entry');
+  return bits.length ? bits.join(' · ').replace(/^./, (c) => c.toUpperCase()) : 'Tourist visa';
+}
+function insuranceDetail(description: string): string {
+  const cover = description.match(/\$\s?([\d,]+)/)?.[1];
+  const age = description.match(/age below (\d+)/i)?.[1];
+  const bits: string[] = [];
+  if (cover) bits.push(`Medical cover of at least USD ${cover}`);
+  if (age) bits.push(`for travellers under ${age}`);
+  return bits.length ? bits.join(', ') : 'Travel insurance for the whole trip';
 }
 // Pull a local HH:MM out of a flight segment timestamp (ISO or "…T14:30…").
 function toHHMM(s?: string): string {
@@ -355,12 +379,12 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
   const stops = flight.segments.length - 1;
   const dep = first.departureAt; const arr = last.arrivalAt;
   const depT = dep.slice(11, 16); const arrT = arr.slice(11, 16);
-  const depD = new Date(dep).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const depD = formatDayMonth(dep);
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Pill variant="success" className="inline-flex items-center gap-1.5"><Check className="w-3 h-3" />Flight attached</Pill>
-        <p className="font-mono text-lg font-bold text-ink">{money(flight.totalPaise)}</p>
+        <p className="money text-lg text-ink">{money(flight.totalPaise)}</p>
       </div>
       <div className="rounded-md border border-border-subtle bg-surface-2 p-4">
         <div className="flex items-center gap-3 mb-3">
@@ -377,7 +401,7 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
           <div>
             <p className="text-xl font-bold text-ink font-mono">{depT}</p>
             <p className="text-xs font-semibold text-navy-700">{first.fromIATA}</p>
-            <p className="text-[10px] text-[rgb(var(--text-secondary))]">{depD}</p>
+            <p className="text-[10px] font-mono text-[rgb(var(--text-secondary))]">{depD}</p>
           </div>
           <div className="text-center text-xs text-[rgb(var(--text-secondary))]">→</div>
           <div className="text-right">

@@ -9,17 +9,17 @@ interface Props {
 /** Three-step flight strip: numbered squares, the current one filled. */
 export function Stepper({ step, steps = ['Trip details', 'Customise', 'Save & send'] }: Props) {
   return (
-    <ol className="flex items-center gap-3 text-[13px]">
+    <ol className="flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-1 text-[11.5px] sm:text-[13px]">
       {steps.map((label, i) => {
         const idx = i + 1;
         const done = idx < step;
         const current = idx === step;
         return (
-          <li key={label} className="flex items-center gap-2">
+          <li key={label} className="flex items-center gap-1.5 sm:gap-2" aria-current={current ? 'step' : undefined}>
             <span className={cn('inline-flex items-center justify-center w-6 h-6 rounded-[5px] text-[11px] font-bold tnum', done && 'bg-success-100 text-success-600', current && 'bg-crimson-700 text-white', !done && !current && 'bg-surface border border-border text-[rgb(var(--text-tertiary))]')}>
               {done ? <Check className="w-3.5 h-3.5" /> : idx}
             </span>
-            <span className={cn('font-bold whitespace-nowrap', current ? 'text-ink' : 'text-[rgb(var(--text-tertiary))] hidden sm:inline')}>{label}</span>
+            <span className={cn('font-bold whitespace-nowrap', current ? 'text-ink' : 'text-[rgb(var(--text-tertiary))]')}>{label}</span>
             {idx < steps.length && <span className="hidden md:block w-8 border-t-2 border-dashed border-border mx-1" />}
           </li>
         );

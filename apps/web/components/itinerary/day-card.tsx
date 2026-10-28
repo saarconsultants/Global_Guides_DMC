@@ -11,6 +11,7 @@ import { FlightDetailsModal } from './flight-details-modal';
 import { AddTransferModal } from './add-transfer-modal';
 import { AddRentalModal } from './add-rental-modal';
 import type { Transfer } from '@/lib/itinerary/types';
+import { formatWeekdayDate } from '@/lib/utils';
 
 interface Props {
   day: Day;
@@ -54,14 +55,16 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
   );
   const showAddTransfer = expectsTransfer && !hasAirportTransfer && !!onAddTransfer && !!airportCode && (!!hotelAtlasCode || !!hotelCoords);
 
+  // "Add activity" shows on every day that still has a free slot (arrival
+  // days included); it opens the first empty slot. Transit days have no slots.
+  const firstFreeSlot = day.type === 'transit' ? null : (['morning', 'afternoon', 'evening'] as const).find((s) => !day[s]) ?? null;
+  const showRental = day.type === 'stay' && !!hotelCoords && !!onAddTransfer;
+
   const missing = day.type === 'arrival' && !day.arrivalDetails ? 'Arrival information is missing'
                 : day.type === 'departure' && !day.departureDetails ? 'Departure information is missing'
                 : null;
   const points = missing ? 2 : 0;
 
-  const dateObj = new Date(day.date);
-  const dow = dateObj.toLocaleDateString('en-GB', { weekday: 'short' });
-  const dm = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 
   return (
     <>
@@ -74,7 +77,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-x-3 gap-y-1.5">
             <div className="min-w-0 flex-1">
               <p className="text-[16px] font-extrabold text-ink tracking-[-0.01em] leading-snug break-words">{heading(day)}</p>
-              <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum">{dow}, {dm} · {day.cityName}</p>
+              <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum"><span className="font-mono">{formatWeekdayDate(day.date)}</span> · {day.cityName}</p>
             </div>
             {points > 0 && <span className="shrink-0 self-start sm:self-auto"><Pill variant="warning">{points} points to note</Pill></span>}
           </div>
@@ -84,7 +87,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           {missing && (
             <div className="rounded-md bg-amber-50 border border-amber-100 text-amber-900 px-3.5 py-2.5 text-sm flex flex-wrap items-center justify-between gap-2 mb-3">
               <span className="font-semibold">{missing}</span>
-              <Button size="sm" onClick={() => setFlightOpen(true)} className="gap-1.5">
+              <Button size="sm" variant="secondary" onClick={() => setFlightOpen(true)} className="gap-1.5">
                 <Plane className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} details
               </Button>
             </div>
@@ -126,7 +129,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                     {act ? (
                       <span className="min-[400px]:mt-1 block min-w-0 text-[13px] text-ink font-bold line-clamp-2 leading-snug">{act.leamigo?.startTime && <span className="font-mono text-crimson-700 mr-1">{act.leamigo.startTime}</span>}{act.name}</span>
                     ) : (
-                      <span className="min-[400px]:mt-1 block text-[13px] text-crimson-700 font-bold inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" /> Add</span>
+                      <span className="min-[400px]:mt-1 flex items-center gap-1 text-[13px] text-crimson-700 font-bold"><Plus className="w-3.5 h-3.5" aria-hidden />Add</span>
                     )}
                   </button>
                 );
@@ -161,20 +164,19 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
           )}
         </div>
 
-        <footer className="border-t-2 border-dashed border-border-subtle bg-surface-2/50 px-5 py-3 flex flex-wrap items-center gap-2">
-          {day.type === 'stay' && (
-            <Button size="sm" onClick={() => setSlotOpen('morning')} className="gap-1.5"><Plus className="w-3.5 h-3.5" />Add activity in {day.cityName}</Button>
-          )}
-          {day.type === 'departure' && (
-            <Button size="sm" onClick={() => setFlightOpen(true)} className="gap-1.5"><Plane className="w-3.5 h-3.5" />Departure details</Button>
-          )}
-          {day.type === 'stay' && hotelCoords && onAddTransfer && (
-            <Button size="sm" variant="secondary" onClick={() => setRentalOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Car with driver</Button>
-          )}
-          {showAddTransfer && (
-            <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
-          )}
-        </footer>
+        {(firstFreeSlot || showRental || showAddTransfer) && (
+          <footer className="border-t-2 border-dashed border-border-subtle bg-surface-2/50 px-5 py-3 flex flex-wrap items-center gap-2">
+            {firstFreeSlot && (
+              <Button size="sm" variant="secondary" onClick={() => setSlotOpen(firstFreeSlot)} className="gap-1.5"><Plus className="w-3.5 h-3.5" />Add activity in {day.cityName}</Button>
+            )}
+            {showRental && (
+              <Button size="sm" variant="secondary" onClick={() => setRentalOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Car with driver</Button>
+            )}
+            {showAddTransfer && (
+              <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
+            )}
+          </footer>
+        )}
       </article>
 
       {slotOpen && (
@@ -262,9 +264,6 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
   );
 }
 
-function fmtDate(s: string) {
-  return new Date(s).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-}
 function vehicleLabel(v: string) {
   return v === 'PRIVATE_PREMIUM' ? 'Private Premium' : v === 'PRIVATE' ? 'Private' : 'Shared';
 }
