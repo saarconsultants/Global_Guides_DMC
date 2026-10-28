@@ -1,7 +1,8 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, MessageSquare, Loader2 } from 'lucide-react';
+import { ACCEPT_EVENT } from './accept-cta';
 
 type Mode = null | 'accept' | 'changes';
 
@@ -13,6 +14,13 @@ export function ResponseButtons({ token, accent = '#C9A24A' }: { token: string; 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [changesSent, setChangesSent] = useState(false);
+
+  // The top stub and the phone bar jump here and open the confirmation.
+  useEffect(() => {
+    const open = () => { setMode('accept'); setError(null); };
+    window.addEventListener(ACCEPT_EVENT, open);
+    return () => window.removeEventListener(ACCEPT_EVENT, open);
+  }, []);
 
   async function send(payload: { action: 'ACCEPT' } | { action: 'REQUEST_CHANGES'; message: string }) {
     if (submitting) return;

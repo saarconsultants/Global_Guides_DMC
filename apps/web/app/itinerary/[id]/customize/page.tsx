@@ -22,6 +22,7 @@ import { getTripMarkupPctAction } from '@/app/actions/trip-markup';
 import { toast } from '@/components/ui/toast';
 import { Plane, ShieldCheck, FileText, Check, Loader2, Plus } from 'lucide-react';
 import { formatDateShort, formatDayMonth } from '@/lib/utils';
+import { visaTitle, visaDetail, insuranceDetail } from '@/lib/itinerary/display';
 
 export default function CustomizePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -277,11 +278,11 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                 {itinerary.visa.map((v) => (
                   <div key={v.countryCode} className="flex items-center justify-between gap-4 py-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-ink">{v.country} tourist visa</p>
+                      <p className="text-sm font-bold text-ink">{visaTitle(v.country)}</p>
                       <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{visaDetail(v.description)}</p>
                       <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{v.included ? 'Included in the trip' : 'Not included'}</p>
                     </div>
-                    <AddToggle added={v.included} label={`${v.country} tourist visa`} onClick={() => toggleVisa(itinerary.id, v.countryCode, !v.included)} />
+                    <AddToggle added={v.included} label={visaTitle(v.country)} onClick={() => toggleVisa(itinerary.id, v.countryCode, !v.included)} />
                   </div>
                 ))}
                 {itinerary.visa.length === 0 && <p className="text-sm text-[rgb(var(--text-secondary))]">Visa-free trip — nothing required.</p>}
@@ -333,25 +334,6 @@ function AddToggle({ added, label, onClick }: { added: boolean; label: string; o
   );
 }
 
-// The stored descriptions are supplier-style strings ("France – Tourist Visa
-// Assistance Only – Visa Fees Directly Payable – …"). Keep the data, show a
-// plain sentence.
-function visaDetail(description: string): string {
-  const d = description.toLowerCase();
-  const bits: string[] = [];
-  if (d.includes('assistance')) bits.push('Application assistance');
-  if (d.includes('fees directly payable')) bits.push('visa fee paid separately');
-  if (d.includes('single entry')) bits.push('single entry');
-  return bits.length ? bits.join(' · ').replace(/^./, (c) => c.toUpperCase()) : 'Tourist visa';
-}
-function insuranceDetail(description: string): string {
-  const cover = description.match(/\$\s?([\d,]+)/)?.[1];
-  const age = description.match(/age below (\d+)/i)?.[1];
-  const bits: string[] = [];
-  if (cover) bits.push(`Medical cover of at least USD ${cover}`);
-  if (age) bits.push(`for travellers under ${age}`);
-  return bits.length ? bits.join(', ') : 'Travel insurance for the whole trip';
-}
 // Pull a local HH:MM out of a flight segment timestamp (ISO or "…T14:30…").
 function toHHMM(s?: string): string {
   if (!s) return '';
