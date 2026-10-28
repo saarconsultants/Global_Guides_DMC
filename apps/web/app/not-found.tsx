@@ -1,21 +1,40 @@
-import Link from 'next/link';
-import { Compass } from 'lucide-react';
+import type { Metadata } from 'next';
+import { ButtonLink } from '@/components/ui/button';
+import { Pass, PassMain, PassStub, Perforation, Field } from '@/components/ui/pass';
+import { getActor } from '@/lib/auth/ctx';
 
-export default function NotFound() {
+export const metadata: Metadata = { title: 'Page not found — Global Guides DMC' };
+
+/**
+ * App-wide 404. Signed-in people get "Back to dashboard"; signed-out visitors
+ * (middleware lets unknown URLs through to here) get "Go to sign in".
+ */
+export default async function NotFound() {
+  const actor = await getActor().catch(() => null);
+  const home = actor ? (actor.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard') : '/login';
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6">
-      <div className="text-center max-w-md">
-        <div className="mx-auto inline-flex items-center justify-center w-20 h-20 rounded-full bg-navy-900 text-amber-500 mb-6">
-          <Compass className="w-9 h-9" />
-        </div>
-        <p className="text-[11px] uppercase tracking-widest text-crimson-700 font-bold">404 · off the map</p>
-        <h1 className="mt-3 text-3xl font-bold text-ink tracking-tight">This destination doesn't exist.</h1>
-        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">The link may be broken, the proposal may have been deleted, or the agent may have un-shared it.</p>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <Link href="/dashboard" className="px-5 h-10 inline-flex items-center rounded-md bg-crimson-700 text-white text-sm font-semibold hover:bg-crimson-700">Back to dashboard</Link>
-          <Link href="/itinerary/new" className="px-5 h-10 inline-flex items-center rounded-md text-sm font-semibold text-navy-700 hover:bg-navy-50">Create a trip</Link>
-        </div>
-      </div>
+    <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
+      {!actor && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src="/brand/ggdmc-logo.svg" alt="Global Guides DMC" className="h-10 w-auto mb-8" />
+      )}
+      <Pass className="w-full max-w-2xl">
+        <PassMain className="p-5 lg:p-6">
+          <h1 className="text-[28px] font-extrabold tracking-[-0.02em] leading-[1.1] text-ink">We can't find that page.</h1>
+          <p className="mt-2 text-[14.5px] leading-relaxed text-[rgb(var(--text-secondary))] max-w-md">
+            The link may be mistyped or out of date. Check the address, or head back and pick up where you left off.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-2.5 max-w-xs">
+            <Field label="Status" value="Not found" />
+            <Field label="Code" value="404" mono />
+          </div>
+        </PassMain>
+        <Perforation />
+        <PassStub tone="paper" className="lg:w-[220px] flex flex-col justify-center gap-2">
+          <ButtonLink href={home} className="w-full">{actor ? 'Back to dashboard' : 'Go to sign in'}</ButtonLink>
+          <span aria-hidden className="barcode mx-auto mt-2 h-7 w-24 text-navy-200" />
+        </PassStub>
+      </Pass>
     </div>
   );
 }

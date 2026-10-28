@@ -2,11 +2,19 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
+import { AuthShell } from '@/components/auth/auth-shell';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { signupAgencyAction } from '@/app/actions/auth';
-import { Sparkles } from 'lucide-react';
+import { Route, Palette, ReceiptText, CircleCheck } from 'lucide-react';
+
+const PERKS = [
+  { icon: Route, text: 'Multi-city trip builder with AI suggestions' },
+  { icon: Palette, text: 'Proposals branded with your logo and colours' },
+  { icon: ReceiptText, text: 'Live price summary, refund rules and a day-by-day plan' },
+  { icon: CircleCheck, text: 'Turn an accepted proposal into a booking in one click' },
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,43 +35,35 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-canvas">
-      <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-crimson-500 via-crimson-700 to-crimson-900 text-white items-center justify-center p-12">
-        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-amber-500/25 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-300/15 blur-3xl" />
-        <div className="relative max-w-md">
-          <img src="/brand/ggdmc-logo-white.svg" alt="Global Guides DMC" className="h-12 w-auto mb-6" />
-          <p className="text-xs uppercase tracking-widest text-amber-300 font-bold inline-flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> Onboard your agency</p>
-          <p className="mt-3 font-display text-4xl font-semibold leading-tight">Build your first proposal in 30 minutes.</p>
-          <ul className="mt-6 space-y-2 text-sm text-white/85">
-            <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> Multi-city itinerary builder with AI suggestions</li>
-            <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> Brand the customer proposal with your logo &amp; colours</li>
-            <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> Real-time price summary, refundability flags, day-by-day plan</li>
-            <li className="flex items-start gap-2"><span className="text-amber-300 font-bold mt-0.5">→</span> One-click convert lead → booking</li>
-          </ul>
+    <AuthShell
+      panelTitle="Build your first proposal in 30 minutes."
+      panelBody="Set up your agency once, then quote, share and book trips under your own brand."
+      panelExtra={
+        <ul className="space-y-2.5 text-sm text-white/85">
+          {PERKS.map(({ icon: Icon, text }) => (
+            <li key={text} className="flex items-start gap-2.5"><Icon aria-hidden className="w-4 h-4 mt-0.5 shrink-0 text-white/70" />{text}</li>
+          ))}
+        </ul>
+      }
+      title="Create your agency"
+      subtitle="You'll be the agency owner. You can add team members later."
+      footer={<>Already have an account? <Link href="/login" className="text-crimson-700 hover:underline font-medium">Sign in</Link></>}
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <div><Label required>Agency name</Label><Input value={agencyName} onChange={(e) => setAgencyName(e.target.value)} required autoComplete="organization" placeholder="e.g. Wandermark Travels Pvt Ltd" /></div>
+        <div>
+          <Label>Agency phone <span className="font-normal text-[rgb(var(--text-tertiary))]">(optional)</span></Label>
+          <Input type="tel" value={contact} onChange={(e) => setContact(e.target.value)} autoComplete="tel" placeholder="+91 98765 43210" />
         </div>
-      </div>
-      <div className="flex items-center justify-center p-6 lg:p-12">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-8">
-            <h1 className="font-display text-2xl font-semibold text-ink">Create your agency</h1>
-            <p className="text-sm text-[rgb(var(--text-secondary))] mt-1">You'll be the agency owner. Add team members later.</p>
-            <form onSubmit={submit} className="mt-6 space-y-4">
-              <div><Label required>Agency name</Label><Input value={agencyName} onChange={(e) => setAgencyName(e.target.value)} required placeholder="e.g. Wandermark Travels Pvt Ltd" /></div>
-              <div><Label>Agency phone</Label><Input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="optional" /></div>
-              <hr className="border-border-subtle" />
-              <div><Label required>Your name</Label><Input value={name} onChange={(e) => setName(e.target.value)} required /></div>
-              <div><Label required>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-              <div><Label required>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="min 8 characters" /></div>
-              {error && <div role="alert" className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
-              <Button type="submit" disabled={pending} className="w-full">{pending ? 'Creating…' : 'Create agency &amp; sign in'}</Button>
-            </form>
-            <p className="mt-6 text-sm text-[rgb(var(--text-secondary))] text-center">
-              Already onboarded? <Link href="/login" className="text-crimson-700 hover:underline font-medium">Sign in</Link>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        <hr className="border-border-subtle" />
+        <div><Label required>Your name</Label><Input value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" /></div>
+        <div><Label required>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="you@agency.com" /></div>
+        <div><Label required>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" placeholder="At least 8 characters" /></div>
+        {error && <div role="alert" className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
+        <Button type="submit" disabled={pending} size="lg" className="w-full gap-2">
+          {pending ? <><Spinner size="sm" />Creating your agency…</> : 'Create agency & sign in'}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

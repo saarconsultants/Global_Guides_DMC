@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             notif={notif}
           />
           <main id="main-content" className="min-h-screen">{children}</main>
-          <BugReportButton />
+          {actor && <BugReportButton />}
           <ScrollCalm />
         </CurrencyProvider>
         <Toaster />
