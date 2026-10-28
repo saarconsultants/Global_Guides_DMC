@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { TemplateForm } from '@/components/admin/template-form';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { AdminPage } from '@/components/admin/admin-ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +13,9 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
   const t = await db.itineraryTemplate.findUnique({ where: { id } });
   if (!t) notFound();
   return (
-    <div className="p-8 space-y-6">
-      <Link href="/admin/templates" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-crimson-700"><ArrowLeft className="w-4 h-4" /> Back to templates</Link>
-      <PageHeader eyebrow={`Template · ${t.code}`} title={t.title} description="Edit and re-publish. Changes apply to every agency's Suggested page immediately." />
+    <AdminPage>
+      <Link href="/admin/templates" className="inline-flex items-center gap-1.5 min-h-8 text-sm text-[rgb(var(--text-secondary))] hover:text-crimson-700"><ArrowLeft className="w-4 h-4" /> Back to templates</Link>
+      <PageHeader title={t.title} description="Edit and re-publish. Changes apply to every agency's Suggested page immediately." />
       <TemplateForm initial={{
         id: t.id,
         code: t.code,
@@ -31,6 +32,6 @@ export default async function EditTemplatePage({ params }: { params: Promise<{ i
         insuranceJson: t.insuranceJson,
         published: t.published,
       }} />
-    </div>
+    </AdminPage>
   );
 }

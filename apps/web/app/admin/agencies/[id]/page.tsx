@@ -13,6 +13,9 @@ import { viewAsAgencyAction } from '@/app/actions/impersonation';
 import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import { ActionForm } from '@/components/ui/action-form';
+import { statusLabel } from '@/lib/labels';
+import { AdminPage, PrintedDate } from '@/components/admin/admin-ui';
+import { PRODUCT_TYPES, APPLIES_TO, productLabel, appliesToLabel } from '@/components/admin/commission-labels';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,34 +40,32 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
     db.commissionRule.findMany({ where: { agencyId: agency.id }, orderBy: { productType: 'asc' } }),
     db.commissionRule.findMany({ where: { agencyId: null, active: true }, orderBy: { productType: 'asc' } }),
   ]);
-  const PRODUCT_TYPES = ['FLIGHT', 'HOTEL', 'TRANSFER', 'ACTIVITY', 'VISA', 'INSURANCE', 'INVOICE_TOTAL'];
-  const APPLIES_TO = ['NET', 'MARKUP', 'TOTAL'];
 
   return (
-    <div className="p-8 space-y-6">
-      <Link href="/admin/agencies" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-ink"><ArrowLeft className="w-4 h-4" />Back to agencies</Link>
+    <AdminPage>
+      <Link href="/admin/agencies" className="inline-flex items-center gap-1.5 min-h-8 text-sm text-[rgb(var(--text-secondary))] hover:text-ink"><ArrowLeft className="w-4 h-4" />Back to agencies</Link>
 
       <PageHeader
-        eyebrow={agency.code}
         title={agency.name}
         description={`${agency.email ?? '—'} · ${agency.contact ?? '—'} · /${agency.slug} · joined ${formatDateShort(agency.createdAt)}`}
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <form action={viewAsAgencyAction.bind(null, agency.id)}>
               <Button size="sm" variant="secondary" className="gap-1.5"><ArrowLeftRight className="w-4 h-4" />View as this agency</Button>
             </form>
-            <Pill variant={statusVariant[agency.status] ?? 'neutral'}>{agency.status}</Pill>
+            <span className="font-mono text-[12.5px] font-bold text-crimson-700">{agency.code}</span>
+            <Pill variant={statusVariant[agency.status] ?? 'neutral'}>{statusLabel(agency.status)}</Pill>
             {agency.logoUrl && <img src={agency.logoUrl} alt="" className="h-10 w-auto rounded bg-white p-1 border border-border-subtle" />}
             <span className="w-8 h-8 rounded-full border border-border-subtle" style={{ background: agency.primaryColor ?? '#0369A1' }} />
           </div>
         }
       />
 
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger">
-        <StatCard label="Users" value={String(agency.users.length)} sub="team members" mono />
-        <StatCard label="Proposals" value={String(agency._count.proposals)} sub={`${agency._count.bookings} booked`} mono />
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Users" value={String(agency.users.length)} sub="team members" />
+        <StatCard label="Proposals" value={String(agency._count.proposals)} sub={`${agency._count.bookings} booked`} />
         <StatCard label="Wallet" value={formatINR(agency.walletPaise)} sub="available balance" mono />
-        <StatCard label="Commission earned" value={formatINR(BigInt(totalRevenue))} sub={`${agency._count.commissionEntries} entries`} tone="gold" mono />
+        <StatCard label="Commission earned" value={formatINR(BigInt(totalRevenue))} sub={`${agency._count.commissionEntries} entries`} mono />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -73,9 +74,9 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><UsersIcon className="w-4 h-4 text-crimson-700" />Account status</h3>
             <ActionForm action={setAgencyStatusAction.bind(null, agency.id)} success="Status updated" className="space-y-2">
               <select name="status" aria-label="Account status" defaultValue={agency.status} className="control">
-                <option value="ACTIVE">ACTIVE — full access</option>
-                <option value="PENDING">PENDING — onboarding</option>
-                <option value="SUSPENDED">SUSPENDED — login blocked</option>
+                <option value="ACTIVE">Active — full access</option>
+                <option value="PENDING">Pending — onboarding</option>
+                <option value="SUSPENDED">Suspended — sign-in blocked</option>
               </select>
               <Button size="sm" variant="secondary" className="w-full">Update status</Button>
             </ActionForm>
@@ -86,7 +87,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             <h3 className="text-sm font-semibold text-ink mb-3 inline-flex items-center gap-1.5"><Percent className="w-4 h-4 text-crimson-700" />Default markup</h3>
             <ActionForm action={updateAgencyMarkupAction.bind(null, agency.id)} success="Markup saved" className="space-y-2">
               <div className="flex items-center gap-2">
-                <Input type="number" name="markupPct" aria-label="Default markup percent" defaultValue={agency.markupPct} step={0.5} min={0} max={100} className="flex-1" />
+                <Input type="number" name="markupPct" aria-label="Default markup percent" defaultValue={agency.markupPct} step={0.5} min={0} max={100} className="flex-1 money" />
                 <span className="text-sm text-[rgb(var(--text-secondary))]">%</span>
               </div>
               <Button size="sm" variant="secondary" className="w-full">Save markup</Button>
@@ -101,7 +102,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
               <Input type="text" name="note" aria-label="Credit note" placeholder="Note (optional)" />
               <Button size="sm" className="w-full">Credit wallet</Button>
             </ActionForm>
-            <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">Adds a CREDIT WalletTxn row.</p>
+            <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">Recorded as a credit in the agency&apos;s wallet history.</p>
           </CardContent>
         </Card>
       </div>
@@ -118,9 +119,9 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
                 <tbody>
                   {commissionRules.map((r) => (
                     <tr key={r.id} className="border-b border-border-subtle/60">
-                      <td className="py-2 pr-4 font-medium text-ink">{r.productType}</td>
-                      <td className="py-2 pr-4 font-mono">{r.percent != null ? `${r.percent}%` : ''}{r.flatPaise ? ` +₹${Number(r.flatPaise) / 100}` : ''}{r.percent == null && !r.flatPaise ? '—' : ''}</td>
-                      <td className="py-2 pr-4">{r.appliesTo}</td>
+                      <td className="py-2 pr-4 font-medium text-ink whitespace-nowrap">{productLabel(r.productType)}</td>
+                      <td className="py-2 pr-4 money whitespace-nowrap">{r.percent != null ? `${r.percent}%` : ''}{r.flatPaise ? ` + ${formatINR(r.flatPaise)}` : ''}{r.percent == null && !r.flatPaise ? '—' : ''}</td>
+                      <td className="py-2 pr-4 whitespace-nowrap">{appliesToLabel(r.appliesTo)}</td>
                       <td className="py-2 pr-4"><Pill variant={r.active ? 'success' : 'neutral'}>{r.active ? 'Active' : 'Inactive'}</Pill></td>
                       <td className="py-2 pr-4 text-[rgb(var(--text-secondary))] text-xs">{r.note ?? '—'}</td>
                       <td className="py-2 text-right">
@@ -134,7 +135,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
               </table>
             </div>
           ) : (
-            <p className="text-sm text-[rgb(var(--text-secondary))]">No overrides yet — this agency uses the platform defaults{platformRules.length ? ` (${platformRules.map((r) => `${r.productType} ${r.percent ?? 0}%`).join(', ')})` : ''}.</p>
+            <p className="text-sm text-[rgb(var(--text-secondary))]">No overrides yet — this agency uses the platform defaults{platformRules.length ? ` (${platformRules.map((r) => `${productLabel(r.productType)} ${r.percent ?? 0}%`).join(', ')})` : ''}.</p>
           )}
 
           {/* Add rule */}
@@ -144,17 +145,17 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
             <div>
               <Label>Product</Label>
               <select name="productType" className="control">
-                {PRODUCT_TYPES.map((p) => <option key={p} value={p}>{p}</option>)}
+                {PRODUCT_TYPES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </div>
             <div>
               <Label>Commission %</Label>
-              <Input type="number" name="percent" step={0.5} min={0} max={100} placeholder="e.g. 8" />
+              <Input type="number" name="percent" step={0.5} min={0} max={100} placeholder="e.g. 8" className="money" />
             </div>
             <div>
               <Label>Applies to</Label>
               <select name="appliesTo" className="control">
-                {APPLIES_TO.map((a) => <option key={a} value={a}>{a}</option>)}
+                {APPLIES_TO.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
               </select>
             </div>
             <Button size="sm" className="gap-1.5"><Plus className="w-4 h-4" />Add override</Button>
@@ -176,7 +177,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
                 <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Email</th><th>Name</th><th>Role</th><th>Last login</th><th>Joined</th></tr></thead>
                 <tbody>
                   {agency.users.map((u) => (
-                    <tr key={u.id} className="border-b border-border-subtle hover:bg-surface-2"><td className="py-3 pr-4">{u.email}</td><td>{u.name ?? '—'}</td><td><Pill variant="neutral">{u.role}</Pill></td><td className="text-[rgb(var(--text-secondary))] text-xs">{u.lastLoginAt ? formatDateShort(u.lastLoginAt) : 'never'}</td><td className="text-[rgb(var(--text-secondary))] text-xs">{formatDateShort(u.createdAt)}</td></tr>
+                    <tr key={u.id} className="border-b border-border-subtle hover:bg-surface-2"><td className="py-3 pr-4">{u.email}</td><td>{u.name ?? '—'}</td><td><Pill variant="neutral">{statusLabel(u.role)}</Pill></td><td className="text-[rgb(var(--text-secondary))]">{u.lastLoginAt ? <PrintedDate d={u.lastLoginAt} /> : <span className="text-xs">Never</span>}</td><td className="text-[rgb(var(--text-secondary))]"><PrintedDate d={u.createdAt} /></td></tr>
                   ))}
                 </tbody>
               </table>
@@ -196,7 +197,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
                 <thead><tr className="text-left label border-b border-border"><th className="py-3 pr-4">Code</th><th>Customer</th><th>Trip</th><th className="text-right">Price</th><th>Status</th></tr></thead>
                 <tbody>
                   {agency.proposals.map((p) => (
-                    <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2"><td className="py-3 pr-4 font-mono text-xs">{p.code}</td><td>{p.lead?.customerName ?? '—'}</td><td>{p.name}</td><td className="text-right font-mono">{formatINR(p.pricePaise)}</td><td><Pill variant={p.status === 'ACCEPTED' || p.status === 'BOOKED' ? 'success' : p.status === 'DECLINED' ? 'danger' : 'neutral'}>{p.status}</Pill></td></tr>
+                    <tr key={p.id} className="border-b border-border-subtle hover:bg-surface-2"><td className="py-3 pr-4 font-mono text-[12.5px] font-bold text-crimson-700 whitespace-nowrap">{p.code}</td><td>{p.lead?.customerName ?? '—'}</td><td>{p.name}</td><td className="text-right money whitespace-nowrap pr-4">{formatINR(p.pricePaise)}</td><td><Pill variant={p.status === 'ACCEPTED' || p.status === 'BOOKED' ? 'success' : p.status === 'DECLINED' ? 'danger' : 'neutral'}>{statusLabel(p.status)}</Pill></td></tr>
                   ))}
                 </tbody>
               </table>
@@ -204,6 +205,6 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
           )}
         </CardContent></Card>
       </section>
-    </div>
+    </AdminPage>
   );
 }

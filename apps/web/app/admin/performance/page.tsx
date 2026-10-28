@@ -7,7 +7,8 @@ import { requireSuperAdmin } from '@/lib/auth/ctx';
 import { platformPerformance } from '@/lib/db/performance';
 import { formatINR } from '@/lib/utils';
 import { StatCard } from '@/components/ui/stat-card';
-import { BarChart3, Building2, Send, Trophy, TrendingUp, Users2 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import { AdminPage, FilterChip, FilterRow } from '@/components/admin/admin-ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,37 +29,31 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
   const hasData = rows.some((r) => r.sent > 0);
 
   return (
-    <div className="px-5 lg:px-8 py-8 space-y-8">
+    <AdminPage>
       <PageHeader
-        eyebrow="Platform admin"
         title="Performance"
-        description="Conversion and revenue by agency across the whole platform."
-        actions={
-          <div className="inline-flex rounded-md border border-border-subtle overflow-hidden">
-            {WINDOWS.map((w) => (
-              <Link
-                key={w.key}
-                href={`/admin/performance?d=${w.key}` as any}
-                className={`px-3 py-1.5 text-sm transition-colors ${w.key === win.key ? 'bg-crimson-700 text-white' : 'bg-surface text-[rgb(var(--text-secondary))] hover:bg-surface-2'}`}
-              >
-                {w.label}
-              </Link>
-            ))}
-          </div>
-        }
+        description="Conversion and revenue by agency across the platform."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="Agencies" value={String(totals.agencies)} icon={<Building2 className="w-4 h-4" />} />
-        <StatCard label="Counsellors" value={String(totals.counsellors)} icon={<Users2 className="w-4 h-4" />} />
-        <StatCard label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
-        <StatCard label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
-        <StatCard label="Revenue (won)" value={formatINR(totals.revenuePaise)} icon={<Trophy className="w-4 h-4" />} mono tone="gold" />
+      <FilterRow label="Window">
+        {WINDOWS.map((w) => (
+          <FilterChip key={w.key} href={`/admin/performance?d=${w.key}`} label={w.label} active={w.key === win.key} />
+        ))}
+      </FilterRow>
+
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+        <StatCard label="Agencies" value={String(totals.agencies)} sub="on the platform" />
+        <StatCard label="Counsellors" value={String(totals.counsellors)} sub="on agency teams" />
+        <StatCard label="Proposals sent" value={String(totals.sent)} sub={win.label} />
+        <StatCard label="Win rate" value={`${totals.conversionPct}%`} sub="sent → won" />
+        <div className="col-span-2 lg:col-span-1">
+          <StatCard label="Revenue (won)" value={formatINR(totals.revenuePaise)} sub={win.label} mono />
+        </div>
       </div>
 
       <Card>
         <CardContent className="pt-6">
-          <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2 mb-4"><BarChart3 className="w-4 h-4 text-crimson-700" />By agency</h2>
+          <h2 className="text-[17px] font-bold text-ink tracking-[-0.01em] mb-4">By agency</h2>
 
           {!hasData ? (
             <EmptyState dense icon={<BarChart3 className="w-7 h-7 text-[rgb(var(--text-tertiary))]" />} title="No proposals in this window" body="Pick a wider time range or wait for agencies to start quoting." />
@@ -79,18 +74,18 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.agencyId} className="border-b border-border-subtle/60">
-                      <td className="py-2.5 pr-3">
-                        <Link href={`/admin/agencies` as any} className="font-medium text-ink hover:text-crimson-700">{r.agencyName}</Link>
-                        <span className="ml-2 text-[10px] font-mono text-[rgb(var(--text-tertiary))]">{r.code}</span>
+                      <td className="py-2.5 pr-3 whitespace-nowrap">
+                        <Link href={`/admin/agencies/${r.agencyId}` as any} className="font-medium text-ink hover:text-crimson-700">{r.agencyName}</Link>
+                        <span className="ml-2 font-mono text-[11.5px] font-bold text-crimson-700">{r.code}</span>
                       </td>
                       <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.counsellors}</td>
                       <td className="py-2.5 px-3 text-right tabular-nums">{r.sent}</td>
                       <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-ink">{r.won}</td>
                       <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.booked}</td>
                       <td className="py-2.5 px-3 text-right">
-                        {r.sent === 0 ? <span className="text-[rgb(var(--text-tertiary))]">—</span> : <Pill variant={(r.conversionPct >= 40 ? 'success' : r.conversionPct >= 20 ? 'warning' : 'neutral') as any}>{r.conversionPct}%</Pill>}
+                        {r.sent === 0 ? <span className="text-[rgb(var(--text-tertiary))]">—</span> : <Pill variant={r.conversionPct >= 40 ? 'success' : 'neutral'}>{r.conversionPct}%</Pill>}
                       </td>
-                      <td className="py-2.5 pl-3 text-right money">{formatINR(r.revenuePaise)}</td>
+                      <td className="py-2.5 pl-3 text-right money whitespace-nowrap">{formatINR(r.revenuePaise)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -102,7 +97,7 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.won}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.booked}</td>
                     <td className="py-2.5 px-3 text-right tabular-nums">{totals.conversionPct}%</td>
-                    <td className="py-2.5 pl-3 text-right money">{formatINR(totals.revenuePaise)}</td>
+                    <td className="py-2.5 pl-3 text-right money whitespace-nowrap">{formatINR(totals.revenuePaise)}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -110,6 +105,6 @@ export default async function AdminPerformancePage({ searchParams }: PageProps) 
           )}
         </CardContent>
       </Card>
-    </div>
+    </AdminPage>
   );
 }

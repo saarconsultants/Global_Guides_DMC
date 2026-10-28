@@ -24,6 +24,15 @@ const STATUS_LABELS: Record<string, string> = {
   // Agencies
   ACTIVE: 'Active',
   SUSPENDED: 'Suspended',
+  // Templates
+  PUBLISHED: 'Published',
+  // Bug reports (admin)
+  OPEN: 'Open',
+  TRIAGED: 'Triaged',
+  IN_PROGRESS: 'In progress',
+  FIXED: 'Fixed',
+  WONTFIX: "Won't fix",
+  DUPLICATE: 'Duplicate',
 };
 
 /** "FOLLOWUP" → "Follow-up". Unknown values fall back to sentence case. */

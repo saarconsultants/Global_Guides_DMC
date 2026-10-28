@@ -8,16 +8,19 @@ function submitForm(el: HTMLElement | null) {
 
 export function AutoSubmitSelect({
   name, defaultValue, options, className, ariaLabel,
-}: { name: string; defaultValue: string; options: string[]; className?: string; ariaLabel?: string }) {
+}: { name: string; defaultValue: string; options: (string | { value: string; label: string })[]; className?: string; ariaLabel?: string }) {
   return (
     <select
       name={name}
       aria-label={ariaLabel ?? name}
       defaultValue={defaultValue}
-      className={className ?? 'h-8 rounded-sm border border-border bg-surface px-2 text-xs font-mono'}
+      className={className ?? 'h-9 rounded-md border border-border bg-surface px-2 text-[13px] font-medium text-ink'}
       onChange={(e) => submitForm(e.currentTarget)}
     >
-      {options.map((p) => <option key={p}>{p}</option>)}
+      {options.map((p) => {
+        const o = typeof p === 'string' ? { value: p, label: p } : p;
+        return <option key={o.value} value={o.value}>{o.label}</option>;
+      })}
     </select>
   );
 }
@@ -34,7 +37,7 @@ export function AutoSubmitNumber({
       defaultValue={defaultValue ?? ''}
       step={step}
       placeholder={placeholder}
-      className={className ?? 'h-8 w-20 rounded-sm border border-border bg-surface px-2 text-xs font-mono text-right'}
+      className={className ?? 'money h-9 w-20 rounded-md border border-border bg-surface px-2 text-[14px] text-ink text-right'}
       onBlur={(e) => {
         if (e.currentTarget.value !== last.current) {
           last.current = e.currentTarget.value;
