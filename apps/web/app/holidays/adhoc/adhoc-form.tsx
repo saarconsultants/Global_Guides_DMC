@@ -29,11 +29,11 @@ export function AdhocGroupForm() {
 
   return (
     <form action={formAction} className="space-y-4">
-      <fieldset disabled={pending} className="contents">
+      <fieldset disabled={pending} className="m-0 min-w-0 border-0 p-0 space-y-4">
         {state.error && (
           <p role="alert" className="rounded-md bg-danger-100 border border-danger-500/30 px-3 py-2 text-sm text-danger-500 font-medium">{state.error}</p>
         )}
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="adhoc-destinations" required>Destination(s)</Label>
             <Input id="adhoc-destinations" name="destinations" placeholder="Bali, Phuket, Dubai…" required />
@@ -47,14 +47,14 @@ export function AdhocGroupForm() {
           <Label htmlFor="adhoc-name">Client or group name</Label>
           <Input id="adhoc-name" name="groupName" placeholder="e.g. Infosys Pune offsite" />
         </div>
-        <div className="grid sm:grid-cols-3 gap-3">
+        <div className="grid sm:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="adhoc-from">Travel from</Label>
-            <Input id="adhoc-from" name="fromDate" type="date" />
+            <Input id="adhoc-from" name="fromDate" type="date" className="font-mono uppercase text-[14px]" />
           </div>
           <div>
             <Label htmlFor="adhoc-to">Travel to</Label>
-            <Input id="adhoc-to" name="toDate" type="date" />
+            <Input id="adhoc-to" name="toDate" type="date" className="font-mono uppercase text-[14px]" />
           </div>
           <div>
             <Label htmlFor="adhoc-nights">Nights</Label>
@@ -73,9 +73,9 @@ export function AdhocGroupForm() {
         </div>
         <div>
           <Label htmlFor="adhoc-brief">Brief / special requirements</Label>
-          <textarea id="adhoc-brief" name="brief" rows={4} className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm" placeholder="Dietary preferences, accessibility, must-see activities, budget per head…" />
+          <textarea id="adhoc-brief" name="brief" rows={4} className="control h-auto py-2.5 text-[15px] placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-normal" placeholder="Dietary preferences, accessibility, must-see activities, budget per head…" />
         </div>
-        <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-border-subtle">
           <p className="text-xs text-[rgb(var(--text-secondary))]">We'll reply on your registered email and WhatsApp.</p>
           <Button type="submit" className="gap-1.5"><Mail className="w-4 h-4" />{pending ? 'Sending…' : 'Send to ops'}</Button>
         </div>

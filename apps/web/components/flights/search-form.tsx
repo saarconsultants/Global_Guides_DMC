@@ -6,6 +6,7 @@ import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowRightLeft, Search, Check } from 'lucide-react';
 import { AirportCombobox } from './airport-combobox';
+import { AirportCodeCell, AirportSwapButton } from './airport-code-cell';
 import { HeroBand, HeroTabs, HeroTab, HeroBar, HeroCell, HeroSubmit, HeroDate, HeroChip, heroControl } from '@/components/ui/hero-search';
 
 interface Props {
@@ -68,18 +69,11 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Pro
 
         <HeroBar>
           <HeroCell eyebrow="From" grow>
-            <AirportCombobox bare label="From" value={from} onChange={setFrom} placeholder="City or airport" />
-            <button
-              type="button"
-              onClick={swap}
-              aria-label="Swap from/to"
-              className="hidden lg:flex absolute -right-[14px] top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-900 hover:bg-crimson-50 transition-colors"
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5" />
-            </button>
+            <AirportCodeCell code={from} onPick={setFrom} label="From" />
+            <AirportSwapButton onClick={swap} />
           </HeroCell>
-          <HeroCell eyebrow="To" grow className="lg:pl-6">
-            <AirportCombobox bare label="To" value={to} onChange={setTo} placeholder="City or airport" iconRotate />
+          <HeroCell eyebrow="To" grow className="lg:pl-7">
+            <AirportCodeCell code={to} onPick={setTo} label="To" rotate />
           </HeroCell>
           <HeroCell eyebrow={roundTrip ? 'Depart' : 'Travel date'}>
             <HeroDate value={date} onChange={setDate} label="Travel date" sub="Depart" />
@@ -102,16 +96,14 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Pro
               <option value="FIRST">First</option>
             </select>
           </HeroCell>
-          <HeroSubmit><Search className="w-4 h-4" />Search</HeroSubmit>
+          <HeroSubmit caption="Live fares">Search flights</HeroSubmit>
         </HeroBar>
 
         <div className="mx-auto max-w-7xl px-6 mt-3.5 flex flex-wrap items-center gap-2">
           <HeroChip active={directOnly} onClick={() => setDirectOnly((v) => !v)}>
             {directOnly && <Check className="w-3.5 h-3.5" />}Direct flights only
           </HeroChip>
-          {dateError
-            ? <p className="text-sm text-danger-500" role="alert">{dateError}</p>
-            : <p className="ml-auto text-[11.5px] text-[rgb(var(--text-tertiary))]">Fares refresh live from Tripjack</p>}
+          {dateError && <p className="text-sm text-danger-500" role="alert">{dateError}</p>}
         </div>
       </form>
     );

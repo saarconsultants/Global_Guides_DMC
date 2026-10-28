@@ -7,6 +7,7 @@ import { ArrowLeft, RefreshCw, ArrowRight } from 'lucide-react';
 import { RouteCode } from '@/components/ui/pass';
 import { PageHeader } from '@/components/ui/page-header';
 import { promoSrc } from '@/lib/promos';
+import { formatDateShort } from '@/lib/utils';
 
 interface PageProps {
   searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
@@ -88,7 +89,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
 
         {results && !('error' in results) && (
           <div className="flex justify-end">
-            <Pill variant={results.source === 'live' ? 'success' : 'warning'}>
+            <Pill variant={results.source === 'live' ? 'live' : 'warning'}>
               {results.source === 'live' ? 'Live fares' : 'Sample prices — live rates unavailable right now'}
             </Pill>
           </div>
@@ -101,20 +102,18 @@ export default async function FlightsPage({ searchParams }: PageProps) {
               <p className="text-[15px] font-bold text-ink">Live fares are unavailable right now</p>
               <p className="text-[13px] text-[rgb(var(--text-secondary))] mt-0.5">Live prices couldn&apos;t load. Try again in a minute, or adjust the route or date. Nothing was charged.</p>
             </div>
-            {(results as any).upstream && (
-              <Link
-                href={`/flights?${new URLSearchParams({ from: sp.from ?? '', to: sp.to ?? '', date: sp.date ?? '', adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', ...(sp.directOnly ? { directOnly: sp.directOnly } : {}), ...(sp.rdate ? { rdate: sp.rdate } : {}), ...(sp.returnTo ? { returnTo: sp.returnTo } : {}), ...(sp.leg ? { leg: sp.leg } : {}) }).toString()}` as any}
-                className="inline-flex items-center justify-center gap-1.5 rounded-md bg-crimson-700 text-white px-4 h-10 text-sm font-bold hover:bg-crimson-900 transition-colors shrink-0"
-              >
-                <RefreshCw className="w-4 h-4" />Try again
-              </Link>
-            )}
+            <Link
+              href={`/flights?${new URLSearchParams({ from: sp.from ?? '', to: sp.to ?? '', date: sp.date ?? '', adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', ...(sp.directOnly ? { directOnly: sp.directOnly } : {}), ...(sp.rdate ? { rdate: sp.rdate } : {}), ...(sp.returnTo ? { returnTo: sp.returnTo } : {}), ...(sp.leg ? { leg: sp.leg } : {}) }).toString()}` as any}
+              className="inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface text-ink px-4 h-10 text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors shrink-0"
+            >
+              <RefreshCw className="w-4 h-4" />Try again
+            </Link>
           </div>
         )}
 
       {results && !('error' in results) && (
         <div className="space-y-3">
-          {isRoundTrip && <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3">Outbound <RouteCode codes={[sp.from!.toUpperCase(), sp.to!.toUpperCase()]} /><span className="text-sm font-medium text-[rgb(var(--text-secondary))] tnum">{sp.date}</span></h2>}
+          {isRoundTrip && <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3">Outbound <RouteCode codes={[sp.from!.toUpperCase(), sp.to!.toUpperCase()]} /><span className="font-mono text-sm font-bold text-[rgb(var(--text-secondary))] tnum">{formatDateShort(sp.date!)}</span></h2>}
           <FlightResults result={results} returnTo={sp.returnTo} cabin={(sp.cabin as any) ?? 'ECONOMY'} leg={sp.leg} />
         </div>
       )}
@@ -125,7 +124,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
 
         {isRoundTrip && returnResults && !('error' in returnResults) && (
           <div className="space-y-3 pt-2">
-            <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3">Return <RouteCode codes={[sp.to!.toUpperCase(), sp.from!.toUpperCase()]} /><span className="text-sm font-medium text-[rgb(var(--text-secondary))] tnum">{sp.rdate}</span></h2>
+            <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3">Return <RouteCode codes={[sp.to!.toUpperCase(), sp.from!.toUpperCase()]} /><span className="font-mono text-sm font-bold text-[rgb(var(--text-secondary))] tnum">{formatDateShort(sp.rdate!)}</span></h2>
             <FlightResults result={returnResults} cabin={(sp.cabin as any) ?? 'ECONOMY'} />
           </div>
         )}

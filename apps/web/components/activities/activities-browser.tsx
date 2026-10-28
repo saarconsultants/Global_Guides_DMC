@@ -32,7 +32,7 @@ export function ActivitiesBrowser({ activities, cityName, travellers }: { activi
             <article className="group h-full flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
               <div className="w-full h-40 bg-navy-50 relative">
                 <ImageWithFallback src={a.thumb} alt={a.name} className="w-full h-40 object-cover" fallback={ImgFallback} />
-                <span className="absolute top-2.5 left-2.5">{supplierOf(a) ? <Pill variant="live">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}</span>
+                <span className="absolute top-2.5 left-2.5">{supplierOf(a) ? <Pill variant="live">Live</Pill> : <Pill variant="warning">Sample</Pill>}</span>
               </div>
               <div className="px-4 pt-3.5 pb-3 flex-1">
                 <h3 className="font-bold text-ink text-[15px] leading-snug group-hover:text-crimson-700 transition-colors">{a.name}</h3>

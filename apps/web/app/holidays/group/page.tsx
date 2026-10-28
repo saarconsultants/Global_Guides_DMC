@@ -19,7 +19,7 @@ const DEPARTURES = [
 export default async function GroupToursPage() {
   const { fmt } = await getDisplayMoney();
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
         <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-ink">Holidays</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
@@ -29,8 +29,8 @@ export default async function GroupToursPage() {
         eyebrow="Group departures"
         title="Group tours (GIT)"
         description="Fixed-date trips that pool customers across agencies. Lock seats early — once a departure fills, it's first-come-first-served."
-        actions={<Pill variant="info">Updated weekly</Pill>}
       />
+      <p className="-mt-3 text-[12.5px] text-[rgb(var(--text-tertiary))]">Departures are updated weekly.</p>
 
       {DEPARTURES.length === 0 ? (
         <EmptyState
@@ -47,7 +47,7 @@ export default async function GroupToursPage() {
               <Card key={d.code} className="lift">
                 <CardContent className="pt-5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <Pill variant={remaining < 5 ? 'warning' : 'success'}>{remaining} seats left</Pill>
+                    <Pill variant={remaining <= 5 ? 'warning' : 'neutral'}>{remaining} seats left</Pill>
                     <span className="font-mono text-[10px] text-[rgb(var(--text-secondary))]">{d.code}</span>
                   </div>
                   <h2 className="text-base font-bold text-ink">{d.dest}</h2>
@@ -57,12 +57,12 @@ export default async function GroupToursPage() {
                   </div>
                   <div>
                     <div className="h-1.5 rounded-full bg-surface-2 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-crimson-700 to-amber-500" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-ink" style={{ width: `${pct}%` }} />
                     </div>
                     <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-1">{d.sold} of {d.seats} sold</p>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
-                    <span className="font-mono text-sm font-bold text-crimson-900">{fmt(d.price)} <span className="text-xs text-[rgb(var(--text-secondary))] font-normal">/ pax</span></span>
+                    <span className="money text-[16px] text-ink">{fmt(d.price)} <span className="text-xs text-[rgb(var(--text-secondary))] font-normal font-sans">/ pax</span></span>
                     <BlockSeatsButton code={d.code} dest={d.dest} date={d.date} />
                   </div>
                 </CardContent>

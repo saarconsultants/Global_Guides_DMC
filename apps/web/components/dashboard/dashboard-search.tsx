@@ -1,11 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plane, Hotel, Ticket, Sparkles, ArrowLeftRight } from 'lucide-react';
-import { AirportCombobox } from '@/components/flights/airport-combobox';
+import { Plane, Hotel, Ticket, Sparkles } from 'lucide-react';
+import { AirportCodeCell, AirportSwapButton } from '@/components/flights/airport-code-cell';
 import { CitySearchCombobox } from '@/components/common/city-search-combobox';
 import { HeroCell, HeroSubmit, HeroDate, heroControl } from '@/components/ui/hero-search';
-import { airportByIata } from '@/lib/airports';
 import { findCity } from '@/lib/cities';
 import { cn } from '@/lib/utils';
 
@@ -19,41 +18,8 @@ const TABS: Array<{ id: Tab; label: string; icon: React.ComponentType<{ classNam
   { id: 'flights', label: 'Flights', icon: Plane },
   { id: 'hotels', label: 'Hotels', icon: Hotel },
   { id: 'activities', label: 'Activities', icon: Ticket },
-  { id: 'ai', label: 'Full trip with AI', icon: Sparkles },
+  { id: 'ai', label: 'Plan with AI', icon: Sparkles },
 ];
-
-/**
- * FROM / TO cell: the pass's 32px code over the airport line, with the real
- * combobox layered on top so typing, search and the keyboard still work.
- * Declared at module scope — inside the component body it remounted on every
- * render and dropped the combobox's own query and focus state.
- */
-function CodeCell({ code, onPick, label, rotate }: { code: string; onPick: (v: string) => void; label: string; rotate?: boolean }) {
-  const a = airportByIata(code);
-  return (
-    <div className="relative">
-      <div className="font-mono text-[32px] font-bold leading-none tracking-[-0.02em] text-ink tnum">{code || '—'}</div>
-      <div className="mt-1.5 text-[12.5px] text-[rgb(var(--text-secondary))] truncate">{a ? `${a.city} · ${a.name}` : 'Pick an airport'}</div>
-      <div className="absolute inset-0 opacity-0 focus-within:opacity-100 focus-within:bg-surface transition-opacity">
-        <AirportCombobox bare label={label} value={code} onChange={onPick} placeholder="City or airport" iconRotate={rotate} />
-      </div>
-    </div>
-  );
-}
-
-/** Swap control, centred on the divider between the FROM and TO cells. */
-function SwapButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Swap origin and destination"
-      className="hidden lg:flex absolute z-20 left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-700 hover:bg-crimson-50 transition-colors"
-    >
-      <ArrowLeftRight className="w-3.5 h-3.5" />
-    </button>
-  );
-}
 
 /** The pass-shaped unified search on the agent home page. */
 export function DashboardSearch() {
@@ -114,14 +80,16 @@ export function DashboardSearch() {
       <div className="relative z-20 bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch">
         {tab === 'flights' && (
           <>
-            <HeroCell eyebrow="From" grow><CodeCell code={from} onPick={setFrom} label="From" /></HeroCell>
-            <HeroCell eyebrow="To" grow>
-              <SwapButton onClick={() => { setFrom(to); setTo(from); }} />
-              <CodeCell code={to} onPick={setTo} label="To" rotate />
+            <HeroCell eyebrow="From" grow>
+              <AirportCodeCell code={from} onPick={setFrom} label="From" />
+              <AirportSwapButton onClick={() => { setFrom(to); setTo(from); }} />
+            </HeroCell>
+            <HeroCell eyebrow="To" grow className="lg:pl-7">
+              <AirportCodeCell code={to} onPick={setTo} label="To" rotate />
             </HeroCell>
             <HeroCell eyebrow="Depart"><HeroDate value={date} min={iso(0)} onChange={setDate} label="Departure date" sub="One-way" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Live fares">Search fares</HeroSubmit>
+            <HeroSubmit caption="Live fares">Search flights</HeroSubmit>
           </>
         )}
         {tab === 'hotels' && (
@@ -131,7 +99,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="Check-out"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="Check-out" sub="Depart" /></HeroCell>
             <HeroCell eyebrow="Rooms"><select value={rooms} onChange={(e) => setRooms(e.target.value)} className={heroControl} aria-label="Rooms">{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n} Room{n > 1 ? 's' : ''}</option>)}</select></HeroCell>
             <HeroCell eyebrow="Adults / room">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Wholesale rates">Search rooms</HeroSubmit>
+            <HeroSubmit caption="Wholesale rates">Search hotels</HeroSubmit>
           </>
         )}
         {tab === 'activities' && (
@@ -140,7 +108,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="From"><HeroDate value={checkin} min={iso(0)} onChange={setCheckin} label="From date" sub="First tour" /></HeroCell>
             <HeroCell eyebrow="To"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="To date" sub="Last tour" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Live tours & tickets">Search tours</HeroSubmit>
+            <HeroSubmit caption="Tours & tickets">Search tours</HeroSubmit>
           </>
         )}
         {tab === 'ai' && (
@@ -149,7 +117,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="Nights"><select value={nights} onChange={(e) => setNights(e.target.value)} className={heroControl} aria-label="Nights">{[3, 4, 5, 6, 7, 8, 9, 10, 12, 14].map((n) => <option key={n} value={n}>{n} nights</option>)}</select></HeroCell>
             <HeroCell eyebrow="Depart"><HeroDate value={date} min={iso(0)} onChange={setDate} label="Departure date" sub="Start" /></HeroCell>
             <HeroCell eyebrow="Travellers">{adultsCell}</HeroCell>
-            <HeroSubmit caption="Grounded in live inventory">Build with AI</HeroSubmit>
+            <HeroSubmit caption="Day-by-day plan">Plan with AI</HeroSubmit>
           </>
         )}
       </div>
