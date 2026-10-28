@@ -124,7 +124,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
                 const src = promoSrc(d.img);
                 return (
                   <Link key={d.code} href={`/hotels?${new URLSearchParams({ city: d.code, checkin, checkout, adults, rooms: '1', children: '0' })}` as any} className="relative aspect-[4/5] rounded-lg overflow-hidden group bg-navy-900 lift">
-                    {src && <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />}
+                    {src && <img src={src} alt={d.city} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
                     <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>
                     <div className="absolute bottom-0 left-0 right-0 p-3 text-white">

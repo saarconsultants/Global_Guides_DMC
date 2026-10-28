@@ -17,7 +17,7 @@ export default async function AdminOverview() {
     db.proposal.count(),
     db.booking.count(),
     platformCommissionTotalPaise(),
-    db.proposal.findMany({ orderBy: { createdAt: 'desc' }, take: 8, include: { agency: { select: { name: true, code: true } } } }),
+    db.proposal.findMany({ orderBy: { createdAt: 'desc' }, take: 8, select: { id: true, code: true, name: true, status: true, pricePaise: true, travelDate: true, agency: { select: { name: true, code: true } } } }),
   ]);
 
   const kpis = [

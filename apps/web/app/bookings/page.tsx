@@ -38,7 +38,8 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
 
   const rows = await db.booking.findMany({
     where, orderBy: { bookedAt: 'desc' },
-    include: { proposal: { include: { lead: true } } },
+    // Only the proposal columns the table shows — not its itinerary JSON.
+    include: { proposal: { select: { id: true, code: true, name: true, travelDate: true, lead: { select: { customerName: true } } } } },
     take: 100,
   });
 

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db/client';
+import { TEMPLATE_CARD_SELECT } from '@/lib/db/templates';
 import { Card, CardContent } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -16,12 +17,12 @@ export const dynamic = 'force-dynamic';
 export default async function MarketingPage() {
   const { fmt } = await getDisplayMoney();
   const actor = await requireAgency();
-  const agency = await db.agency.findUnique({ where: { id: actor.agencyId }, select: { slug: true } });
+  const agency = actor.agency ? { slug: actor.agency.slug } : null; // from the request-cached actor
   const h = await headers();
   const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
   const proto = h.get('x-forwarded-proto') ?? 'http';
   const origin = `${proto}://${host}`;
-  const templates = await db.itineraryTemplate.findMany({ where: { published: true }, orderBy: { createdAt: 'desc' } });
+  const templates = await db.itineraryTemplate.findMany({ where: { published: true }, orderBy: { createdAt: 'desc' }, select: TEMPLATE_CARD_SELECT });
 
   return (
     <div>

@@ -3,7 +3,6 @@
 // components render agency-facing money via `(await getDisplayMoney()).fmt(paise)`.
 
 import { cache } from 'react';
-import { db } from '@/lib/db/client';
 import { getActor } from '@/lib/auth/ctx';
 import { getDisplayRate } from './fx-display';
 import { formatMoney } from './money';
@@ -17,10 +16,8 @@ export interface DisplayMoney {
 export const getDisplayMoney = cache(async (): Promise<DisplayMoney> => {
   let currency = 'INR';
   const actor = await getActor();
-  if (actor?.agencyId) {
-    const a = await db.agency.findUnique({ where: { id: actor.agencyId }, select: { currency: true } });
-    currency = a?.currency ?? 'INR';
-  }
+  // The actor lookup (request-cached) already carries the agency's currency.
+  if (actor?.agencyId) currency = actor.agency?.currency ?? 'INR';
   const rate = await getDisplayRate(currency);
   return { currency, rate, fmt: (p) => formatMoney(p, currency, rate) };
 });

@@ -2,9 +2,9 @@ import { db } from './client';
 import { requireAgency } from '@/lib/auth/ctx';
 
 export async function getWalletBalance(): Promise<bigint> {
+  // The (request-cached) actor lookup already reads the agency's wallet column.
   const actor = await requireAgency();
-  const a = await db.agency.findUnique({ where: { id: actor.agencyId }, select: { walletPaise: true } });
-  return a?.walletPaise ?? 0n;
+  return actor.agency?.walletPaise ?? 0n;
 }
 
 export async function listWalletTxns(opts: { from?: Date; to?: Date } = {}) {

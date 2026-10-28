@@ -11,7 +11,6 @@ import { getDisplayRate } from '@/lib/fx-display';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { exitImpersonationAction } from '@/app/actions/impersonation';
 import { Eye } from 'lucide-react';
-import { db } from '@/lib/db/client';
 import { countUnread, listNotifications } from '@/lib/db/notifications';
 
 // Boarding-pass world: Archivo carries every UI voice (labels, body, display);
@@ -31,14 +30,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let rate = 1;
   let notif: { unread: number; items: any[] } | undefined = undefined;
   if (actor?.agencyId) {
-    const [a, unread, items] = await Promise.all([
-      db.agency.findUnique({ where: { id: actor.agencyId }, select: { walletPaise: true, currency: true } }),
+    // Wallet + currency come with the (request-cached) actor lookup; FX rate and
+    // the bell run in parallel instead of after one another.
+    currency = actor.agency?.currency ?? 'INR';
+    const [r, unread, items] = await Promise.all([
+      getDisplayRate(currency),
       countUnread(actor.agencyId, actor.userId),
       listNotifications(actor.agencyId, actor.userId, 15),
     ]);
-    currency = a?.currency ?? 'INR';
-    rate = await getDisplayRate(currency);
-    walletLabel = formatMoney(a?.walletPaise ?? 0n, currency, rate);
+    rate = r;
+    walletLabel = formatMoney(actor.agency?.walletPaise ?? 0n, currency, rate);
     notif = { unread, items: items.map((n) => ({ id: n.id, kind: n.kind, title: n.title, body: n.body, href: n.href, readAt: n.readAt?.toISOString() ?? null, createdAt: n.createdAt.toISOString() })) };
   }
 

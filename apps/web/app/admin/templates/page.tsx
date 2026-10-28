@@ -1,4 +1,5 @@
 import { db } from '@/lib/db/client';
+import { TEMPLATE_CARD_SELECT } from '@/lib/db/templates';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
@@ -13,7 +14,7 @@ import { ActionForm } from '@/components/ui/action-form';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminTemplatesPage() {
-  const rows = await db.itineraryTemplate.findMany({ orderBy: { createdAt: 'desc' } });
+  const rows = await db.itineraryTemplate.findMany({ orderBy: { createdAt: 'desc' }, select: TEMPLATE_CARD_SELECT });
   return (
     <div className="p-4 sm:p-8 space-y-6 ambient">
       <PageHeader

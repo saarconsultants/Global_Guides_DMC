@@ -95,6 +95,8 @@ model Lead {
   createdAt     DateTime  @default(now())
   proposals     Proposal[]
   notes         LeadNote[]
+
+  @@index([agencyId, createdAt])   // /leads list + dashboard counts
 }
 
 model LeadNote {
@@ -105,6 +107,8 @@ model LeadNote {
   body      String
   kind      String   @default("NOTE")     // NOTE | CALL | EMAIL | WHATSAPP | SYSTEM
   createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])     // lead detail timeline
 }
 
 model Notification {
@@ -163,6 +167,9 @@ model Proposal {
 
   bookings          Booking[]
   commissionEntries CommissionEntry[]
+
+  @@index([agencyId, createdAt])   // /proposals list + dashboard counts
+  @@index([leadId])                // lead detail → its proposals
 }
 
 model Booking {
@@ -176,6 +183,8 @@ model Booking {
   status      String   @default("PENDING")  // PENDING | CONFIRMED | CANCELLED
   supplierJson String?  // JSON: SupplierHotelBooking[] — Hotelbeds confirmations for voucher + cancellation
   bookedAt    DateTime @default(now())
+
+  @@index([agencyId, bookedAt])    // /bookings list
 }
 
 model WalletTxn {
@@ -187,6 +196,8 @@ model WalletTxn {
   ref         String?
   note        String?
   createdAt   DateTime @default(now())
+
+  @@index([agencyId, createdAt])   // /statement
 }
 
 // ─────────────────────────────────────────── Platform: Templates ───────────────────────────────────────────
@@ -244,6 +255,8 @@ model CommissionEntry {
   amountPaise   BigInt                     // commission earned by the platform
   note          String?
   createdAt     DateTime @default(now())
+
+  @@index([agencyId, createdAt])   // admin agency detail / revenue
 }
 
 // ─────────────────────────────────────────── Quality / feedback ───────────────────────────────────────────

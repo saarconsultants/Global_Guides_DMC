@@ -10,6 +10,8 @@ import { DashboardSearch } from '@/components/dashboard/dashboard-search';
 import { RouteCode } from '@/components/ui/pass';
 import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
+import { Prisma } from '@prisma/client';
+import { TEMPLATE_CARD_SELECT } from '@/lib/db/templates';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
 import { StatCard } from '@/components/ui/stat-card';
@@ -45,24 +47,32 @@ export default async function DashboardPage() {
   const since48h = new Date(now - 2 * DAY_MS);
   const since24h = new Date(now - 1 * DAY_MS);
 
+  // 7 queries (was 15): the 8 period counts collapse into two FILTERed
+  // aggregates, and wallet + logo come with the request-cached actor lookup.
+  const ATTENTION_SELECT = { id: true, code: true, name: true, createdAt: true, lastViewedAt: true, lead: { select: { customerName: true } } } as const;
+  // Prisma stores DateTime as UTC `timestamp(3)`; compare against UTC-naive
+  // values so the raw SQL is independent of the DB session's TimeZone.
+  const utc = (d: Date) => Prisma.sql`(${d.toISOString()}::timestamptz AT TIME ZONE 'UTC')`;
+  const t30 = utc(since30), t60 = utc(since60);
   const [
-    leadCount, propCount, bookedCount,
-    leadPrev, propPrev, bookedPrev,
-    wallet, user, agency, totalProposals, viewedAny,
+    leadCounts, propCounts,
+    user,
     newLeads, viewedNoResponse, sentNotViewed,
     templates,
   ] = await Promise.all([
-    db.lead.count({     where: { agencyId: actor.agencyId, createdAt: { gte: since30 } } }),
-    db.proposal.count({ where: { agencyId: actor.agencyId, createdAt: { gte: since30 } } }),
-    db.proposal.count({ where: { agencyId: actor.agencyId, status: { in: ['ACCEPTED', 'BOOKED'] }, createdAt: { gte: since30 } } }),
-    db.lead.count({     where: { agencyId: actor.agencyId, createdAt: { gte: since60, lt: since30 } } }),
-    db.proposal.count({ where: { agencyId: actor.agencyId, createdAt: { gte: since60, lt: since30 } } }),
-    db.proposal.count({ where: { agencyId: actor.agencyId, status: { in: ['ACCEPTED', 'BOOKED'] }, createdAt: { gte: since60, lt: since30 } } }),
-    db.agency.findUnique({ where: { id: actor.agencyId }, select: { walletPaise: true } }),
+    db.$queryRaw<Array<{ curr: bigint; prev: bigint }>>`
+      SELECT COUNT(*) FILTER (WHERE "createdAt" >= ${t30}) AS curr,
+             COUNT(*) FILTER (WHERE "createdAt" >= ${t60} AND "createdAt" < ${t30}) AS prev
+      FROM "Lead" WHERE "agencyId" = ${actor.agencyId}`,
+    db.$queryRaw<Array<{ curr: bigint; prev: bigint; booked: bigint; bookedPrev: bigint; total: bigint; viewed: bigint }>>`
+      SELECT COUNT(*) FILTER (WHERE "createdAt" >= ${t30}) AS curr,
+             COUNT(*) FILTER (WHERE "createdAt" >= ${t60} AND "createdAt" < ${t30}) AS prev,
+             COUNT(*) FILTER (WHERE status IN ('ACCEPTED', 'BOOKED') AND "createdAt" >= ${t30}) AS booked,
+             COUNT(*) FILTER (WHERE status IN ('ACCEPTED', 'BOOKED') AND "createdAt" >= ${t60} AND "createdAt" < ${t30}) AS "bookedPrev",
+             COUNT(*) AS total,
+             COUNT(*) FILTER (WHERE "lastViewedAt" IS NOT NULL) AS viewed
+      FROM "Proposal" WHERE "agencyId" = ${actor.agencyId}`,
     db.user.findUnique({ where: { id: actor.userId }, select: { welcomeDismissedAt: true } }),
-    db.agency.findUnique({ where: { id: actor.agencyId }, select: { logoUrl: true } }),
-    db.proposal.count({ where: { agencyId: actor.agencyId } }),
-    db.proposal.count({ where: { agencyId: actor.agencyId, lastViewedAt: { not: null } } }),
     db.lead.findMany({
       where: { agencyId: actor.agencyId, status: 'NEW', proposals: { none: {} } },
       orderBy: { createdAt: 'desc' }, take: 4,
@@ -71,15 +81,23 @@ export default async function DashboardPage() {
     db.proposal.findMany({
       where: { agencyId: actor.agencyId, status: { in: ['VIEWED', 'SENT'] }, lastViewedAt: { not: null, lt: since24h } },
       orderBy: { lastViewedAt: 'desc' }, take: 4,
-      include: { lead: { select: { customerName: true } } },
+      select: ATTENTION_SELECT,
     }),
     db.proposal.findMany({
       where: { agencyId: actor.agencyId, status: 'SENT', lastViewedAt: null, createdAt: { lt: since48h } },
       orderBy: { createdAt: 'desc' }, take: 4,
-      include: { lead: { select: { customerName: true } } },
+      select: ATTENTION_SELECT,
     }),
-    db.itineraryTemplate.findMany({ where: { published: true }, orderBy: { createdAt: 'desc' }, take: 3 }),
+    db.itineraryTemplate.findMany({ where: { published: true }, orderBy: { createdAt: 'desc' }, take: 3, select: TEMPLATE_CARD_SELECT }),
   ]);
+  const lc = leadCounts[0];
+  const pc = propCounts[0];
+  const leadCount = Number(lc?.curr ?? 0), leadPrev = Number(lc?.prev ?? 0);
+  const propCount = Number(pc?.curr ?? 0), propPrev = Number(pc?.prev ?? 0);
+  const bookedCount = Number(pc?.booked ?? 0), bookedPrev = Number(pc?.bookedPrev ?? 0);
+  const totalProposals = Number(pc?.total ?? 0), viewedAny = Number(pc?.viewed ?? 0);
+  const wallet = { walletPaise: actor.agency?.walletPaise ?? 0n };
+  const agency = { logoUrl: actor.agency?.logoUrl ?? null };
 
   const showWelcome = !user?.welcomeDismissedAt;
   const convRate = propCount > 0 ? Math.round((bookedCount / propCount) * 100) : 0;
@@ -159,7 +177,7 @@ export default async function DashboardPage() {
                     <div className="relative h-[150px] bg-navy-900">
                       {src && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        <img src={src} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" />
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                       {codes.length > 0 && <div className="absolute left-3 bottom-3"><RouteCode codes={codes} /></div>}
@@ -275,7 +293,7 @@ export default async function DashboardPage() {
                 <Link key={d.code} href={`/hotels?city=${d.code}` as any} className={`relative aspect-[4/5] rounded-lg overflow-hidden group bg-gradient-to-b ${d.tint} lift`}>
                   {src && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+                    <img src={src} alt={d.city} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
                   <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>

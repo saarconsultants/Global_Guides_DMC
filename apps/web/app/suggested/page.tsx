@@ -1,4 +1,5 @@
 import { db } from '@/lib/db/client';
+import { TEMPLATE_CARD_SELECT } from '@/lib/db/templates';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -30,7 +31,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
   if (sp.region)   where.region   = sp.region;
   if (sp.category) where.category = sp.category;
 
-  const templates = await db.itineraryTemplate.findMany({ where, orderBy: { createdAt: 'desc' } });
+  const templates = await db.itineraryTemplate.findMany({ where, orderBy: { createdAt: 'desc' }, select: TEMPLATE_CARD_SELECT });
 
   const regions    = ['EUROPE', 'SE_ASIA', 'MIDDLE_EAST', 'INDIAN_SUB', 'OCEANIA', 'AFRICA', 'AMERICAS'];
   const categories = ['LEISURE', 'HONEYMOON', 'FAMILY', 'LUXURY', 'ADVENTURE', 'GROUP'];
@@ -71,7 +72,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
               return (
                 <article key={t.id} className="group flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
                   <div className={`relative h-52 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
-                    {(t.hero ?? regionSrc(t.region)) ? <img src={(t.hero ?? regionSrc(t.region))!} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
+                    {(t.hero ?? regionSrc(t.region)) ? <img src={(t.hero ?? regionSrc(t.region))!} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" /> : null}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3 flex gap-1.5">
                       <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
