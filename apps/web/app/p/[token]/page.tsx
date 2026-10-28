@@ -123,7 +123,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
           </div>
           <div className="sm:w-0 border-t-2 sm:border-t-0 sm:border-l-2 border-dashed border-border" />
           <div className="sm:w-[220px] px-5 py-4 flex flex-col justify-center text-white" style={{ background: primary }}>
-            <div className="label text-white/75">Trip total</div>
+            <div className="label !text-white/85">Trip total</div>
             <div className="money text-[24px] leading-none mt-1">{fmt(it.pricePaise)}</div>
             <div className="text-[12px] text-white/75 mt-1">per adult <span className="money">{fmt(it.pricePerAdultPaise)}</span></div>
             {open && <AcceptButton className="mt-3 w-full bg-white" style={{ color: primary }} />}
@@ -299,7 +299,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
         <section id="respond" className="rounded-lg text-white p-6 lg:p-8 scroll-mt-24" style={{ background: primary }}>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="label text-white/75">Your trip total</p>
+              <p className="label !text-white/85">Your trip total</p>
               <p className="mt-1 money text-[40px] leading-none">{fmt(it.pricePaise)}</p>
               <p className="text-sm text-white/70 mt-0.5">Per adult: <span className="money">{fmt(it.pricePerAdultPaise)}</span></p>
             </div>
