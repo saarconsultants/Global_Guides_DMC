@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/toast';
 import { addLeadNoteAction, deleteLeadNoteAction } from '@/app/actions/leads';
 import { Phone, Mail, MessageCircle, Pencil, Cog, Trash2 } from 'lucide-react';
 import { ActionForm } from '@/components/ui/action-form';
+import { EmptyState } from '@/components/ui/empty-state';
 
 type NoteKind = 'NOTE' | 'CALL' | 'EMAIL' | 'WHATSAPP' | 'SYSTEM';
 
@@ -90,7 +91,7 @@ export function LeadNotesPanel({ leadId, notes, currentUserId, isOwner }: Props)
 
         <div className="space-y-3 pt-1 stagger">
           {notes.length === 0 && (
-            <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-8">No notes yet. Capture every call, email, or quick observation here so the whole team stays in sync.</p>
+            <EmptyState icon={<Pencil className="w-4 h-4" />} title="No notes yet" body="Log calls, emails and quick observations here so the whole team stays in sync." className="py-8" />
           )}
           {notes.map((n) => {
             const meta = kindMeta[(n.kind as NoteKind)] ?? kindMeta.NOTE;

@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { ButtonLink } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
@@ -7,10 +7,11 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { StatCard } from '@/components/ui/stat-card';
 import { listLeads } from '@/lib/db/proposals';
-import { formatDateShort } from '@/lib/utils';
+import { formatDateShort, formatDayMonth } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
 import { LeadActions } from '@/components/leads/lead-actions';
-import { ClipboardList, HelpCircle, Plus, Search, Filter } from 'lucide-react';
+import { ClipboardList, HelpCircle, Plus, Search, X } from 'lucide-react';
+import { AutoSubmitSelect } from '@/components/common/auto-submit-select';
 import Link from 'next/link';
 import { RouteCode } from '@/components/ui/pass';
 
@@ -33,7 +34,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
     { l: 'Total leads',  v: String(total),     s: 'all-time' },
     { l: 'Converted',    v: String(converted), s: 'now booked' },
     { l: 'Conv. rate',   v: total ? `${convRate}%` : '—', s: 'booked / total' },
-    { l: 'Last lead',    v: last ? formatDateShort(last.createdAt) : '—', s: 'most recent' },
+    { l: 'Last lead',    v: last ? formatDayMonth(last.createdAt) : '—', s: 'most recent' },
   ];
 
   return (
@@ -55,17 +56,18 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
 
       <Card>
         <CardContent className="pt-5">
-          <form method="GET" action="/leads" className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[220px]">
+          {/* One row: search (Enter submits) + status (submits on change). */}
+          <form method="GET" action="/leads" role="search" className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <div className="relative flex-1 min-w-0 basis-full sm:basis-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
               <Input name="q" type="search" aria-label="Search leads" defaultValue={sp.q ?? ''} placeholder="Search by customer name, email, phone or destination…" className="pl-9" />
             </div>
-            <select name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
+            <AutoSubmitSelect name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px] flex-1 sm:flex-none">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
-            </select>
-            <Button variant="secondary" className="gap-1.5"><Filter className="w-4 h-4" />Filter</Button>
-            {(sp.q || sp.status) && <Link href="/leads" className="text-xs text-danger-500 hover:underline">Clear filters</Link>}
+            </AutoSubmitSelect>
+            <button type="submit" className="sr-only">Search</button>
+            {(sp.q || sp.status) && <Link href="/leads" className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-md border border-border-subtle bg-surface text-[13px] font-semibold text-[rgb(var(--text-secondary))] hover:border-border-strong hover:text-ink"><X className="w-3.5 h-3.5" aria-hidden />Clear</Link>}
           </form>
         </CardContent>
       </Card>
@@ -101,8 +103,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     </div>
                     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
                       <span className="text-[rgb(var(--text-secondary))]">
-                        Travel <span className="text-ink">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</span>
-                        {l.nights != null && <> · {l.nights}N</>} · Created {formatDateShort(l.createdAt)}
+                        Travel <span className="font-mono text-ink">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</span>
+                        {l.nights != null && <> · {l.nights}N</>} · Created <span className="font-mono">{formatDateShort(l.createdAt)}</span>
                       </span>
                       {latest && <span><span className="font-mono text-[12px] font-bold">{latest.code}</span> <span className="money font-bold">{fmt(latest.pricePaise)}</span></span>}
                     </div>
@@ -137,10 +139,10 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                       <tr key={l.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
                         <td className="py-3 pr-4 font-bold text-ink"><Link href={`/leads/${l.id}` as any} className="hover:text-crimson-700">{l.customerName}</Link></td>
                         <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{l.customerPhone ?? '—'}</td>
-                        <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(l.createdAt)}</td>
+                        <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap text-[rgb(var(--text-secondary))]">{formatDateShort(l.createdAt)}</td>
                         <td className="py-3 pr-4"><RouteCode codes={l.destinations.split(',').map((c) => c.trim()).filter(Boolean)} /></td>
                         <td className="py-3 pr-4">{l.originCity ?? '—'}</td>
-                        <td className="py-3 pr-4">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</td>
+                        <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</td>
                         <td className="py-3 pr-4 font-mono">{l.nights ?? '—'}</td>
                         <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{statusLabel(l.status)}</Pill></td>
                         <td className="py-3 pr-4">{latest ? <span><span className="font-mono text-[12px] font-bold">{latest.code}</span> <span className="money">{fmt(latest.pricePaise)}</span></span> : <span className="text-[rgb(var(--text-tertiary))]">—</span>}</td>

@@ -3,12 +3,13 @@ import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { ButtonLink } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
 import { getWalletBalance } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
-import { FileText, ExternalLink, Copy, Search, Filter, Download, GitBranch, FileCheck } from 'lucide-react';
+import { FileText, ExternalLink, Copy, Search, X, Download, GitBranch, FileCheck } from 'lucide-react';
+import { AutoSubmitSelect } from '@/components/common/auto-submit-select';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { duplicateProposalAction } from '@/app/actions/duplicate-proposal';
@@ -42,17 +43,18 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
 
       <Card>
         <CardContent className="pt-5">
-          <form method="GET" action="/proposals" className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[220px]">
+          {/* One row: search (Enter submits) + status (submits on change). */}
+          <form method="GET" action="/proposals" role="search" className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <div className="relative flex-1 min-w-0 basis-full sm:basis-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
               <Input name="q" type="search" aria-label="Search proposals" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
             </div>
-            <select name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px]">
+            <AutoSubmitSelect name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px] flex-1 sm:flex-none">
               <option value="">All statuses</option>
               {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
-            </select>
-            <Button variant="secondary" className="gap-1.5"><Filter className="w-4 h-4" />Filter</Button>
-            {(sp.q || sp.status) && <Link href="/proposals" className="text-xs text-danger-500 hover:underline">Clear filters</Link>}
+            </AutoSubmitSelect>
+            <button type="submit" className="sr-only">Search</button>
+            {(sp.q || sp.status) && <Link href="/proposals" className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-md border border-border-subtle bg-surface text-[13px] font-semibold text-[rgb(var(--text-secondary))] hover:border-border-strong hover:text-ink"><X className="w-3.5 h-3.5" aria-hidden />Clear</Link>}
           </form>
         </CardContent>
       </Card>
@@ -83,7 +85,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                     <Pill variant={statusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill>
                   </div>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
-                    <span className="text-[rgb(var(--text-secondary))]">Travel <span className="text-ink">{formatDateShort(p.travelDate)}</span> · Created {formatDateShort(p.createdAt)}</span>
+                    <span className="text-[rgb(var(--text-secondary))]">Travel <span className="font-mono text-ink">{formatDateShort(p.travelDate)}</span> · Created <span className="font-mono">{formatDateShort(p.createdAt)}</span></span>
                     <span className="money font-bold text-[13.5px]">{fmt(p.pricePaise)}</span>
                   </div>
                   <ProposalActions p={p} walletBalance={walletBalance} stacked />
@@ -101,7 +103,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                     <th className="py-3 pr-4 font-bold">Created</th>
                     <th className="py-3 pr-4 font-semibold text-right">Price</th>
                     <th className="py-3 pr-4 font-bold">Status</th>
-                    <th className="py-3 pr-4 font-bold">Share</th>
+                    <th className="py-3 pr-4 font-bold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -113,8 +115,8 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                       </td>
                       <td className="py-3 pr-4 font-bold text-ink">{p.lead?.customerName ?? '—'}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{p.name}</td>
-                      <td className="py-3 pr-4">{formatDateShort(p.travelDate)}</td>
-                      <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(p.createdAt)}</td>
+                      <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap">{formatDateShort(p.travelDate)}</td>
+                      <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap text-[rgb(var(--text-secondary))]">{formatDateShort(p.createdAt)}</td>
                       <td className="py-3 pr-4 money text-right">{fmt(p.pricePaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill></td>
                       <td className="py-3 pr-4">
@@ -154,9 +156,8 @@ function ProposalActions({ p, walletBalance, stacked }: { p: ProposalRow; wallet
       {p.status === 'BOOKED' && (
         <a href={`/api/booking-voucher/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-success-600 hover:underline" title="Download booking voucher"><FileCheck className="w-3 h-3" />Voucher</a>
       )}
-      {/* Secondary actions fade in on hover only for real hover devices (mouse) at lg+.
-          Touch screens (e.g. iPad landscape) and keyboard focus always see them. */}
-      <div className={`inline-flex flex-wrap items-center gap-3 opacity-100 transition-opacity ${stacked ? '' : '[@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100'}`}>
+      {/* Always visible — hidden-until-hover actions were missed by agents. */}
+      <div className="inline-flex flex-wrap items-center gap-3">
         <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs text-crimson-700 hover:underline" title="Open customer link">
           Open <ExternalLink className="w-3 h-3" />
         </a>
