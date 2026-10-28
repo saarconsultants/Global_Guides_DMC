@@ -26,12 +26,11 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-6">
       <div className="text-center max-w-md">
-        <div className="mx-auto inline-flex items-center justify-center w-20 h-20 rounded-full bg-danger-100 text-danger-500 mb-6">
-          <AlertTriangle className="w-9 h-9" />
+        <div className="mx-auto inline-flex items-center justify-center w-12 h-12 rounded-md bg-danger-100 text-danger-500 mb-5">
+          <AlertTriangle className="w-6 h-6" />
         </div>
-        <p className="text-[11px] uppercase tracking-widest text-danger-500 font-bold">Something went wrong</p>
-        <h1 className="mt-3 text-2xl font-bold text-ink tracking-tight">We couldn't render this page.</h1>
-        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">Something on our side didn't work. We've been notified automatically. Please try again, or go back to your dashboard.</p>
+        <h1 className="text-[28px] font-extrabold tracking-[-0.02em] leading-[1.1] text-ink">Something went wrong on this page.</h1>
+        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">This one is on us, and our team has been told automatically. Please try again, or go back to your dashboard.</p>
         {error.digest && <p className="mt-1 text-xs font-mono text-[rgb(var(--text-tertiary))]">Ref: {error.digest}</p>}
         <div className="mt-6 flex items-center justify-center gap-2">
           <Button onClick={reset}>Try again</Button>

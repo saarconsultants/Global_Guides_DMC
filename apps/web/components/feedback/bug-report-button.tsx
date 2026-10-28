@@ -97,10 +97,13 @@ export function BugReportButton() {
 
   return (
     <>
+      {/* In-flow spacer: the page's last content can always scroll clear of the docked button. */}
+      <div aria-hidden className="h-20 lg:h-16" />
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center justify-center gap-1.5 w-10 h-10 lg:w-auto lg:px-4 rounded-full bg-ink text-white text-sm font-bold shadow-lg hover:bg-crimson-700 transition-colors"
-        title="Report an issue (⌘⇧B)"
+        className="fixed z-40 bottom-[calc(12px+env(safe-area-inset-bottom))] right-[calc(12px+env(safe-area-inset-right))] lg:bottom-[calc(16px+env(safe-area-inset-bottom))] lg:right-[calc(16px+env(safe-area-inset-right))] inline-flex items-center justify-center gap-1.5 w-11 h-11 lg:w-auto lg:h-9 lg:px-3.5 rounded-full bg-surface text-ink-soft border border-border text-[13px] font-bold shadow-md hover:border-border-strong hover:text-ink transition-colors duration-150 ease-standard"
+        title="Report an issue (Ctrl/Cmd + Shift + B)"
         aria-label="Report an issue"
       >
         <Bug className="w-4 h-4 shrink-0" /><span className="hidden lg:inline">Report</span>

@@ -58,6 +58,11 @@
   .tnum { font-variant-numeric: tabular-nums; }
   /* Money: the UI face, bold, tabular. (Mono is for codes only — its wide comma breaks lakh grouping.) */
   .money { font-family: var(--font-sans), ui-sans-serif, system-ui; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  /* Money stays Archivo even when it sits on (or inside) a mono element. */
+  .money.font-mono, .font-mono .money, .date .money { font-family: var(--font-sans), ui-sans-serif, system-ui; letter-spacing: -0.01em; }
+  /* Printed date: B612 Mono, bold, uppercase, tabular — "05 SEP 2026", "SUN 03 JAN".
+     Pair with formatDateShort / formatDayMonth / formatWeekdayDate / formatDateRange. */
+  .date { font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace; font-weight: 700; text-transform: uppercase; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; white-space: nowrap; }
   /* Perforation: dashed tear line with notches (horizontal by default). */
   .perf-x { position: relative; height: 0; border-top: 2px dashed #D5DAE1; }
   .perf-x::before, .perf-x::after { content: ''; position: absolute; top: -11px; width: 20px; height: 20px; border-radius: 50%; background: #EEF0F3; }
