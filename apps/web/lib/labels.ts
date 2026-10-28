@@ -43,3 +43,16 @@ export function statusLabel(status: string | null | undefined): string {
   const words = status.replace(/[_-]+/g, ' ').trim().toLowerCase();
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
+
+const ROLE_LABELS: Record<string, string> = {
+  AGENCY_OWNER: 'Owner',
+  COUNSELLOR: 'Counsellor',
+  OPS: 'Ops',
+  SUPER_ADMIN: 'Platform admin',
+};
+
+/** "AGENCY_OWNER" → "Owner". */
+export function roleLabel(role: string | null | undefined): string {
+  if (!role) return '';
+  return ROLE_LABELS[role.toUpperCase()] ?? statusLabel(role);
+}

@@ -8,6 +8,7 @@ import { agentPerformance } from '@/lib/db/performance';
 import { getDisplayMoney } from '@/lib/money-server';
 import { StatCard } from '@/components/ui/stat-card';
 import { Users2, Send, Eye, Trophy, TrendingUp, Crown } from 'lucide-react';
+import { roleLabel } from '@/lib/labels';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,9 +18,6 @@ const WINDOWS = [
   { key: 'all', label: 'All time', days: undefined },
 ] as const;
 
-const ROLE_LABEL: Record<string, string> = {
-  AGENCY_OWNER: 'Owner', COUNSELLOR: 'Counsellor', OPS: 'Ops', OTHER: '—',
-};
 
 interface PageProps { searchParams: Promise<{ d?: string }> }
 
@@ -34,9 +32,8 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
   const leader = rows.find((r) => r.won > 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
-        eyebrow="Team"
         title="Team performance"
         description="How your counsellors are converting enquiries into bookings. Compare proposals sent, win rate, and revenue."
         actions={
@@ -55,11 +52,11 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
       />
 
       {/* Summary KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard label="Proposals sent" value={String(totals.sent)} icon={<Send className="w-4 h-4" />} />
-        <StatCard label="Won (accepted + booked)" value={String(totals.won)} icon={<Trophy className="w-4 h-4" />} tone="gold" />
+        <StatCard label="Won (accepted + booked)" value={String(totals.won)} icon={<Trophy className="w-4 h-4" />} />
         <StatCard label="Win rate" value={`${totals.conversionPct}%`} icon={<TrendingUp className="w-4 h-4" />} />
-        <StatCard label="Revenue (won)" value={fmt(totals.revenuePaise)} icon={<Crown className="w-4 h-4" />} mono />
+        <div className="col-span-2 lg:col-span-1"><StatCard label="Revenue (won)" value={fmt(totals.revenuePaise)} icon={<Crown className="w-4 h-4" />} mono /></div>
       </div>
 
       <Card>
@@ -74,7 +71,38 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
               body="Once your team starts sending proposals, their conversion stats will show up here."
             />
           ) : (
-            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Team performance table">
+            <>
+            {/* Phones: one row per counsellor, numbers in a 4-cell grid. */}
+            <ul className="md:hidden divide-y divide-border-subtle">
+              {rows.map((r) => {
+                const isMe = r.userId === actor.userId;
+                const isLeader = leader && r.userId === leader.userId;
+                return (
+                  <li key={r.userId} className="py-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-bold text-ink break-words inline-flex items-center gap-1.5">{r.name}{isLeader && <Trophy className="w-3.5 h-3.5 text-navy-500" aria-label="Top performer" />}{isMe && <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">(you)</span>}</div>
+                        <div className="text-[12px] text-[rgb(var(--text-secondary))]">{roleLabel(r.role)}</div>
+                      </div>
+                      <span className="money text-[15px] text-ink whitespace-nowrap">{fmt(r.revenuePaise)}</span>
+                    </div>
+                    <dl className="mt-2 grid grid-cols-4 gap-2 text-center">
+                      {([['Sent', r.sent], ['Viewed', r.viewed], ['Won', r.won], ['Win rate', r.sent ? `${r.conversionPct}%` : '—']] as const).map(([l, v]) => (
+                        <div key={l} className="rounded-md bg-surface-2 py-1.5">
+                          <dt className="label text-[9.5px]">{l}</dt>
+                          <dd className="mt-0.5 text-[14px] font-bold text-ink tnum">{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </li>
+                );
+              })}
+              <li className="py-3 flex items-center justify-between text-[13px] font-bold text-ink">
+                <span>Team total · {totals.sent} sent · {totals.won} won · {totals.conversionPct}%</span>
+                <span className="money">{fmt(totals.revenuePaise)}</span>
+              </li>
+            </ul>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left label border-b border-border">
@@ -92,13 +120,13 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
                     const isMe = r.userId === actor.userId;
                     const isLeader = leader && r.userId === leader.userId;
                     return (
-                      <tr key={r.userId} className={`border-b border-border-subtle/60 ${isMe ? 'bg-amber-50/50' : ''}`}>
+                      <tr key={r.userId} className={`border-b border-border-subtle/60 ${isMe ? 'bg-surface-2' : ''}`}>
                         <td className="py-2.5 pr-3">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-ink">{r.name}</span>
-                            {isLeader && <Crown className="w-3.5 h-3.5 text-amber-500" aria-label="Top performer" />}
-                            {isMe && <Pill variant="neutral">You</Pill>}
-                            <span className="text-[10px] uppercase tracking-wide text-[rgb(var(--text-tertiary))]">{ROLE_LABEL[r.role] ?? r.role}</span>
+                            {isLeader && <Trophy className="w-3.5 h-3.5 text-navy-500" aria-label="Top performer" />}
+                            {isMe && <span className="text-[12px] font-semibold text-[rgb(var(--text-secondary))]">(you)</span>}
+                            <span className="label">{roleLabel(r.role)}</span>
                           </div>
                         </td>
                         <td className="py-2.5 px-3 text-right tabular-nums text-[rgb(var(--text-secondary))]">{r.drafts}</td>
@@ -126,6 +154,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
                 </tfoot>
               </table>
             </div>
+            </>
           )}
           <p className="mt-3 text-[11px] text-[rgb(var(--text-tertiary))]">
             <Eye className="w-3 h-3 inline -mt-0.5 mr-0.5" /> “Won” counts accepted and booked proposals. Win rate = won ÷ sent. Revenue is the customer price of won trips.
@@ -138,6 +167,5 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
 
 function ConvBadge({ pct, sent }: { pct: number; sent: number }) {
   if (sent === 0) return <span className="text-[rgb(var(--text-tertiary))]">—</span>;
-  const variant = pct >= 40 ? 'success' : pct >= 20 ? 'warning' : 'neutral';
-  return <Pill variant={variant as any}>{pct}%</Pill>;
+  return <Pill variant={pct >= 40 ? 'success' : 'neutral'}>{pct}%</Pill>;
 }

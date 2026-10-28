@@ -46,7 +46,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const totalSpend = rows.filter((b) => b.status === 'CONFIRMED').reduce((s, b) => s + b.paidPaise, 0n);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My bookings"
         description="Confirmed and pending bookings. Each row links back to the proposal it was converted from."
@@ -56,8 +56,14 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total bookings" value={String(rows.length)} />
         <StatCard label="Confirmed" value={String(rows.filter((b) => b.status === 'CONFIRMED').length)} tone="success" />
-        <StatCard label="Pending" value={String(rows.filter((b) => b.status === 'PENDING').length)} tone="warning" />
-        <StatCard label="Confirmed value" value={fmt(totalSpend)} mono />
+        {/* Pending = waiting: the warning-chip pair (amber wash, deep amber text), not orange. */}
+        <Card>
+          <CardContent className="pt-4">
+            <p className="label">Pending</p>
+            <p className="mt-2 leading-none"><span className="inline-flex items-center rounded-[5px] bg-amber-100 text-amber-900 px-2 py-1 text-[26px] font-extrabold tnum tracking-[-0.02em]">{rows.filter((b) => b.status === 'PENDING').length}</span></p>
+          </CardContent>
+        </Card>
+        <div className="col-span-2 lg:col-span-1 min-w-0"><StatCard label="Confirmed value" value={fmt(totalSpend)} mono /></div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -93,7 +99,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                     <Pill variant={statusVariant[b.status] ?? 'neutral'}>{statusLabel(b.status)}</Pill>
                   </div>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12.5px] tnum">
-                    <span className="text-[rgb(var(--text-secondary))]">Travel <span className="text-ink">{formatDateShort(b.proposal.travelDate)}</span> · Booked {formatDateShort(b.bookedAt)}</span>
+                    <span className="text-[rgb(var(--text-secondary))]">Travel <span className="font-mono text-ink">{formatDateShort(b.proposal.travelDate)}</span> · Booked <span className="font-mono">{formatDateShort(b.bookedAt)}</span></span>
                     <span className="money font-bold text-[13.5px]">{fmt(b.paidPaise)}</span>
                   </div>
                   {b.pnrs && <div className="font-mono text-xs text-[rgb(var(--text-secondary))] break-all">PNR {b.pnrs}</div>}
@@ -125,8 +131,8 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4 font-mono text-[12.5px] font-bold"><Link href={`/itinerary/${b.proposal.id}/customize` as any} className="text-crimson-700 hover:underline">{b.proposal.code}</Link></td>
                       <td className="py-3 pr-4">{b.proposal.lead?.customerName ?? '—'}</td>
                       <td className="py-3 pr-4">{b.proposal.name}</td>
-                      <td className="py-3 pr-4">{formatDateShort(b.proposal.travelDate)}</td>
-                      <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{formatDateShort(b.bookedAt)}</td>
+                      <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap">{formatDateShort(b.proposal.travelDate)}</td>
+                      <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap text-[rgb(var(--text-secondary))]">{formatDateShort(b.bookedAt)}</td>
                       <td className="py-3 pr-4 money text-right">{fmt(b.paidPaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[b.status] ?? 'neutral'}>{statusLabel(b.status)}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>

@@ -6,7 +6,7 @@ import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
 import { saveSalesSettingsAction } from '@/app/actions/branding';
 import { Percent, Plane, Hotel as HotelIcon, Car, MapPin, FileText, ShieldCheck } from 'lucide-react';
-import Link from 'next/link';
+import { SettingsTabs, SETTINGS_CONTAINER } from '@/components/settings/settings-tabs';
 import { MarginCalculator } from '@/components/settings/margin-calculator';
 import { MarkupRulesEditor } from '@/components/settings/markup-rules-editor';
 import { parseMarkupRules } from '@/lib/markup';
@@ -33,19 +33,19 @@ export default async function SalesSettingsPage() {
   const markupRules = parseMarkupRules(agency.markupRulesJson);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10 space-y-6">
-      <div className="flex items-center gap-2 text-sm">
-        <Link href="/settings" className="text-[rgb(var(--text-secondary))] hover:text-ink">Settings</Link>
-        <span className="text-[rgb(var(--text-tertiary))]">›</span>
-        <span className="text-ink font-medium">Sales &amp; markup</span>
-      </div>
+    <div className={SETTINGS_CONTAINER}>
       <PageHeader
-        eyebrow="Settings"
-        title="Sales &amp; markup"
-        description="Set how much you add over net supplier cost. The default applies to every product type, then specific overrides win for that product."
+        title="Settings"
+        description="Agency profile, white-label branding, markup and team. These affect what your customers see on every share link."
+        actions={<span className="text-xs text-[rgb(var(--text-secondary))]">Agency ID · <span className="font-mono">{agency.code}</span></span>}
       />
+      <SettingsTabs active="sales" />
+      <div>
+        <h2 className="text-[18px] font-extrabold text-ink tracking-[-0.01em]">Sales &amp; markup</h2>
+        <p className="text-[14px] text-[rgb(var(--text-secondary))] mt-1 max-w-2xl">Set how much you add over net cost. The default applies to every product type; a product override wins for that product.</p>
+      </div>
 
-      <ActionForm action={saveSalesSettingsAction} success="Sales settings saved" className="space-y-6">
+      <ActionForm action={saveSalesSettingsAction} success="Sales settings saved" className="flex flex-col gap-5 max-w-4xl">
         <Card>
           <CardContent className="pt-6 space-y-4">
             <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2"><Globe className="w-4 h-4 text-crimson-700" />Display currency</h2>

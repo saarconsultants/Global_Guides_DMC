@@ -41,7 +41,7 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
     <Card className="min-w-0 overflow-hidden">
       <CardContent className="pt-6 space-y-4 min-w-0">
         <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
-          <Calculator className="w-4 h-4 text-crimson-700" />Live margin calculator
+          <Calculator className="w-4 h-4 text-crimson-700" />Margin calculator
         </h2>
         <p className="text-xs text-[rgb(var(--text-secondary))]">
           Paste a net supplier cost and pick a product to see what the customer pays — using your current saved settings above. Changes here aren't persisted; this is a what-if tool.

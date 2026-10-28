@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { getWalletBalance, listWalletTxns } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
+import { statusLabel } from '@/lib/labels';
 import { getDisplayMoney } from '@/lib/money-server';
 import { Wallet, Download, Plus, Receipt } from 'lucide-react';
 import { RechargeButton } from '@/components/wallet/recharge-button';
@@ -16,7 +17,7 @@ export default async function StatementPage() {
   const [balance, txns] = await Promise.all([getWalletBalance(), listWalletTxns()]);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
       <PageHeader
         title="Account statement"
         description="Wallet ledger and booking-level debits. Top up to enable instant bookings."
@@ -31,8 +32,8 @@ export default async function StatementPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 rounded-lg bg-ink text-white shadow-sm overflow-hidden flex flex-col lg:flex-row">
           <div className="flex-1 px-6 py-6">
-            <p className="label text-amber-500 inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>
-            <p className="mt-2 money text-[44px] leading-none">{fmt(balance)}</p>
+            <p className="label text-white/70 inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>
+            <p className="mt-2 money text-[36px] sm:text-[44px] leading-none break-words">{fmt(balance)}</p>
             <p className="text-[13px] text-white/70 mt-3 max-w-md">Bookings confirm instantly against this balance. Top up by NEFT/IMPS bank transfer and WhatsApp us the receipt.</p>
           </div>
           <div className="lg:w-[220px] border-t lg:border-t-0 lg:border-l border-dashed border-white/25 px-6 py-5 flex flex-col justify-center gap-1">
@@ -74,11 +75,11 @@ export default async function StatementPage() {
                 <tbody>
                   {txns.map((t) => (
                     <tr key={t.id} className="border-b border-border-subtle hover:bg-surface-2 transition-colors">
-                      <td className="py-3 pr-4">{formatDateShort(t.createdAt)}</td>
-                      <td className="py-3 pr-4"><Pill variant={t.type === 'DEBIT' ? 'danger' : t.type === 'REFUND' ? 'warning' : 'success'}>{t.type}</Pill></td>
+                      <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap">{formatDateShort(t.createdAt)}</td>
+                      <td className="py-3 pr-4"><Pill variant={t.type === 'DEBIT' ? 'danger' : t.type === 'REFUND' ? 'warning' : 'success'}>{statusLabel(t.type)}</Pill></td>
                       <td className="py-3 pr-4 font-mono text-xs">{t.ref ?? '—'}</td>
                       <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]">{t.note ?? '—'}</td>
-                      <td className={`py-3 pr-4 font-mono text-right ${t.type === 'DEBIT' ? 'text-danger-500' : 'text-success-500'}`}>
+                      <td className={`py-3 pr-4 money text-right whitespace-nowrap ${t.type === 'DEBIT' ? 'text-danger-500' : 'text-success-500'}`}>
                         {t.type === 'DEBIT' ? '−' : '+'}{fmt(t.amountPaise)}
                       </td>
                     </tr>

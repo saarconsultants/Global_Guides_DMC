@@ -30,6 +30,8 @@ export function BrandingForm({ initial }: Props) {
   const [name, setName] = useState(initial.name);
   const [tagline, setTagline] = useState(initial.tagline ?? '');
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl ?? '');
+  // The link field shows only a pasted web link, never an uploaded image or a built-in path.
+  const [logoLink, setLogoLink] = useState(/^https?:\/\//i.test(initial.logoUrl ?? '') ? initial.logoUrl ?? '' : '');
   const [primaryColor, setPrimaryColor] = useState(initial.primaryColor ?? '#0369A1');
   const [accentColor, setAccentColor] = useState(initial.accentColor ?? '#C9A24A');
   const [footerText, setFooterText] = useState(initial.footerText ?? '');
@@ -45,7 +47,7 @@ export function BrandingForm({ initial }: Props) {
     if (!file.type.startsWith('image/')) { toast.error('Invalid file', 'Choose an image (PNG, JPG, or SVG).'); return; }
     if (file.size > MAX_LOGO_BYTES) { toast.error('Image too large', 'Please use a logo under 250 KB (a 256×256 PNG is plenty).'); return; }
     const reader = new FileReader();
-    reader.onload = () => { setLogoUrl(String(reader.result)); toast.success('Logo loaded', 'Click Save settings to apply it.'); };
+    reader.onload = () => { setLogoUrl(String(reader.result)); setLogoLink(''); toast.success('Logo loaded', 'Click Save settings to apply it.'); };
     reader.onerror = () => toast.error('Could not read file', 'Try a different image.');
     reader.readAsDataURL(file);
   }
@@ -68,8 +70,9 @@ export function BrandingForm({ initial }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className="grid lg:grid-cols-[1fr_360px] gap-6">
-      <div className="space-y-6">
+    // Phone order: fields → preview → Save. Desktop: fields + Save left, preview right.
+    <form onSubmit={submit} className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6">
+      <div className="space-y-6 min-w-0 lg:col-start-1 lg:row-start-1">
         <Card>
           <CardContent className="pt-6 space-y-4">
             <h2 className="text-lg font-semibold text-ink">Agency profile</h2>
@@ -102,18 +105,19 @@ export function BrandingForm({ initial }: Props) {
                       <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={onLogoFile} className="hidden" />
                     </label>
                     {logoUrl && (
-                      <button type="button" onClick={() => setLogoUrl('')} className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-danger-500">
+                      <button type="button" onClick={() => { setLogoUrl(''); setLogoLink(''); }} className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-danger-500">
                         <X className="w-3 h-3" /> Remove
                       </button>
                     )}
                   </div>
                 </div>
-                <Input aria-label="Logo image URL" value={logoUrl.startsWith('data:') ? '' : logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="…or paste an image URL" className="mt-2" />
+                {/* Only a pasted web link is shown here — uploaded images and built-in paths stay hidden. */}
+                <Input aria-label="Logo image link" type="url" value={logoLink} onChange={(e) => { setLogoLink(e.target.value); setLogoUrl(e.target.value); }} placeholder="…or paste an image link (https://)" className="mt-2" />
                 <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">Square PNG/JPG, 256×256+ recommended (under 250 KB). Uploads are stored with your branding.</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <ColorField label="Primary colour" value={primaryColor} onChange={setPrimaryColor} />
-                <ColorField label="Accent colour"  value={accentColor}  onChange={setAccentColor} />
+              <div className="grid grid-cols-1 gap-4">
+                <ColorField label="Primary colour" hint="Price stub, buttons and day markers" value={primaryColor} onChange={setPrimaryColor} />
+                <ColorField label="Accent colour" hint="Request-changes button" value={accentColor} onChange={setAccentColor} />
               </div>
             </div>
           </CardContent>
@@ -132,32 +136,34 @@ export function BrandingForm({ initial }: Props) {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-end gap-3">
-          <Button type="button" variant="ghost" onClick={() => window.open('/p/preview', '_blank')} className="gap-1.5"><Eye className="w-4 h-4" />Preview as customer</Button>
-          <Button type="submit" disabled={pending} className="gap-2">
-            {pending ? <><Spinner size="sm" className="text-white" />Saving…</> : 'Save settings'}
-          </Button>
-        </div>
       </div>
 
-      <aside className="space-y-4">
+      <aside className="space-y-4 min-w-0 lg:col-start-2 lg:row-start-1 lg:row-span-2">
         <BrandingPreview agency={{ name, tagline, logoUrl, primaryColor, accentColor }} />
       </aside>
+
+      <div className="flex flex-wrap items-center justify-end gap-3 lg:col-start-1 lg:row-start-2">
+        <Button type="button" variant="ghost" onClick={() => window.open('/p/preview', '_blank')} className="gap-1.5"><Eye className="w-4 h-4" />Preview as customer</Button>
+        <Button type="submit" disabled={pending} className="gap-2">
+          {pending ? <><Spinner size="sm" className="text-white" />Saving…</> : 'Save settings'}
+        </Button>
+      </div>
     </form>
   );
 }
 
-function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function ColorField({ label, hint, value, onChange }: { label: string; hint?: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div>
+    <div className="min-w-0">
       <Label>{label}</Label>
       <div className="flex items-center gap-2">
-        <input type="color" aria-label={`${label} colour picker`} value={value} onChange={(e) => onChange(e.target.value)} className="h-10 w-12 rounded border border-border cursor-pointer" />
-        <Input aria-label={`${label} hex value`} value={value} onChange={(e) => onChange(e.target.value)} className="font-mono" />
-        <button type="button" onClick={() => navigator.clipboard.writeText(value).then(() => toast.success('Copied', value))} className="h-10 w-10 inline-flex items-center justify-center rounded-md hover:bg-navy-50 cursor-pointer text-[rgb(var(--text-tertiary))]" aria-label="Copy hex">
+        <input type="color" aria-label={`${label} picker`} value={value} onChange={(e) => onChange(e.target.value)} className="h-11 w-12 shrink-0 rounded-md border border-border cursor-pointer" />
+        <Input aria-label={`${label} hex value`} value={value} onChange={(e) => onChange(e.target.value)} maxLength={7} className="font-mono min-w-0 flex-1 max-w-[140px]" />
+        <button type="button" onClick={() => navigator.clipboard.writeText(value).then(() => toast.success('Copied', value))} className="h-10 w-10 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-navy-50 cursor-pointer text-[rgb(var(--text-tertiary))]" aria-label={`Copy ${label} hex`}>
           <Copy className="w-4 h-4" />
         </button>
       </div>
+      {hint && <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">{hint}</p>}
     </div>
   );
 }
