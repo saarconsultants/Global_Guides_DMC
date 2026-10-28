@@ -148,8 +148,15 @@ export async function listProposals(filter: ProposalListFilter = {}) {
       { lead: { destinations: { contains: q } } },
     ];
   }
+  // List columns only — the itinerary JSON (days/flights/visa/insurance/travelers)
+  // is large and only needed when a single proposal is opened.
   return db.proposal.findMany({
-    where, orderBy: { createdAt: 'desc' }, include: { lead: true }, take: 200,
+    where, orderBy: { createdAt: 'desc' }, take: 200,
+    select: {
+      id: true, code: true, name: true, status: true, version: true,
+      travelDate: true, createdAt: true, pricePaise: true, netCostPaise: true, shareToken: true,
+      lead: { select: { customerName: true } },
+    },
   });
 }
 

@@ -25,7 +25,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
   const agency = await db.agency.findUnique({
     where: { id }, include: {
       users: { orderBy: { createdAt: 'asc' } },
-      proposals: { take: 10, orderBy: { createdAt: 'desc' }, include: { lead: true } },
+      proposals: { take: 10, orderBy: { createdAt: 'desc' }, select: { id: true, code: true, name: true, status: true, pricePaise: true, lead: { select: { customerName: true } } } },
       commissionEntries: { take: 10, orderBy: { createdAt: 'desc' } },
       _count: { select: { proposals: true, bookings: true, commissionEntries: true } },
     },

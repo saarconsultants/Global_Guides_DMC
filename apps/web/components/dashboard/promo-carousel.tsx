@@ -26,7 +26,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
 
   useEffect(() => {
     if (n <= 1) return;
-    const t = setInterval(() => { if (!hover.current) setIdx((i) => (i + 1) % n); }, 6000);
+    const t = setInterval(() => { if (!hover.current && !document.hidden) setIdx((i) => (i + 1) % n); }, 6000);
     return () => clearInterval(t);
   }, [n]);
 
@@ -42,12 +42,12 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
     >
       <div className="overflow-hidden rounded-lg shadow-md">
         <div className="flex transition-transform duration-700 ease-standard" style={{ transform: `translateX(-${idx * 100}%)` }}>
-          {banners.map((b) => (
+          {banners.map((b, i) => (
             <div key={b.key} className={`relative w-full shrink-0 min-h-[440px] lg:min-h-[500px] bg-gradient-to-br ${b.tint} text-white overflow-hidden`}>
               {b.img && (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img src={b.img} alt="" decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,12,18,0.84)_0%,rgba(10,12,18,0.5)_45%,rgba(10,12,18,0.1)_85%)]" />
                   <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/55 to-transparent" />
                 </>

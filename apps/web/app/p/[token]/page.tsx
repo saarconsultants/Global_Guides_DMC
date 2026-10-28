@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 import type { Metadata } from 'next';
 import { getProposalByToken, proposalToItinerary, recordProposalView } from '@/lib/db/share';
 import { formatDateShort } from '@/lib/utils';
@@ -32,7 +33,9 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
   const { token } = await params;
   const p = await getProposalByToken(token);
   if (!p) notFound();
-  await recordProposalView(token);
+  // Record the view after the response is sent — the customer shouldn't wait on
+  // the status update + notification writes before seeing their trip.
+  after(() => recordProposalView(token));
   const it = proposalToItinerary(p)!;
   const { fmt } = await displayMoneyFor(p.agency.currency);
   const accepted = p.status === 'ACCEPTED' || p.status === 'BOOKED';

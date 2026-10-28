@@ -13,8 +13,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function StatementPage() {
   const { fmt } = await getDisplayMoney();
-  const balance = await getWalletBalance();
-  const txns = await listWalletTxns();
+  const [balance, txns] = await Promise.all([getWalletBalance(), listWalletTxns()]);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">

@@ -1,4 +1,5 @@
 import { db } from '@/lib/db/client';
+import { TEMPLATE_CARD_SELECT } from '@/lib/db/templates';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
@@ -17,6 +18,7 @@ export default async function FITPackagesPage() {
     where: { published: true },
     orderBy: { createdAt: 'desc' },
     take: 24,
+    select: TEMPLATE_CARD_SELECT,
   });
 
   return (

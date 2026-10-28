@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getIronSession } from 'iron-session';
-import { sessionOptions, type SessionPayload } from '@/lib/auth/session';
+import { sessionOptions, type SessionPayload } from '@/lib/auth/session-options';
 
 // Routes that DO NOT require auth.
 const PUBLIC_PREFIXES = ['/login', '/signup', '/logout', '/p/', '/invite/', '/api/public', '/widget/', '/_next', '/favicon', '/manifest', '/static', '/brand/'];
@@ -34,5 +34,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   // Run on everything except internal Next routes & static assets
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  // Public routes (login, the customer proposal page, invites, widget, public API)
+  // are excluded here as well, so they skip the middleware invocation entirely.
+  // PUBLIC_PREFIXES above stays as the in-function guard.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|login|signup|logout|p/|invite/|api/public|widget/|brand/|.*\\..*).*)'],
 };

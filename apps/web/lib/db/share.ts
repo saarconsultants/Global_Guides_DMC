@@ -1,13 +1,16 @@
 // Public proposal access by shareToken (no agency check — token IS the auth).
 
+import { cache } from 'react';
 import { db } from './client';
 import { proposalToItinerary } from './proposals';
 import { emitNotification } from './notifications';
 
-export async function getProposalByToken(token: string) {
+// React cache: generateMetadata and the page both ask for the same proposal —
+// one DB round trip per request instead of two.
+export const getProposalByToken = cache(async function getProposalByToken(token: string) {
   const p = await db.proposal.findUnique({ where: { shareToken: token }, include: { lead: true, agency: { select: { id: true, name: true, code: true, contact: true, email: true, primaryColor: true, accentColor: true, logoUrl: true, tagline: true, footerText: true, supportEmail: true, supportPhone: true, currency: true } } } });
   return p;
-}
+});
 
 export async function recordProposalView(token: string) {
   // Only fire once per (token, day): we look for an existing PROPOSAL_VIEWED note today.

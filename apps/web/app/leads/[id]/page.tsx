@@ -28,16 +28,17 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   const { fmt } = await getDisplayMoney();
   const actor = await requireAgency();
   const { id } = await params;
-  const lead = await db.lead.findFirst({
-    where: { id, agencyId: actor.agencyId },
-    include: { proposals: { orderBy: { createdAt: 'desc' } } },
-  });
+  // Lead + notes in parallel (notes are discarded if the lead isn't this agency's).
+  // Proposals: list columns only, not the itinerary JSON.
+  const [lead, noteRows] = await Promise.all([
+    db.lead.findFirst({
+      where: { id, agencyId: actor.agencyId },
+      include: { proposals: { orderBy: { createdAt: 'desc' }, select: { id: true, code: true, name: true, status: true, pricePaise: true, shareToken: true, createdAt: true, updatedAt: true, lastViewedAt: true, acceptedAt: true } } },
+    }),
+    db.leadNote.findMany({ where: { leadId: id }, orderBy: { createdAt: 'desc' }, take: 100 }),
+  ]);
   if (!lead) notFound();
 
-  // Notes — fetched separately so we can join author names
-  const noteRows = await db.leadNote.findMany({
-    where: { leadId: id }, orderBy: { createdAt: 'desc' }, take: 100,
-  });
   const authorIds = Array.from(new Set(noteRows.map((n) => n.authorId).filter(Boolean) as string[]));
   const authors = authorIds.length ? await db.user.findMany({ where: { id: { in: authorIds } }, select: { id: true, name: true, email: true } }) : [];
   const authorMap = new Map(authors.map((a) => [a.id, a.name ?? a.email] as const));

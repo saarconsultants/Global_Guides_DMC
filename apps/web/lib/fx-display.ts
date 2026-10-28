@@ -20,10 +20,18 @@ const FALLBACK: Record<string, number> = {
 };
 
 let cache: { at: number; rates: Record<string, number> } | null = null;
+// Concurrent requests on a cold instance share one in-flight fetch.
+let inflight: Promise<Record<string, number>> | null = null;
 
 async function fetchRates(): Promise<Record<string, number>> {
   const symbols = FRANKFURTER_CODES.join(',');
-  const res = await fetch(`https://api.frankfurter.app/latest?from=INR&to=${symbols}`, { cache: 'no-store' });
+  // Next's data cache (revalidate = TTL) survives serverless cold starts, so a
+  // fresh instance doesn't block its first render on a cross-continent API call.
+  // Hard timeout: a slow FX API must never hold the page hostage (fallback below).
+  const res = await fetch(`https://api.frankfurter.app/latest?from=INR&to=${symbols}`, {
+    next: { revalidate: TTL_MS / 1000 },
+    signal: AbortSignal.timeout(2500),
+  });
   if (!res.ok) throw new Error(`FX HTTP ${res.status}`);
   const data = (await res.json()) as { rates?: Record<string, number> };
   const rates: Record<string, number> = { INR: 1, ...(data.rates ?? {}) };
@@ -34,10 +42,11 @@ async function fetchRates(): Promise<Record<string, number>> {
 
 export async function getInrRates(): Promise<Record<string, number>> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.rates;
+  inflight ??= fetchRates()
+    .then((rates) => { cache = { at: Date.now(), rates }; return rates; })
+    .finally(() => { inflight = null; });
   try {
-    const rates = await fetchRates();
-    cache = { at: Date.now(), rates };
-    return rates;
+    return await inflight;
   } catch {
     return cache?.rates ?? FALLBACK;
   }
