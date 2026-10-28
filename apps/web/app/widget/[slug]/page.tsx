@@ -1,6 +1,7 @@
 import { db } from '@/lib/db/client';
 import { notFound } from 'next/navigation';
 import { WidgetForm } from './widget-form';
+import { ImageWithFallback } from '@/components/common/image-with-fallback';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,23 +13,29 @@ export default async function WidgetPage({ params }: { params: Promise<{ slug: s
   });
   if (!agency || agency.status !== 'ACTIVE') notFound();
 
-  const primary = agency.primaryColor ?? '#630909';
-  const accent  = agency.accentColor  ?? '#FFBA06';
+  const initials = (agency.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('');
+  const initialsPlate = <span className="h-11 w-11 rounded-md bg-ink text-white flex items-center justify-center text-sm font-extrabold">{initials}</span>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: `linear-gradient(135deg, ${primary} 0%, #000 100%)` }}>
-      <div className="w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
-        <div className="px-6 py-5 text-white" style={{ background: primary }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-canvas">
+      <div className="w-full max-w-md bg-surface rounded-lg border border-border-subtle shadow-sm overflow-hidden">
+        <div className="px-6 pt-6 pb-5 border-b border-border-subtle">
           <div className="flex items-center gap-3">
-            {agency.logoUrl && <img src={agency.logoUrl} alt={agency.name} className="h-10 w-10 rounded bg-white/10 p-1 object-contain" />}
-            <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: accent }}>Plan your trip</p>
-              <h1 className="text-lg font-bold">{agency.name}</h1>
+            {/* Logo on a white plate; initials when there is no logo or it fails to load. */}
+            <div className="shrink-0">
+              {agency.logoUrl ? (
+                <div className="h-11 min-w-11 rounded-md bg-white border border-border-subtle px-1.5 flex items-center justify-center">
+                  <ImageWithFallback src={agency.logoUrl} alt={agency.name} className="h-8 w-auto max-w-[110px] object-contain" fallback={<span className="text-sm font-extrabold text-ink px-1">{initials}</span>} />
+                </div>
+              ) : initialsPlate}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[18px] font-extrabold text-ink leading-tight break-words">{agency.name}</h1>
+              <p className="text-[13px] text-[rgb(var(--text-secondary))] leading-snug mt-0.5">{agency.tagline || 'Tell us about your trip and we’ll send a proposal.'}</p>
             </div>
           </div>
-          {agency.tagline && <p className="text-xs text-white/80 mt-2">{agency.tagline}</p>}
         </div>
-        <WidgetForm slug={agency.slug} accent={accent} primary={primary} />
+        <WidgetForm slug={agency.slug} />
       </div>
     </div>
   );
