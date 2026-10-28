@@ -20,9 +20,13 @@ const archivo = Archivo({ subsets: ['latin'], weight: ['400', '500', '600', '700
 const b612 = B612_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-mono', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Global Guides DMC',
+  title: { default: 'Global Guides DMC', template: '%s · Global Guides' },
   description: 'B2B travel agent platform — itinerary builder, leads, proposals, bookings',
+  applicationName: 'Global Guides',
+  robots: { index: false, follow: false },
 };
+
+export const viewport = { themeColor: '#101828' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const actor = await getActor();

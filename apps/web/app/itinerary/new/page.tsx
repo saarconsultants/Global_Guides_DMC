@@ -29,9 +29,11 @@ function NewItineraryForm() {
   const params = useSearchParams();
   const upsert = useItineraryStore((s) => s.upsert);
 
+  // Fixed ids for the first render — a module counter differs between the
+  // server and the browser, which broke hydration of the drag-and-drop rows.
   const [destinations, setDestinations] = useState<DestRow[]>([
-    { id: newId(), cityCode: 'PAR', nights: 3 },
-    { id: newId(), cityCode: 'AMS', nights: 2 },
+    { id: 'init-0', cityCode: 'PAR', nights: 3 },
+    { id: 'init-1', cityCode: 'AMS', nights: 2 },
   ]);
   const [leavingFromCode, setLeavingFromCode] = useState('BOM');
   const [nationality, setNationality] = useState('IN');
@@ -166,7 +168,7 @@ function NewItineraryForm() {
               <p className="text-[12.5px] text-[rgb(var(--text-secondary))]">Drag to reorder · <span className="text-success-600 font-bold">Live</span> = full hotel inventory</p>
             </div>
             <div className="mt-3">
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+              <DndContext id="trip-destinations" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
                 <SortableContext items={destinations.map((d) => d.id)} strategy={verticalListSortingStrategy}>
                   {destinations.map((d, i) => (
                     <SortableDestinationRow
