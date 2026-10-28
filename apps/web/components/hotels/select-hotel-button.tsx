@@ -19,7 +19,7 @@ export function SelectHotelButton({ hotelName, cityCode, checkin, nights, adults
     router.push(`/itinerary/new?${qs.toString()}` as any);
   }
   return (
-    <Button className="mt-2 w-full gap-1.5" onClick={start} aria-label={`Plan a trip in this city, starting from ${hotelName}`}>
+    <Button variant="secondary" className="mt-2 w-full gap-1.5" onClick={start} aria-label={`Plan a trip in this city, starting from ${hotelName}`}>
       <Plus className="w-4 h-4" />Plan a trip here
     </Button>
   );

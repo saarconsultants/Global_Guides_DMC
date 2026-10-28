@@ -8,6 +8,7 @@ import type { Hotel } from '@/lib/itinerary/types';
 import { promoSrc } from '@/lib/promos';
 import Link from 'next/link';
 import { RouteCode } from '@/components/ui/pass';
+import { formatDateRange } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,7 +92,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   const liveCount = hotels.filter((h) => h.id.startsWith('HB-')).length;
   const badge =
     source === 'live'
-      ? { variant: 'success' as const, label: `${liveCount} with live prices` }
+      ? { variant: 'live' as const, label: `${liveCount} with live prices` }
       : source === 'unsupported-city'
       ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
       : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
@@ -100,7 +101,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
     <div className="pb-12">
       <HotelSearchForm hero heroImg={promoSrc('hero-hotels.jpg')} defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
-      <div className="mx-auto max-w-7xl px-6 pt-6 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 space-y-6">
         {dateInvalid && (
           <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm" role="alert">
             Check-out must be after check-in. Please adjust the dates and search again.
@@ -115,9 +116,9 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
         {!hasQuery && (
           <section>
-            <div className="flex items-end justify-between mb-4">
+            <div className="mb-4">
               <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Where are they staying?</h2>
-              <p className="text-sm text-[rgb(var(--text-secondary))]">Wholesale rates on 250k+ properties</p>
+              <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">Wholesale rates on 250k+ properties</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {HOTEL_CITIES.map((d) => {
@@ -140,9 +141,12 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
         {hasQuery && !dateInvalid && (
           <>
-            <div className="flex items-center justify-between gap-3 text-sm text-[rgb(var(--text-secondary))]">
-              <span>Hotels in <span className="font-bold text-ink">{cityName}</span> · <span className="tnum">{checkin} → {checkout}</span>{filteredOut > 0 && <span className="text-xs ml-2">({filteredOut} hidden by filters)</span>}</span>
-              <Pill variant={badge.variant}>{badge.label}</Pill>
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 text-sm text-[rgb(var(--text-secondary))]">
+              <p className="min-w-0">
+                Hotels in <span className="font-bold text-ink">{cityName}</span> · <span className="font-mono font-bold text-ink tnum whitespace-nowrap">{formatDateRange(checkin, checkout)}</span>
+                {filteredOut > 0 && <span className="text-xs ml-2 whitespace-nowrap">({filteredOut} hidden by filters)</span>}
+              </p>
+              <Pill variant={badge.variant} className="max-w-full whitespace-normal text-left leading-tight">{badge.label}</Pill>
             </div>
             <HotelResults hotels={hotels} nights={nights} checkin={checkin} adults={adults} />
           </>

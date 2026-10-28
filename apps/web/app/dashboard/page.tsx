@@ -10,7 +10,7 @@ import { DashboardSearch } from '@/components/dashboard/dashboard-search';
 import { RouteCode } from '@/components/ui/pass';
 import { requireAgency } from '@/lib/auth/ctx';
 import { db } from '@/lib/db/client';
-import { formatDateShort } from '@/lib/utils';
+import { formatDayMonth } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
 import { StatCard } from '@/components/ui/stat-card';
 import { cloneAndRedirectAction } from '@/app/actions/clone-template';
@@ -96,11 +96,11 @@ export default async function DashboardPage() {
   const banners: PromoBanner[] = [
     {
       key: 'ai',
-      kicker: 'AI Itinerary Builder',
+      kicker: 'Plan a trip with AI',
       title: 'Type a few cities.',
       titleAccent: 'Get a trip.',
       body: 'Destinations in, routed day-by-day plan out — hotels, transfers and activities loaded straight into the builder. Quote in minutes, not hours.',
-      cta: { label: 'Build a trip with AI', href: '/itinerary/ai' },
+      cta: { label: 'Plan a trip with AI', href: '/itinerary/ai' },
       cta2: { label: 'Browse templates', href: '/suggested' },
       img: promoSrc('banner-ai.jpg'),
       tint: 'from-crimson-500 via-crimson-700 to-crimson-900',
@@ -181,7 +181,7 @@ export default async function DashboardPage() {
                           <div className="mt-0.5 money text-[19px] text-ink truncate">{fmt(t.startingPricePaise)}</div>
                         </div>
                         <form action={cloneAndRedirectAction.bind(null, t.id)} className="shrink-0">
-                          <Button type="submit" size="sm">Use this</Button>
+                          <Button type="submit" size="sm" variant="secondary">Use this package</Button>
                         </form>
                       </div>
                     </div>
@@ -211,7 +211,7 @@ export default async function DashboardPage() {
                           <span className="w-8 h-8 rounded-md bg-action-100 text-action-600 inline-flex items-center justify-center flex-shrink-0"><MessageCircleQuestion className="w-4 h-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13.5px] font-bold text-ink truncate">{l.customerName}</span>
-                            <span className="block font-mono text-[11px] text-[rgb(var(--text-secondary))] truncate tnum">{l.destinations} · {relTime(l.createdAt)}</span>
+                            <span className="block text-[12px] text-[rgb(var(--text-secondary))] truncate tnum" title={`${l.destinations} · ${relTime(l.createdAt)}`}><span className="font-mono">{relTime(l.createdAt)}</span> · {l.destinations}</span>
                           </span>
                           <Pill variant="live">New</Pill>
                         </Link>
@@ -223,7 +223,7 @@ export default async function DashboardPage() {
                           <span className="w-8 h-8 rounded-md bg-amber-100 text-amber-900 inline-flex items-center justify-center flex-shrink-0"><Eye className="w-4 h-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13.5px] font-bold text-ink truncate">{p.lead?.customerName ?? p.name}</span>
-                            <span className="block font-mono text-[11px] text-[rgb(var(--text-secondary))] truncate tnum">{p.code} · viewed {relTime(p.lastViewedAt!)}</span>
+                            <span className="block text-[12px] text-[rgb(var(--text-secondary))] truncate tnum">Viewed <span className="font-mono">{relTime(p.lastViewedAt!)}</span></span>
                           </span>
                           <Pill variant="warning">Viewed</Pill>
                         </Link>
@@ -235,7 +235,7 @@ export default async function DashboardPage() {
                           <span className="w-8 h-8 rounded-md bg-navy-50 text-navy-500 inline-flex items-center justify-center flex-shrink-0"><Clock className="w-4 h-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13.5px] font-bold text-ink truncate">{p.lead?.customerName ?? p.name}</span>
-                            <span className="block font-mono text-[11px] text-[rgb(var(--text-secondary))] truncate tnum">{p.code} · sent {relTime(p.createdAt)} · not opened</span>
+                            <span className="block text-[12px] text-[rgb(var(--text-secondary))] truncate tnum">Sent <span className="font-mono">{relTime(p.createdAt)}</span>, not opened</span>
                           </span>
                           <Pill>Sent</Pill>
                         </Link>
@@ -298,7 +298,7 @@ export default async function DashboardPage() {
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             <StatCard label="Leads"     value={String(leadCount)}   delta={trend(leadCount, leadPrev)}     sub="enquiries" />
             <StatCard label="Proposals" value={String(propCount)}   delta={trend(propCount, propPrev)}     sub="quotes sent" />
-            <StatCard label="Converted" value={String(bookedCount)} delta={trend(bookedCount, bookedPrev)} sub={`${convRate}% win rate`} tone="gold" />
+            <StatCard label="Converted" value={String(bookedCount)} delta={trend(bookedCount, bookedPrev)} sub={`${convRate}% win rate`} />
             <StatCard label="Wallet"    value={fmt(wallet?.walletPaise ?? 0n)} sub="recharge for instant bookings" mono />
           </div>
         </section>
@@ -320,5 +320,5 @@ function relTime(d: Date) {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.round(hrs / 24);
   if (days < 7) return `${days}d ago`;
-  return formatDateShort(d);
+  return formatDayMonth(d);
 }

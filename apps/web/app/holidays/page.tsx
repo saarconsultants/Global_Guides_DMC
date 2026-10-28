@@ -14,7 +14,7 @@ const SECTIONS = [
     title: 'FIT packages',
     body: 'Free Independent Traveller — fully tailored, family-of-4 style trips with private transfers and chosen hotels.',
     cta: 'Browse FIT inventory',
-    pill: { variant: 'success' as const, label: 'Most popular' },
+    pill: { variant: 'neutral' as const, label: 'Most popular' },
   },
   {
     href: '/holidays/group',
@@ -23,16 +23,16 @@ const SECTIONS = [
     title: 'Group tours',
     body: 'Pre-set departure dates that pool customers from many agencies. Lower per-head cost, fixed itinerary.',
     cta: 'See upcoming departures',
-    pill: { variant: 'info' as const, label: 'Fixed dates' },
+    pill: { variant: 'neutral' as const, label: 'Fixed dates' },
   },
   {
     href: '/holidays/adhoc',
     icon: CalendarRange,
-    eyebrow: 'Custom',
+    eyebrow: 'ADHOC',
     title: 'Ad-hoc group',
     body: 'Build a private group quote (15+ pax) — weddings, corporate offsites, college tours. We help you source net rates.',
     cta: 'Request a quote',
-    pill: { variant: 'warning' as const, label: 'Quote-based' },
+    pill: { variant: 'neutral' as const, label: 'Quote-based' },
   },
 ];
 
@@ -57,7 +57,7 @@ export default function HolidaysPage() {
               </div>
               <h2 className="text-[18px] font-extrabold tracking-[-0.01em] text-ink">{title} <span className="font-mono text-[12px] font-bold text-[rgb(var(--text-tertiary))] ml-1">{eyebrow}</span></h2>
               <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{body}</p>
-              <ButtonLink href={href as any} variant="ghost" className="gap-1.5 group-hover:text-crimson-700 px-0">{cta}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></ButtonLink>
+              <ButtonLink href={href as any} variant="ghost" className="gap-1.5 text-crimson-700 hover:text-crimson-900 hover:bg-transparent px-0">{cta}<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" /></ButtonLink>
             </CardContent>
           </Card>
         ))}

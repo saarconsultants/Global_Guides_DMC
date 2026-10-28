@@ -37,21 +37,24 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
 
   return (
     <div>
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
         <PageHeader
           eyebrow="Hand-curated"
           title="Suggested itineraries"
           description="Built by the platform team. Click a template — we'll clone it into a draft proposal you can edit and send to your customer."
-          actions={<ButtonLink href="/itinerary/ai" variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />AI suggester</ButtonLink>}
+          actions={<ButtonLink href="/itinerary/ai" variant="ghost" className="gap-1.5"><Sparkles className="w-4 h-4" />Plan with AI</ButtonLink>}
         />
 
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-[rgb(var(--text-secondary))] mr-1">Region:</span>
-          <FilterPill href="/suggested" label="All" active={!sp.region && !sp.category} />
-          {regions.map((r) => <FilterPill key={r} href={`/suggested?region=${r}`} label={r.replace('_', ' ')} active={sp.region === r} />)}
-          <span className="mx-2 text-[rgb(var(--text-tertiary))]">·</span>
-          <span className="text-[rgb(var(--text-secondary))]">Trip type:</span>
-          {categories.map((c) => <FilterPill key={c} href={`/suggested?category=${c}`} label={c} active={sp.category === c} />)}
+        {/* Two filter rails. On phones each is one horizontally scrolling row
+            (instead of five wrapped rows); from sm up they wrap normally. */}
+        <div className="space-y-2.5 text-sm">
+          <FilterRail label="Region">
+            <FilterPill href="/suggested" label="All" active={!sp.region && !sp.category} />
+            {regions.map((r) => <FilterPill key={r} href={`/suggested?region=${r}`} label={r.replace('_', ' ')} active={sp.region === r} />)}
+          </FilterRail>
+          <FilterRail label="Trip type">
+            {categories.map((c) => <FilterPill key={c} href={`/suggested?category=${c}`} label={c} active={sp.category === c} />)}
+          </FilterRail>
         </div>
 
         {templates.length === 0 ? (
@@ -74,7 +77,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                     {(t.hero ?? regionSrc(t.region)) ? <img src={(t.hero ?? regionSrc(t.region))!} alt="" className="absolute inset-0 w-full h-full object-cover" /> : null}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3 flex gap-1.5">
-                      <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
+                      <Pill variant="neutral">{t.region.replace('_', ' ')}</Pill>
                       <Pill variant="ink">{t.category}</Pill>
                     </div>
                     <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
@@ -97,7 +100,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
                       <p className="money text-[19px] text-ink mt-0.5">{fmt(t.startingPricePaise)}</p>
                     </div>
                     <form action={cloneAndRedirectAction.bind(null, t.id)}>
-                      <Button type="submit" size="sm">Use this</Button>
+                      <Button type="submit" size="sm" variant="secondary">Use this package</Button>
                     </form>
                   </div>
                 </article>
@@ -110,8 +113,19 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
   );
 }
 
+function FilterRail({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <span className="label shrink-0 w-[68px] sm:w-auto">{label}</span>
+      <div className="flex items-center gap-2 min-w-0 overflow-x-auto sm:flex-wrap sm:overflow-visible -mr-4 pr-4 sm:mr-0 sm:pr-0 pb-1 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function FilterPill({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <a href={href} className={`px-3 h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</a>
+    <a href={href} className={`shrink-0 whitespace-nowrap px-3 h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</a>
   );
 }

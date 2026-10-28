@@ -25,13 +25,13 @@ export default async function MarketingPage() {
 
   return (
     <div>
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
         <PageHeader
           eyebrow="Marketing"
           title="Download branded flyers"
           description="Every Suggested itinerary is also a one-page PDF flyer in your brand colours, with your logo. Download and share via WhatsApp, email, or print for shop windows."
           actions={
-            <ButtonLink href="/suggested" variant="ghost" className="gap-1.5"><Eye className="w-4 h-4" />Customer-facing templates</ButtonLink>
+            <ButtonLink href="/suggested" variant="ghost" className="gap-1.5 px-0 sm:px-4 hover:bg-transparent sm:hover:bg-navy-50"><Eye className="w-4 h-4" />Customer-facing templates</ButtonLink>
           }
         />
 
@@ -51,8 +51,8 @@ export default async function MarketingPage() {
                 <Card key={t.id} className="lift overflow-hidden">
                   <CardContent className="pt-5">
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Pill variant="gold">{t.region.replace('_', ' ')}</Pill>
-                      <Pill variant="info">{t.category}</Pill>
+                      <Pill variant="neutral">{t.region.replace('_', ' ')}</Pill>
+                      <Pill variant="neutral">{t.category}</Pill>
                     </div>
                     <h2 className="text-[16px] font-bold text-ink tracking-[-0.01em]">{t.title}</h2>
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-1 line-clamp-2">{t.blurb}</p>
@@ -66,7 +66,7 @@ export default async function MarketingPage() {
                         href={`/api/flyer/${t.id}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-crimson-700 text-white text-sm font-bold hover:bg-crimson-900 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-surface text-ink border border-border text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors"
                       >
                         <Download className="w-4 h-4" />Download PDF
                       </a>
@@ -74,9 +74,9 @@ export default async function MarketingPage() {
                         href={`https://wa.me/?text=${encodeURIComponent(`Have a look at this ${t.totalNights}-night ${t.title} trip we put together. Starting from ${fmt(t.startingPricePaise)}. Ask us for the PDF brochure!`)}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-[#107C41] text-white text-sm font-semibold hover:bg-[#0B6334] transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-surface text-ink border border-border text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors"
                       >
-                        <MessageCircle className="w-4 h-4" />Pitch
+                        <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />Pitch
                       </a>
                     </div>
                   </CardContent>
@@ -86,14 +86,14 @@ export default async function MarketingPage() {
           </div>
         )}
 
-        <Card>
-          <CardContent className="pt-6 space-y-3">
+        <Card className="min-w-0 overflow-hidden">
+          <CardContent className="pt-6 space-y-3 min-w-0">
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <h2 className="text-[18px] font-extrabold text-ink mb-1 tracking-[-0.01em]">Lead-capture widget</h2>
                 <p className="text-sm text-[rgb(var(--text-secondary))]">An embeddable form for your own website. Drops captured enquiries straight into your <Link href="/leads" className="text-crimson-700 hover:underline font-medium">My Leads</Link> with the bell ringing in real-time.</p>
               </div>
-              <Pill variant="success">Live</Pill>
+              <Pill variant="live">Live</Pill>
             </div>
             {agency?.slug ? (
               <WidgetSnippet slug={agency.slug} origin={origin} />

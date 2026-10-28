@@ -58,7 +58,7 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
+        <div className="relative flex-1 min-w-0 sm:min-w-[240px] max-w-md basis-full sm:basis-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
           <Input type="search" aria-label="Filter hotels by name or area" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by hotel name or area" className="pl-9" />
         </div>
@@ -69,8 +69,8 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
       )}
       {filtered.map((h) => (
         <Pass key={h.id} className="lift">
-          <PassMain className="flex gap-4 lg:gap-5">
-            <div className="w-[128px] h-[128px] lg:w-[150px] lg:h-[150px] shrink-0 rounded-md overflow-hidden">
+          <PassMain className="flex flex-col sm:flex-row gap-4 lg:gap-5">
+            <div className="w-full h-[160px] sm:w-[128px] sm:h-[128px] lg:w-[150px] lg:h-[150px] shrink-0 rounded-md overflow-hidden">
               <HotelPhoto thumb={h.thumb} allImages={h.allImages} hotelName={h.name} className="w-full h-full rounded-md" placeholder={<InkPlate stars={h.stars} cityCode={h.cityCode} />} />
             </div>
             <div className="min-w-0 flex-1">
@@ -88,12 +88,14 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
                   <span className="text-[rgb(var(--text-secondary))]">{h.rating.label} · <span className="tnum">{h.rating.reviewCount}</span> ratings</span>
                 </div>
               )}
-              <div className="mt-3 grid grid-cols-3 gap-3 max-w-md">
-                <div><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.mealPlan}</div></div>
-                <div><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink truncate">{h.room.name}</div></div>
-                <div><div className="label">Cancellation</div>{(() => {
+              {/* Fact grid: 2 columns on phones (room spans both), 3 on wider screens
+                  with the room cell taking the spare width instead of truncating. */}
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] gap-x-5 gap-y-2.5">
+                <div className="min-w-0"><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink leading-snug">{h.mealPlan}</div></div>
+                <div className="min-w-0 col-span-2 sm:col-span-1 order-last sm:order-none"><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink leading-snug line-clamp-2" title={h.room.name}>{h.room.name}</div></div>
+                <div className="min-w-0"><div className="label">Cancellation</div>{(() => {
                   const until = h.refundable ? freeUntil(h.roomOptions?.[0]?.cancellationPolicies) : null;
-                  return <div className={`mt-0.5 text-[13px] font-bold truncate ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`} title={until ? 'Hotel local time' : undefined}>{until ? `Free until ${until}` : h.refundable ? 'Fully refundable' : 'Non-refundable'}</div>;
+                  return <div className={`mt-0.5 text-[13px] font-bold leading-snug ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`} title={until ? 'Hotel local time' : undefined}>{until ? `Free until ${until}` : h.refundable ? 'Fully refundable' : 'Non-refundable'}</div>;
                 })()}</div>
               </div>
               {h.roomOptions && h.roomOptions.length > 1 && (

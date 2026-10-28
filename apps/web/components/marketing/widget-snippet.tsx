@@ -24,7 +24,7 @@ export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }
             {copied === 'iframe' ? <><Check className="w-3 h-3" />Copied</> : <><Copy className="w-3 h-3" />Copy</>}
           </button>
         </div>
-        <pre tabIndex={0} aria-label="Embed code" className="text-xs font-mono bg-surface-2 border border-border-subtle rounded-md p-3 overflow-x-auto whitespace-pre-wrap break-all text-ink">{iframe}</pre>
+        <pre tabIndex={0} aria-label="Embed code" className="text-xs leading-relaxed font-mono bg-surface-2 border border-border-subtle rounded-md p-3 max-h-28 overflow-y-auto whitespace-pre-wrap break-all text-ink">{iframe}</pre>
       </div>
 
       <div>

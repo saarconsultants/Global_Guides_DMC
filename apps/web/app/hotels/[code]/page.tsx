@@ -48,7 +48,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
               {Array.from({ length: hotel.stars }).map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-500" />)}
             </span>
           )}
-          <Pill variant="success">LIVE · Hotelbeds</Pill>
+          <Pill variant="live">Live</Pill>
         </div>
         <h1 className="text-3xl font-bold text-ink tracking-tight">{hotel.name}</h1>
         {hotel.address && (

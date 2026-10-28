@@ -92,24 +92,17 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
 
       {n > 1 && (
         <>
-          <button
-            type="button"
-            aria-label="Previous promotion"
-            onClick={() => setIdx((i) => (i - 1 + n) % n)}
-            className="hidden md:flex absolute left-3 top-[38%] -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Next promotion"
-            onClick={() => setIdx((i) => (i + 1) % n)}
-            className="hidden md:flex absolute right-3 top-[38%] -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur flex items-center justify-center transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          {/* Each dot sits in a 24px-tall hit area (WCAG 2.5.8) while the visual dot stays small. */}
-          <div className="absolute top-[11px] right-4 flex items-center">
+          {/* Controls sit together on the band's top-right edge, clear of the copy and CTAs.
+              Each dot sits in a 24px-tall hit area (WCAG 2.5.8) while the visual dot stays small. */}
+          <div className="absolute top-3 right-3 flex items-center gap-1">
+            <button
+              type="button"
+              aria-label="Previous promotion"
+              onClick={() => setIdx((i) => (i - 1 + n) % n)}
+              className="hidden md:flex w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white items-center justify-center transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
             {banners.map((b, i) => (
               <button
                 key={b.key}
@@ -121,6 +114,14 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
                 <span aria-hidden="true" className={`block h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/50 group-hover/dot:bg-white/80'}`} />
               </button>
             ))}
+            <button
+              type="button"
+              aria-label="Next promotion"
+              onClick={() => setIdx((i) => (i + 1) % n)}
+              className="hidden md:flex w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white items-center justify-center transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </>
       )}

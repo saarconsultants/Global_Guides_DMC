@@ -95,22 +95,27 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
         <HeroBand
           title="Stays your customers"
           accent="will love."
-          subtitle="Global wholesale rates · every board type · rooms & occupancy per your booking"
           ghost="stay"
           img={heroImg}
-        />
+        >
+          {/* Own subtitle: the photo is bright on the right, so the line needs a
+              heavier shadow than the shared band gives to stay readable on phones. */}
+          <p className="mt-3 text-[15px] font-medium text-white max-w-2xl [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_0_14px_rgba(0,0,0,0.6)]">
+            Global wholesale rates · every board type · rooms &amp; occupancy per your booking
+          </p>
+        </HeroBand>
 
         <HeroBar>
           <HeroCell eyebrow="Destination" grow>
             <CitySearchCombobox bare label="Going to" value={city} onChange={setCity} placeholder="Search destination" />
           </HeroCell>
-          <HeroCell eyebrow="Check-in">
+          <HeroCell eyebrow="Check-in" className="lg:flex-[1.25]">
             <HeroDate value={checkin} onChange={(v) => { setCheckin(v); setDateError(null); }} label="Check-in" sub="Arrive" />
           </HeroCell>
-          <HeroCell eyebrow="Check-out">
+          <HeroCell eyebrow="Check-out" className="lg:flex-[1.25]">
             <HeroDate value={checkout} min={checkin} onChange={(v) => { setCheckout(v); setDateError(null); }} label="Check-out" sub="Depart" />
           </HeroCell>
-          <HeroCell eyebrow="Rooms">
+          <HeroCell eyebrow="Rooms" className="lg:flex-[0.8]">
             <select value={rooms} onChange={(e) => setRooms(e.target.value)} className={heroControl} aria-label="Rooms">
               {[1,2,3,4].map((n) => <option key={n} value={n}>{n} Room{n > 1 ? 's' : ''}</option>)}
             </select>
@@ -120,12 +125,12 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
               {[1,2,3,4].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
             </select>
           </HeroCell>
-          <HeroCell eyebrow="Children">
+          <HeroCell eyebrow="Children" className="lg:flex-[0.8]">
             <select value={children} onChange={(e) => setChildren(e.target.value)} className={heroControl} aria-label="Children per room">
               {[0,1,2,3].map((n) => <option key={n} value={n}>{n === 0 ? 'None' : n}</option>)}
             </select>
           </HeroCell>
-          <HeroSubmit><Search className="w-4 h-4" />Search</HeroSubmit>
+          <HeroSubmit caption="Wholesale rates">Search hotels</HeroSubmit>
         </HeroBar>
 
         <div className="mx-auto max-w-7xl px-6 mt-3.5 space-y-3">
@@ -136,9 +141,7 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
             <HeroChip active={refundable} onClick={() => setRefundable((v) => !v)}>
               {refundable && <Check className="w-3.5 h-3.5" />}Refundable only
             </HeroChip>
-            {dateError
-              ? <p className="text-sm text-danger-500" role="alert">{dateError}</p>
-              : <p className="ml-auto text-[11.5px] text-[rgb(var(--text-tertiary))]">Rates via Hotelbeds wholesale</p>}
+            {dateError && <p className="text-sm text-danger-500" role="alert">{dateError}</p>}
           </div>
           {showFilters && filterPanel(true)}
         </div>

@@ -38,8 +38,8 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
   const fmt = (n: number) => formatMoney(Math.round(n * 100), currency, 1);
 
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-4">
+    <Card className="min-w-0 overflow-hidden">
+      <CardContent className="pt-6 space-y-4 min-w-0">
         <h2 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
           <Calculator className="w-4 h-4 text-crimson-700" />Live margin calculator
         </h2>
@@ -47,7 +47,7 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
           Paste a net supplier cost and pick a product to see what the customer pays — using your current saved settings above. Changes here aren't persisted; this is a what-if tool.
         </p>
         <div className="grid sm:grid-cols-2 gap-4">
-          <div>
+          <div className="min-w-0">
             <Label>Net supplier cost ({currencyMeta(currency).symbol})</Label>
             <Input type="number" min={0} step={100} value={netInr} onChange={(e) => setNetInr(e.target.value)} />
           </div>
@@ -58,19 +58,19 @@ export function MarginCalculator({ defaultMarkupPct, overrides }: Props) {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 rounded-md border border-border-subtle bg-surface-2 p-4 text-center">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-md border border-border-subtle bg-surface-2 p-4 text-left sm:text-center">
+          <div className="min-w-0">
             <p className="label">Markup applied</p>
-            <p className="font-mono text-lg font-bold text-ink mt-1">{effectivePct}%</p>
+            <p className="money text-lg text-ink mt-1">{effectivePct}%</p>
             <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-0.5">{overrides[product] != null ? 'override' : 'default'}</p>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="label">Your margin</p>
-            <p className="font-mono text-lg font-bold text-success-500 mt-1">{fmt(margin)}</p>
+            <p className="money text-lg text-success-500 mt-1 break-words">{fmt(margin)}</p>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="label">Customer total</p>
-            <p className="font-mono text-lg font-bold text-crimson-900 mt-1">{fmt(customerTotal)}</p>
+            <p className="money text-lg text-ink mt-1 break-words">{fmt(customerTotal)}</p>
           </div>
         </div>
       </CardContent>
