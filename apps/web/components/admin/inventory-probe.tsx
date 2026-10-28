@@ -57,7 +57,7 @@ export function InventoryProbe({ apiKey, live }: { apiKey: string; live: boolean
             <span className="truncate">{result.detail} · {result.ms}ms · {timeAgo(result.checkedAt)}</span>
           </span>
         ) : (
-          <span className="text-[rgb(var(--text-tertiary))]">{live ? 'Reachability not checked yet.' : 'Keys not set — nothing to probe.'}</span>
+          <span className="text-[rgb(var(--text-tertiary))]">{live ? 'Reachability not checked yet.' : 'Not connected yet.'}</span>
         )}
       </div>
       <button

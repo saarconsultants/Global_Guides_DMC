@@ -1,37 +1,57 @@
 import { requireSuperAdmin } from '@/lib/auth/ctx';
-import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { inventoryStatus } from '@/lib/inventory-status';
 import { Plane, Hotel, Car, MapPin, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { InventoryProbe } from '@/components/admin/inventory-probe';
+import { AdminPage, Disclosure } from '@/components/admin/admin-ui';
 
 export const dynamic = 'force-dynamic';
 
 const ICONS: Record<string, any> = { flights: Plane, hotels: Hotel, transfers: Car, leamigo: Car, activities: MapPin };
+
+/** Two suppliers both provide transfers, so the card title names the supplier. */
+function cardTitle(key: string, label: string, provider: string) {
+  if (key === 'transfers' || key === 'leamigo') return `${label} · ${provider.replace(/\s*\(.*\)$/, '')}`;
+  return label;
+}
+
+/** Owner-only setup help: which keys each supplier needs. */
+const SETUP: { name: string; keys: string[] }[] = [
+  { name: 'Flights · Tripjack', keys: ['TRIPJACK_PROXY_TOKEN (or TRIPJACK_API_KEY)'] },
+  { name: 'Hotels · Hotelbeds', keys: ['HOTELBEDS_HOTELS_API_KEY', 'HOTELBEDS_HOTELS_API_SECRET'] },
+  { name: 'Transfers · Hotelbeds', keys: ['HOTELBEDS_TRANSFERS_API_KEY', 'HOTELBEDS_TRANSFERS_API_SECRET'] },
+  { name: 'Activities · Hotelbeds', keys: ['HOTELBEDS_ACTIVITIES_API_KEY', 'HOTELBEDS_ACTIVITIES_API_SECRET'] },
+  { name: 'Transfers · Leamigo', keys: ['LEAMIGO_API_KEY', 'LEAMIGO_BASE_URL (optional, defaults to the test server)'] },
+];
 
 export default async function AdminInventoryPage() {
   await requireSuperAdmin();
   const apis = inventoryStatus();
   const liveCount = apis.filter((a) => a.live).length;
   const allLive = liveCount === apis.length;
+  const offCount = apis.length - liveCount;
 
   return (
-    <div className="p-8 space-y-6 ambient">
-      <PageHeader
-        eyebrow="Platform"
-        title="Inventory APIs"
-        description="Every supplier API powering the itinerary builder. The badge shows whether credentials are configured; click 'Check now' on a card for a real-time round-trip to the supplier."
-        actions={<Pill variant={allLive ? 'success' : 'warning'}>{liveCount}/{apis.length} live</Pill>}
-      />
+    <AdminPage>
+      <header>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-[28px] leading-[1.1] font-extrabold tracking-[-0.02em] text-ink">Inventory APIs</h1>
+          <Pill variant={allLive ? 'success' : 'neutral'}>{liveCount} of {apis.length} connected</Pill>
+        </div>
+        <p className="text-[14.5px] text-[rgb(var(--text-secondary))] mt-2 max-w-2xl leading-relaxed">
+          The suppliers behind the itinerary builder. Use &ldquo;Check now&rdquo; on a card to test the connection right now.
+        </p>
+      </header>
 
       {allLive ? (
-        <div className="rounded-md border border-success-500/30 bg-success-100 text-success-500 px-4 py-3 text-sm inline-flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> All {apis.length} inventory APIs are live. Agents get real flights, hotels, transfers, and activities end-to-end.
+        <div className="rounded-md border border-success-500/30 bg-success-100 text-success-600 px-4 py-3 text-sm flex items-start gap-2">
+          <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" aria-hidden /> All {apis.length} suppliers are connected. Agents get real flights, hotels, transfers and activities.
         </div>
       ) : (
-        <div className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-4 py-3 text-sm inline-flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" /> {apis.length - liveCount} API{apis.length - liveCount !== 1 ? 's are' : ' is'} on mock data. Set the env vars below in Vercel and redeploy to go live.
+        <div className="rounded-md border border-amber-300/60 bg-amber-100 text-amber-900 px-4 py-3 text-sm flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden />
+          {offCount} supplier{offCount !== 1 ? 's are' : ' is'} not connected yet. Agents see sample rates for {offCount !== 1 ? 'those' : 'it'} until connected.
         </div>
       )}
 
@@ -39,21 +59,23 @@ export default async function AdminInventoryPage() {
         {apis.map((a) => {
           const Icon = ICONS[a.key] ?? Plane;
           return (
-            <Card key={a.key} className="lift">
+            <Card key={a.key}>
               <CardContent className="pt-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-md inline-flex items-center justify-center ${a.live ? 'bg-success-100 text-success-500' : 'bg-amber-500/15 text-amber-700'}`}>
-                      <Icon className="w-5 h-5" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 shrink-0 rounded-md inline-flex items-center justify-center ${a.live ? 'bg-success-100 text-success-500' : 'bg-navy-50 text-navy-500'}`}>
+                      <Icon className="w-5 h-5" aria-hidden />
                     </div>
-                    <div>
-                      <p className="font-semibold text-ink">{a.label}</p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-ink">{cardTitle(a.key, a.label, a.provider)}</p>
                       <p className="text-xs text-[rgb(var(--text-secondary))]">{a.provider}</p>
                     </div>
                   </div>
-                  <Pill variant={a.live ? 'success' : 'warning'}>{a.live ? 'LIVE' : 'MOCK'}</Pill>
+                  <Pill variant={a.live ? 'success' : 'warning'}>{a.live ? 'Live' : 'Not connected'}</Pill>
                 </div>
-                <p className="text-sm text-[rgb(var(--text-secondary))] mt-3">{a.note}</p>
+                <p className="text-sm text-[rgb(var(--text-secondary))] mt-3">
+                  {a.live ? a.note.replace(/STAGING/g, 'test server') : 'Using sample rates until connected.'}
+                </p>
                 <InventoryProbe apiKey={a.key} live={a.live} />
               </CardContent>
             </Card>
@@ -62,12 +84,27 @@ export default async function AdminInventoryPage() {
       </div>
 
       <Card>
-        <CardContent className="pt-6 text-xs text-[rgb(var(--text-secondary))] space-y-2">
-          <p className="text-ink font-semibold text-sm">How status is determined</p>
-          <p>Each API is "live" when its credentials are present in this deployment's environment variables. A "LIVE" badge means "keys are configured", not "supplier is currently responding". For an actual round-trip check, click "Check now" on any card above — it makes a live call to that supplier's gateway and reports whether it's reachable, with the result cached ~5 minutes (so it won't hammer rate-limited suppliers like Tripjack).</p>
-          <p className="pt-2">Env vars: <span className="font-mono">TRIPJACK_PROXY_TOKEN</span> (flights), <span className="font-mono">HOTELBEDS_HOTELS_API_KEY</span>, <span className="font-mono">HOTELBEDS_TRANSFERS_API_KEY</span>, <span className="font-mono">HOTELBEDS_ACTIVITIES_API_KEY</span> — each with its matching <span className="font-mono">_SECRET</span>. Leamigo transfers: <span className="font-mono">LEAMIGO_API_KEY</span> (plus optional <span className="font-mono">LEAMIGO_BASE_URL</span>, defaults to staging). The Leamigo card's &quot;Check now&quot; lists the countries your account&apos;s operators cover.</p>
+        <CardContent className="pt-5 text-[13px] text-[rgb(var(--text-secondary))] space-y-2">
+          <p className="text-ink font-bold text-[15px]">How the status works</p>
+          <p className="leading-relaxed">
+            &ldquo;Live&rdquo; means the supplier&apos;s keys are in place, not that the supplier is answering right now. &ldquo;Check now&rdquo; makes a real call and shows whether it responded. Results are reused for about 5 minutes so busy suppliers aren&apos;t called too often.
+          </p>
+          <Disclosure summary="Setup details">
+            <div className="space-y-3">
+              <p>To connect a supplier, ask your developer to add its keys to the live site&apos;s settings and publish a new build.</p>
+              <ul className="space-y-2">
+                {SETUP.map((s) => (
+                  <li key={s.name}>
+                    <p className="font-semibold text-ink">{s.name}</p>
+                    <p className="font-mono text-[11.5px] break-all">{s.keys.join(' · ')}</p>
+                  </li>
+                ))}
+              </ul>
+              <p>The Leamigo card&apos;s &ldquo;Check now&rdquo; also lists the countries its operators cover.</p>
+            </div>
+          </Disclosure>
         </CardContent>
       </Card>
-    </div>
+    </AdminPage>
   );
 }

@@ -62,11 +62,18 @@ export async function creditAgencyWalletAction(agencyId: string, formData: FormD
 export async function saveCommissionRuleAction(formData: FormData) {
   await requireSuperAdmin();
   const id = String(formData.get('id') ?? '');
+  // The UI collects the flat fee in rupees (`flatRupees`); storage stays in paise.
+  // `flatPaise` is still accepted for any caller that already sends paise.
+  const flatRupeesRaw = String(formData.get('flatRupees') ?? '').trim();
+  const flatRupees = flatRupeesRaw ? parseFloat(flatRupeesRaw) : NaN;
+  const flatPaise = Number.isFinite(flatRupees)
+    ? BigInt(Math.round(flatRupees * 100))
+    : formData.get('flatPaise') ? BigInt(formData.get('flatPaise') as string) : null;
   const data = {
     agencyId: (formData.get('agencyId') as string) || null,
     productType: String(formData.get('productType') ?? 'INVOICE_TOTAL'),
     percent: formData.get('percent') ? parseFloat(String(formData.get('percent'))) : null,
-    flatPaise: formData.get('flatPaise') ? BigInt(formData.get('flatPaise') as string) : null,
+    flatPaise,
     appliesTo: String(formData.get('appliesTo') ?? 'TOTAL'),
     active: formData.get('active') === 'on',
     note: (formData.get('note') as string) || null,
@@ -114,6 +121,13 @@ export async function deleteTemplateAction(id: string) {
   await db.itineraryTemplate.delete({ where: { id } });
   revalidatePath('/admin/templates');
   revalidatePath('/suggested');
+}
+
+/** Delete from the edit page, then go back to the list (the edit page no longer exists). */
+export async function deleteTemplateRedirectAction(id: string) {
+  await deleteTemplateAction(id);
+  const { redirect } = await import('next/navigation');
+  redirect('/admin/templates');
 }
 
 export async function toggleTemplatePublishedAction(id: string) {
