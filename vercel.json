@@ -10,12 +10,5 @@
     "deploymentEnabled": {
       "main": true
     }
-  },
-  "experimentalServices": {
-    "tripjack-proxy": {
-      "root": "services/tripjack-proxy",
-      "entrypoint": "src/index.ts",
-      "routePrefix": "/"
-    }
   }
 }
