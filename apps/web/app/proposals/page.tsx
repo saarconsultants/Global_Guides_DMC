@@ -8,9 +8,8 @@ import { listProposals } from '@/lib/db/proposals';
 import { getWalletBalance } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
-import { FileText, ExternalLink, Copy, Search, X, Download, GitBranch, FileCheck } from 'lucide-react';
-import { AutoSubmitSelect } from '@/components/common/auto-submit-select';
-import { Input } from '@/components/ui/input';
+import { FileText, ExternalLink, Copy, Download, GitBranch, FileCheck } from 'lucide-react';
+import { FilterBar } from '@/components/ui/filter-bar';
 import Link from 'next/link';
 import { duplicateProposalAction } from '@/app/actions/duplicate-proposal';
 import { reviseProposalAction } from '@/app/actions/revise-proposal';
@@ -43,19 +42,14 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
 
       <Card>
         <CardContent className="pt-5">
-          {/* One row: search (Enter submits) + status (submits on change). */}
-          <form method="GET" action="/proposals" role="search" className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-            <div className="relative flex-1 min-w-0 basis-full sm:basis-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-              <Input name="q" type="search" aria-label="Search proposals" defaultValue={sp.q ?? ''} placeholder="Search by code, customer name, trip or destination…" className="pl-9" />
-            </div>
-            <AutoSubmitSelect name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px] flex-1 sm:flex-none">
-              <option value="">All statuses</option>
-              {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
-            </AutoSubmitSelect>
-            <button type="submit" className="sr-only">Search</button>
-            {(sp.q || sp.status) && <Link href="/proposals" className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-md border border-border-subtle bg-surface text-[13px] font-semibold text-[rgb(var(--text-secondary))] hover:border-border-strong hover:text-ink"><X className="w-3.5 h-3.5" aria-hidden />Clear</Link>}
-          </form>
+          <FilterBar
+            action="/proposals"
+            q={sp.q}
+            searchLabel="Search proposals"
+            searchPlaceholder="Search by code, customer name, trip or destination…"
+            status={{ value: sp.status, label: 'Filter by status', options: [{ value: '', label: 'All statuses' }, ...Object.keys(statusVariant).map((s) => ({ value: s, label: statusLabel(s) }))] }}
+            clearHref="/proposals"
+          />
         </CardContent>
       </Card>
 

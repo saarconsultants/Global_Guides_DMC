@@ -4,14 +4,13 @@ import { Pill } from '@/components/ui/pill';
 import { statusLabel } from '@/lib/labels';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Input } from '@/components/ui/input';
 import { StatCard } from '@/components/ui/stat-card';
 import { listLeads } from '@/lib/db/proposals';
 import { formatDateShort, formatDayMonth } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
 import { LeadActions } from '@/components/leads/lead-actions';
-import { ClipboardList, HelpCircle, Plus, Search, X } from 'lucide-react';
-import { AutoSubmitSelect } from '@/components/common/auto-submit-select';
+import { ClipboardList, HelpCircle, Plus } from 'lucide-react';
+import { FilterBar } from '@/components/ui/filter-bar';
 import Link from 'next/link';
 import { RouteCode } from '@/components/ui/pass';
 
@@ -56,19 +55,14 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
 
       <Card>
         <CardContent className="pt-5">
-          {/* One row: search (Enter submits) + status (submits on change). */}
-          <form method="GET" action="/leads" role="search" className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-            <div className="relative flex-1 min-w-0 basis-full sm:basis-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-              <Input name="q" type="search" aria-label="Search leads" defaultValue={sp.q ?? ''} placeholder="Search by customer name, email, phone or destination…" className="pl-9" />
-            </div>
-            <AutoSubmitSelect name="status" aria-label="Filter by status" defaultValue={sp.status ?? ''} className="control w-auto min-w-[170px] flex-1 sm:flex-none">
-              <option value="">All statuses</option>
-              {Object.keys(statusVariant).map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
-            </AutoSubmitSelect>
-            <button type="submit" className="sr-only">Search</button>
-            {(sp.q || sp.status) && <Link href="/leads" className="shrink-0 inline-flex items-center gap-1 h-9 px-3 rounded-md border border-border-subtle bg-surface text-[13px] font-semibold text-[rgb(var(--text-secondary))] hover:border-border-strong hover:text-ink"><X className="w-3.5 h-3.5" aria-hidden />Clear</Link>}
-          </form>
+          <FilterBar
+            action="/leads"
+            q={sp.q}
+            searchLabel="Search leads"
+            searchPlaceholder="Search by customer name, email, phone or destination…"
+            status={{ value: sp.status, label: 'Filter by status', options: [{ value: '', label: 'All statuses' }, ...Object.keys(statusVariant).map((s) => ({ value: s, label: statusLabel(s) }))] }}
+            clearHref="/leads"
+          />
         </CardContent>
       </Card>
 

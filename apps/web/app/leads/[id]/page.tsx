@@ -35,7 +35,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   const [lead, noteRows] = await Promise.all([
     db.lead.findFirst({
       where: { id, agencyId: actor.agencyId },
-      include: { proposals: { orderBy: { createdAt: 'desc' }, select: { id: true, code: true, name: true, status: true, pricePaise: true, shareToken: true, createdAt: true, updatedAt: true, lastViewedAt: true, acceptedAt: true } } },
+      include: { proposals: { orderBy: { createdAt: 'desc' }, select: { id: true, code: true, name: true, status: true, pricePaise: true, shareToken: true, createdAt: true, updatedAt: true, lastViewedAt: true, acceptedAt: true, destinations: true } } },
     }),
     db.leadNote.findMany({ where: { leadId: id }, orderBy: { createdAt: 'desc' }, take: 100 }),
   ]);
