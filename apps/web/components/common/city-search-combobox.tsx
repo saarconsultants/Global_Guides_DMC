@@ -66,7 +66,7 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
       </div>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full min-w-[260px] bg-surface rounded-md shadow-xl border border-border-subtle overflow-hidden max-h-72 overflow-y-auto">
+        <div className="gg-pop origin-top absolute z-30 mt-1 w-full min-w-[260px] bg-surface rounded-md shadow-xl border border-border-subtle overflow-hidden max-h-72 overflow-y-auto">
           {results.length === 0 ? (
             <p className="px-4 py-3 text-sm text-[rgb(var(--text-secondary))]">No destinations match “{query}”.</p>
           ) : results.map((c, i) => (

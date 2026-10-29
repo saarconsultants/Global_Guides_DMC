@@ -293,7 +293,7 @@ export default async function DashboardPage() {
                 <Link key={d.code} href={`/hotels?city=${d.code}` as any} className={`relative aspect-[4/5] rounded-lg overflow-hidden group bg-gradient-to-b ${d.tint} lift`}>
                   {src && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt={d.city} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+                    <img src={src} alt={d.city} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300 ease-out" />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
                   <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>

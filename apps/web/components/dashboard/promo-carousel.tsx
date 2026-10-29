@@ -41,7 +41,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
       onMouseLeave={() => { hover.current = false; }}
     >
       <div className="overflow-hidden rounded-lg shadow-md">
-        <div className="flex transition-transform duration-700 ease-standard" style={{ transform: `translateX(-${idx * 100}%)` }}>
+        <div className="flex transition-transform duration-500 ease-drawer" style={{ transform: `translateX(-${idx * 100}%)` }}>
           {banners.map((b, i) => (
             <div key={b.key} className={`relative w-full shrink-0 min-h-[440px] lg:min-h-[500px] bg-gradient-to-br ${b.tint} text-white overflow-hidden`}>
               {b.img && (
@@ -111,7 +111,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
                 onClick={() => setIdx(i)}
                 className="group/dot h-6 min-w-6 px-[3px] inline-flex items-center justify-center rounded-full"
               >
-                <span aria-hidden="true" className={`block h-1.5 rounded-full transition-all ${i === idx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/50 group-hover/dot:bg-white/80'}`} />
+                <span aria-hidden="true" className={`block h-1.5 rounded-full transition-[width,background-color] duration-200 ease-out ${i === idx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/50 group-hover/dot:bg-white/80'}`} />
               </button>
             ))}
             <button

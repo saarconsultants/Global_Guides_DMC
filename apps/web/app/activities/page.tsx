@@ -66,7 +66,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
               return (
                 <a key={d.code} href={`/activities?${new URLSearchParams({ city: d.code, from, to, adults })}`} className="relative aspect-[4/5] rounded-lg overflow-hidden group bg-navy-900 lift">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {src && <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />}
+                  {src && <img src={src} alt={d.city} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300 ease-out" />}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
                   <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>
                   <div className="absolute bottom-0 left-0 right-0 p-3 text-white">

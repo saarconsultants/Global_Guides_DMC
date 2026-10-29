@@ -56,7 +56,7 @@ export function AddRentalModal({ open, onClose, cityName, hotelName, hotel, date
         <div className="text-xs"><span className="label block mb-1">Hours</span>
           <div className="flex gap-1">{HOURS.map((h) => (
             <button key={h} type="button" onClick={() => setHours(h)} aria-pressed={hours === h}
-              className={`px-3 py-1.5 rounded-md border text-sm ${hours === h ? 'bg-ink text-white border-ink' : 'border-border-subtle'}`}>{h}h</button>
+              className={`min-h-[40px] px-3 py-1.5 rounded-md border text-sm transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97] ${hours === h ? 'bg-ink text-white border-ink' : 'border-border-subtle'}`}>{h}h</button>
           ))}</div>
         </div>
         <Button onClick={search} disabled={state === 'loading' || !/^\d{2}:\d{2}$/.test(time)}>Search</Button>

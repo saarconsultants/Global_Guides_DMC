@@ -84,7 +84,7 @@ export function NotificationBell({ initialUnread, initialItems }: Props) {
       </button>
 
       {open && (
-        <div id={panelId} className="absolute right-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] z-50 bg-surface text-[rgb(var(--text-primary))] rounded-lg shadow-xl border border-border-subtle overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div id={panelId} className="absolute right-0 mt-2 w-[360px] max-w-[calc(100vw-2rem)] z-50 bg-surface text-[rgb(var(--text-primary))] rounded-lg shadow-xl border border-border-subtle overflow-hidden gg-pop origin-top-right">
           <header className="px-4 py-3 border-b border-border-subtle flex items-center justify-between">
             <p className="font-bold text-sm">Notifications</p>
             {items.length > 0 && unread === 0 && <span className="text-xs text-success-500 inline-flex items-center gap-1"><Check className="w-3 h-3" />All caught up</span>}

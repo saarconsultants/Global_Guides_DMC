@@ -68,7 +68,7 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
       </div>
 
       {open && (
-        <div className="absolute z-30 mt-1 w-full sm:min-w-[280px] bg-surface rounded-md shadow-xl border border-border-subtle overflow-hidden max-h-72 overflow-y-auto">
+        <div className="gg-pop origin-top absolute z-30 mt-1 w-full sm:min-w-[280px] bg-surface rounded-md shadow-xl border border-border-subtle overflow-hidden max-h-72 overflow-y-auto">
           {results.length === 0 ? (
             <p className="px-4 py-3 text-sm text-[rgb(var(--text-secondary))]">No airports match “{query}”.</p>
           ) : results.map((a, i) => (

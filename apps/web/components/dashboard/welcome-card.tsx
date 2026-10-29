@@ -68,7 +68,7 @@ export function WelcomeCard({ firstName, steps }: Props) {
           <div className="label">Setup progress</div>
           <div className="money text-[34px] text-ink leading-none">{completed}<span className="text-[rgb(var(--text-tertiary))] text-[22px]">/{total}</span></div>
           <div className="h-1.5 rounded-full bg-navy-100 overflow-hidden">
-            <div className="h-full bg-ink transition-all duration-500" style={{ width: `${pct}%` }} />
+            <div className="h-full bg-ink transition-[width] duration-300 ease-out" style={{ width: `${pct}%` }} />
           </div>
           <button type="button" onClick={dismiss} disabled={pending} className="mt-1 text-left text-[12px] font-bold text-navy-500 hover:text-ink underline underline-offset-2 transition-colors">Hide this checklist</button>
         </div>

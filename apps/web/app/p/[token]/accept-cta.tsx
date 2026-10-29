@@ -33,7 +33,7 @@ export function StickyAcceptBar({ total, primary }: { total: string; primary: st
   }, []);
   return (
     <div
-      className={`sm:hidden fixed inset-x-0 bottom-0 z-40 bg-surface border-t border-border-subtle shadow-[0_-4px_16px_-8px_rgb(16_24_40/0.18)] px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] flex items-center justify-between gap-3 transition-transform duration-200 ${hidden ? 'translate-y-full invisible' : ''}`}
+      className={`sm:hidden fixed inset-x-0 bottom-0 z-40 bg-surface border-t border-border-subtle shadow-[0_-4px_16px_-8px_rgb(16_24_40/0.18)] px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] flex items-center justify-between gap-3 transition-[transform,visibility] duration-300 ease-drawer ${hidden ? 'translate-y-full invisible' : ''}`}
     >
       <div className="min-w-0">
         <div className="label">Trip total</div>

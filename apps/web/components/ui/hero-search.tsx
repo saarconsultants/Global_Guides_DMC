@@ -44,7 +44,7 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'h-9 px-4 rounded-full text-[13px] font-bold transition-colors border',
+        'h-9 px-4 rounded-full text-[13px] font-bold border transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
         active ? 'bg-amber-500 text-ink border-amber-500' : 'bg-white/12 text-white border-white/25 hover:bg-white/20 backdrop-blur-sm',
       )}
     >
@@ -99,7 +99,7 @@ export function HeroChip({ active, onClick, children }: { active?: boolean; onCl
       onClick={onClick}
       aria-pressed={!!active}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-[13px] font-semibold transition-colors',
+        'inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-[13px] font-semibold transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
         active ? 'border-crimson-700 text-crimson-700 bg-crimson-50' : 'border-border bg-surface text-navy-700 hover:border-border-strong',
       )}
     >

@@ -69,7 +69,7 @@ export function Toaster() {
           role={t.variant === 'error' ? 'alert' : 'status'}
           className={cn(
             'pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg border shadow-xl',
-            'animate-in slide-in-from-top-2 fade-in duration-200',
+            'animate-in slide-in-from-top-2 fade-in duration-200 ease-out',
             palette[t.variant].wrap,
           )}
         >

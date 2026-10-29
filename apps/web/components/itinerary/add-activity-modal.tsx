@@ -315,7 +315,7 @@ function StartTimePicker({ a, date, slot, onBack, onConfirm }: { a: Activity; da
           <div className="flex flex-wrap gap-2">
             {times.map((t) => (
               <button key={t.start} type="button" disabled={!t.available} onClick={() => setChosen(t.start)} aria-pressed={chosen === t.start}
-                className={`min-h-[44px] px-3 py-1.5 rounded-md border text-sm text-left disabled:opacity-40 disabled:line-through ${chosen === t.start ? 'bg-ink text-white border-ink' : 'border-border-subtle hover:border-crimson-300'}`}>
+                className={`min-h-[44px] px-3 py-1.5 rounded-md border text-sm text-left disabled:opacity-40 disabled:line-through transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97] ${chosen === t.start ? 'bg-ink text-white border-ink' : 'border-border-subtle hover:border-crimson-300'}`}>
                 <span className="font-mono font-semibold">{t.start}{t.end ? `–${t.end}` : ''}</span>
                 {t.pricePaise !== null && <span className="block text-[11px] opacity-80">{money(t.pricePaise)}</span>}
                 {t.available && t.seatsLeft !== null && t.seatsLeft <= 5 && <span className="block text-[11px] opacity-80">{t.seatsLeft} left</span>}

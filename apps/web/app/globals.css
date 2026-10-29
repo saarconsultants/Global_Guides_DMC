@@ -22,20 +22,38 @@
   *:focus-visible { @apply outline-none ring-2 ring-crimson-500 ring-offset-2 ring-offset-canvas; }
 
   html { scroll-behavior: smooth; }
+  /* Reduced motion = no movement, not no feedback. Keep fades and colour
+     changes (they aid comprehension); drop transforms, slides and zooms.
+     Spinners keep spinning — a frozen spinner reads as a hang. */
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-property: opacity, color, background-color, border-color, outline-color, box-shadow, visibility !important;
       scroll-behavior: auto !important;
     }
+    .animate-in { --tw-enter-translate-x: 0 !important; --tw-enter-translate-y: 0 !important; --tw-enter-scale: 1 !important; }
+    .gg-pop, .gg-dialog-panel { animation-name: ggFade !important; }
+    .animate-pulse { animation: none; }
   }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #D0D5DD; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
   ::-webkit-scrollbar-thumb:hover { background: #98A2B3; border: 2px solid transparent; background-clip: padding-box; }
+
+  /* Popovers (menus, dropdowns, comboboxes): grow from their trigger, never
+     from nothing. Set the origin per popover with origin-top / origin-top-right. */
+  .gg-pop { animation: ggPop 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @keyframes ggPop { from { opacity: 0; transform: translateY(-4px) scale(0.97); } }
+  /* Dialogs stay centred (no trigger origin); backdrop fades a touch faster. */
+  .gg-dialog-backdrop { animation: ggFade 150ms ease-out; }
+  .gg-dialog-panel { animation: ggDialog 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @keyframes ggDialog { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+  @keyframes ggFade { from { opacity: 0; } }
+  /* Press feedback for chips, toggles, steppers — anything tappable that
+     isn't a <Button> (which already has it). */
+  .press { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+  .press:active:not(:disabled) { transform: scale(0.97); }
 
   dialog::backdrop { animation: backdropFade 180ms ease-out; }
   @keyframes backdropFade { from { opacity: 0; } to { opacity: 1; } }
@@ -77,10 +95,12 @@
   .ambient { background: transparent; }
 
   /* Hover lift for interactive passes/cards. */
-  .lift { transition: transform 220ms cubic-bezier(0.2, 0, 0, 1), box-shadow 220ms cubic-bezier(0.2, 0, 0, 1), border-color 200ms ease; }
+  .lift { transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1), border-color 200ms ease; }
   @media (hover: hover) and (pointer: fine) {
     .lift:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 16px 32px -14px rgb(16 24 40 / 0.22); }
   }
+  /* Pressing a card-link should feel like pressing a button (after :hover so it wins). */
+  .lift:active { transform: translateY(0) scale(0.99); transition-duration: 100ms; }
   /* While the page scrolls, cards sliding under a still pointer would fire
      hover lift/zoom/shadow on and off — reads as flicker. ScrollCalm toggles
      this class for the duration of a scroll. */

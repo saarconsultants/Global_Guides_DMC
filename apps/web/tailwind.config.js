@@ -7,6 +7,9 @@ const animate = require('tailwindcss-animate');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // hover: utilities only apply on devices that can really hover (mouse/trackpad).
+  // On touch, a tap would otherwise leave cards lifted/zoomed until the next tap.
+  future: { hoverOnlyWhenSupported: true },
   darkMode: 'class',
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
@@ -63,7 +66,15 @@ module.exports = {
         lg: '0 12px 24px -8px rgb(16 24 40 / 0.14), 0 4px 8px -4px rgb(16 24 40 / 0.06)',
         xl: '0 24px 48px -16px rgb(16 24 40 / 0.28), 0 2px 6px rgb(16 24 40 / 0.06)',
       },
-      transitionTimingFunction: { standard: 'cubic-bezier(0.2,0,0,1)' },
+      transitionTimingFunction: {
+        standard: 'cubic-bezier(0.2,0,0,1)',
+        // Strong ease-out: UI entering / responding (dropdowns, dialogs, press).
+        out: 'cubic-bezier(0.23,1,0.32,1)',
+        // On-screen movement that is NOT a response to input (carousel auto-advance).
+        'in-out-strong': 'cubic-bezier(0.77,0,0.175,1)',
+        // Sheets / bars sliding from an edge (iOS drawer curve).
+        drawer: 'cubic-bezier(0.32,0.72,0,1)',
+      },
     },
   },
   plugins: [animate],

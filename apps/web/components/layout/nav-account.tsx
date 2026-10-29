@@ -62,7 +62,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', ctrlKey: true, shiftKey: true, metaKey: true }));
   }
 
-  const menu = 'absolute right-0 top-full mt-2 w-64 bg-surface text-ink rounded-lg shadow-xl border border-border-subtle z-50 overflow-hidden';
+  const menu = 'gg-pop origin-top-right absolute right-0 top-full mt-2 w-64 bg-surface text-ink rounded-lg shadow-xl border border-border-subtle z-50 overflow-hidden';
   const item = 'flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface-2 transition-colors text-sm';
 
   return (

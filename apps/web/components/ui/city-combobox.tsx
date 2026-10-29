@@ -72,7 +72,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
       </button>
 
       {open && (
-        <div className="absolute z-40 mt-1 left-0 right-0 bg-surface rounded-md shadow-lg border border-border-subtle overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute z-40 mt-1 left-0 right-0 bg-surface rounded-md shadow-lg border border-border-subtle overflow-hidden gg-pop origin-top">
           <div className="relative border-b border-border-subtle">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
             <input

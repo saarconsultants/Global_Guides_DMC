@@ -111,7 +111,7 @@ export function FilterChip({ href, active, children, className }: { href: string
       href={href as any}
       aria-current={active ? 'true' : undefined}
       className={cn(
-        'inline-flex items-center gap-1.5 h-9 px-3 rounded-md border text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 ease-standard',
+        'inline-flex items-center gap-1.5 h-9 px-3 rounded-md border text-[13px] font-semibold whitespace-nowrap transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
         active ? 'border-crimson-700 bg-crimson-50 text-crimson-700' : 'border-border bg-surface text-ink-soft hover:border-border-strong',
         className,
       )}

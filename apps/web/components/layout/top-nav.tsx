@@ -102,7 +102,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
                     {n.label}<ChevronDown aria-hidden className={cn('w-3.5 h-3.5 transition-transform', open && 'rotate-180')} />
                   </button>
                   {open && (
-                    <div id={`nav-group-${n.label.toLowerCase()}`} className="absolute left-0 top-full mt-1 w-[300px] bg-surface rounded-lg shadow-xl border border-border-subtle z-50 overflow-hidden p-1.5">
+                    <div id={`nav-group-${n.label.toLowerCase()}`} className="gg-pop origin-top-left absolute left-0 top-full mt-1 w-[300px] bg-surface rounded-lg shadow-xl border border-border-subtle z-50 overflow-hidden p-1.5">
                       {n.items.map((i) => {
                         const Icon = i.icon;
                         return (

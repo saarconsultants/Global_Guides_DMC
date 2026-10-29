@@ -100,7 +100,7 @@ export function Dialog({ open, onClose, title, ariaLabel, children, size = 'md',
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-navy-900/60 backdrop-blur-sm p-4 sm:p-6"
+      className="gg-dialog-backdrop fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-navy-900/60 backdrop-blur-sm p-4 sm:p-6"
       // Backdrop click closes — only when the click target is the backdrop itself,
       // never a child. (No native-dialog scrollbar ambiguity here.)
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -114,7 +114,7 @@ export function Dialog({ open, onClose, title, ariaLabel, children, size = 'md',
         tabIndex={-1}
         onKeyDown={onKeyDown}
         className={cn(
-          'relative w-full my-auto rounded-lg shadow-xl border border-border-subtle max-h-[90vh] overflow-y-auto bg-surface focus:outline-none',
+          'gg-dialog-panel relative w-full my-auto rounded-lg shadow-xl border border-border-subtle max-h-[90vh] overflow-y-auto bg-surface focus:outline-none',
           sizes[size],
         )}
         // Stop propagation so clicks inside the panel never reach the backdrop handler.

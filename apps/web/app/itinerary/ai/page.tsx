@@ -230,7 +230,7 @@ function AiPlanner() {
                 <div className="grid grid-cols-3 gap-2">
                   {([['standard', 'Standard', '3★ and up'], ['premium', 'Premium', '4★'], ['luxury', 'Luxury', '5★']] as const).map(([k, t, s]) => (
                     <button key={k} type="button" aria-pressed={brief.budget === k} onClick={() => set('budget', k)}
-                      className={`rounded-md border px-3 py-2.5 text-left transition-colors ${brief.budget === k ? 'border-ink bg-ink text-white' : 'border-border-subtle hover:border-border-strong'}`}>
+                      className={`rounded-md border px-3 py-2.5 text-left transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97] ${brief.budget === k ? 'border-ink bg-ink text-white' : 'border-border-subtle hover:border-border-strong'}`}>
                       <span className="block text-sm font-bold">{t}</span>
                       <span className={`block text-xs ${brief.budget === k ? 'text-white/75' : 'text-[rgb(var(--text-secondary))]'}`}>{s}</span>
                     </button>
@@ -320,9 +320,9 @@ function AiPlanner() {
 function Counter({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
   return (
     <div className="inline-flex items-center rounded-md border border-border bg-surface h-11">
-      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`Fewer ${label}`} className="w-11 h-full inline-flex items-center justify-center disabled:opacity-30"><Minus className="w-4 h-4" /></button>
+      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`Fewer ${label}`} className="w-11 h-full inline-flex items-center justify-center disabled:opacity-30 transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]"><Minus className="w-4 h-4" /></button>
       <span className="min-w-[3rem] text-center font-bold tnum" aria-live="polite">{value}</span>
-      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`More ${label}`} className="w-11 h-full inline-flex items-center justify-center disabled:opacity-30"><Plus className="w-4 h-4" /></button>
+      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`More ${label}`} className="w-11 h-full inline-flex items-center justify-center disabled:opacity-30 transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]"><Plus className="w-4 h-4" /></button>
     </div>
   );
 }

@@ -123,7 +123,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                     type="button"
                     onClick={() => setSlotOpen(s)}
                     aria-label={act ? `${s[0]!.toUpperCase() + s.slice(1)} activity, day ${day.dayNo}: ${act.leamigo?.startTime ? `${act.leamigo.startTime} ` : ''}${act.name}. Change` : `Add ${s} activity, day ${day.dayNo}`}
-                    className={`text-left rounded-md px-3 py-2 min-[400px]:py-2.5 min-h-[44px] min-[400px]:min-h-[64px] flex items-baseline gap-3 min-[400px]:block transition-colors cursor-pointer ${act ? 'border border-border-subtle bg-surface hover:border-crimson-300' : 'border-2 border-dashed border-border bg-surface-2/60 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
+                    className={`text-left rounded-md px-3 py-2 min-[400px]:py-2.5 min-h-[44px] min-[400px]:min-h-[64px] flex items-baseline gap-3 min-[400px]:block transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97] cursor-pointer ${act ? 'border border-border-subtle bg-surface hover:border-crimson-300' : 'border-2 border-dashed border-border bg-surface-2/60 hover:border-crimson-300 hover:bg-crimson-50/40'}`}
                   >
                     <span className="label w-[72px] flex-shrink-0 min-[400px]:w-auto">{s}</span>
                     {act ? (

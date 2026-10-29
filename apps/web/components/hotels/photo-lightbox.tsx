@@ -90,7 +90,7 @@ export function PhotoLightbox({ open, onClose, images, startIndex = 0, hotelName
               onClick={() => setIndex(i)}
               aria-label={`Photo ${i + 1} of ${images.length}`}
               aria-current={i === index ? 'true' : undefined}
-              className={`w-16 h-16 rounded overflow-hidden flex-shrink-0 border-2 transition-all ${i === index ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
+              className={`w-16 h-16 rounded overflow-hidden flex-shrink-0 border-2 transition-[opacity,border-color] duration-150 ${i === index ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
             >
               <img src={src} alt="" className="w-full h-full object-cover" />
             </button>
