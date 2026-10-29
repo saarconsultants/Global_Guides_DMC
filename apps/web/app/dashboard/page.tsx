@@ -165,7 +165,7 @@ export default async function DashboardPage() {
           <div className="lg:col-span-3 min-w-0">
             <div className="flex items-end justify-between mb-4">
               <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Ready to sell</h2>
-              <Link href="/suggested" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">All packages <ArrowRight className="w-3.5 h-3.5" /></Link>
+              <Link href="/suggested" className="hit-area text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">All packages <ArrowRight className="w-3.5 h-3.5" /></Link>
             </div>
             <div className="grid gap-5 md:grid-cols-3 min-w-0">
               {templates.map((t) => {
@@ -261,7 +261,7 @@ export default async function DashboardPage() {
                     ))}
                   </ul>
                 )}
-                <Link href="/leads" className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-crimson-700 hover:underline">All leads <ArrowRight className="w-3.5 h-3.5" /></Link>
+                <Link href="/leads" className="hit-area mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-crimson-700 hover:underline">All leads <ArrowRight className="w-3.5 h-3.5" /></Link>
               </CardContent>
             </Card>
           </aside>
@@ -284,7 +284,7 @@ export default async function DashboardPage() {
         <section>
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Where next</h2>
-            <Link href="/hotels" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Search hotels <ArrowRight className="w-3.5 h-3.5" /></Link>
+            <Link href="/hotels" className="hit-area text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Search hotels <ArrowRight className="w-3.5 h-3.5" /></Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {DESTINATIONS.map((d) => {
@@ -311,7 +311,7 @@ export default async function DashboardPage() {
         <section>
           <div className="flex items-end justify-between mb-4">
             <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Last 30 days</h2>
-            <Link href="/statement" className="text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Statement <ArrowRight className="w-3.5 h-3.5" /></Link>
+            <Link href="/statement" className="hit-area text-sm text-crimson-700 hover:underline font-bold inline-flex items-center gap-1">Statement <ArrowRight className="w-3.5 h-3.5" /></Link>
           </div>
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             <StatCard label="Leads"     value={String(leadCount)}   delta={trend(leadCount, leadPrev)}     sub="enquiries" />

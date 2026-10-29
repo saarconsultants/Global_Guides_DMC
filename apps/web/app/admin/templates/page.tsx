@@ -115,7 +115,7 @@ function regionLabel(r: string) {
 function PublishToggle({ id, published }: { id: string; published: boolean }) {
   return (
     <form action={toggleTemplatePublishedAction.bind(null, id)} className="inline">
-      <button type="submit" className="cursor-pointer min-h-6" title={published ? 'Click to unpublish' : 'Click to publish'}>
+      <button type="submit" className="cursor-pointer min-h-6 hit-area" title={published ? 'Click to unpublish' : 'Click to publish'}>
         <Pill variant={published ? 'success' : 'neutral'}>{statusLabel(published ? 'PUBLISHED' : 'DRAFT')}</Pill>
       </button>
     </form>

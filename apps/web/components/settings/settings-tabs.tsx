@@ -17,7 +17,7 @@ export function SettingsTabs({ active }: { active: (typeof TABS)[number]['key'] 
           href={t.href}
           aria-current={t.key === active ? 'page' : undefined}
           className={cn(
-            'px-3.5 h-9 inline-flex items-center rounded-md font-bold transition-colors',
+            'px-3.5 h-11 sm:h-9 inline-flex items-center rounded-md font-bold transition-colors',
             t.key === active ? 'bg-ink text-white' : 'bg-surface border border-border text-navy-700 hover:border-border-strong',
           )}
         >

@@ -59,7 +59,7 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
           placeholder={placeholder}
           aria-label={bare ? label : undefined}
           className={bare
-            ? 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
+            ? 'h-11 lg:h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
             : 'h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500'}
           autoComplete="off"
         />

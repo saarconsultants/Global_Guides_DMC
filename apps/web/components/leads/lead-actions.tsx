@@ -38,19 +38,19 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
 
   return (
     <div className="flex items-center justify-end gap-1">
-      <Link href={`/leads/${lead.id}` as any} title="View lead" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
+      <Link href={`/leads/${lead.id}` as any} title="View lead" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Eye className="w-4 h-4" />
       </Link>
       {latestProposalId ? (
-        <a href={`/api/proposal-pdf/${latestProposalId}`} target="_blank" rel="noreferrer" title="Download latest proposal PDF" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
+        <a href={`/api/proposal-pdf/${latestProposalId}`} target="_blank" rel="noreferrer" title="Download latest proposal PDF" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
           <FileDown className="w-4 h-4" />
         </a>
       ) : (
-        <span title="No proposal yet" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-tertiary))] opacity-40 cursor-not-allowed">
+        <span title="No proposal yet" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-tertiary))] opacity-40 cursor-not-allowed">
           <FileDown className="w-4 h-4" />
         </span>
       )}
-      <button type="button" onClick={() => setEditOpen(true)} title="Edit lead" className="w-10 h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
+      <button type="button" onClick={() => setEditOpen(true)} title="Edit lead" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Pencil className="w-4 h-4" />
       </button>
 

@@ -33,7 +33,7 @@ const buttonVariants = cva(
         brick: `bg-crimson-700 text-white hover:bg-crimson-900 ${FILLED_DISABLED}`,
       },
       size: {
-        sm: 'h-9 px-3.5 text-[13px]',
+        sm: 'h-11 sm:h-9 px-3.5 text-[13px]',
         md: 'h-11 px-5 text-sm',
         lg: 'h-12 px-6 text-[15px]',
         icon: 'h-10 w-10',

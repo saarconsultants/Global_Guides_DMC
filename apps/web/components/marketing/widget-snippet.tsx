@@ -20,7 +20,7 @@ export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-[rgb(var(--text-secondary))]">Embed on your website (iframe)</label>
-          <button onClick={() => copy('iframe', iframe)} className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline">
+          <button onClick={() => copy('iframe', iframe)} className="hit-area inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline cursor-pointer">
             {copied === 'iframe' ? <><Check className="w-3 h-3" />Copied</> : <><Copy className="w-3 h-3" />Copy</>}
           </button>
         </div>
@@ -30,7 +30,7 @@ export function WidgetSnippet({ slug, origin }: { slug: string; origin: string }
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-xs font-semibold uppercase tracking-wider text-[rgb(var(--text-secondary))]">Direct link (share on WhatsApp, bio, etc.)</label>
-          <button onClick={() => copy('link', link)} className="inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline">
+          <button onClick={() => copy('link', link)} className="hit-area inline-flex items-center gap-1 text-xs text-crimson-700 hover:underline cursor-pointer">
             {copied === 'link' ? <><Check className="w-3 h-3" />Copied</> : <><Copy className="w-3 h-3" />Copy</>}
           </button>
         </div>

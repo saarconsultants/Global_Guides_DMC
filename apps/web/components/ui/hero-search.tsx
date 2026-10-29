@@ -44,7 +44,7 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'h-9 px-4 rounded-full text-[13px] font-bold border transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
+        'h-11 sm:h-9 px-4 rounded-full text-[13px] font-bold border transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
         active ? 'bg-amber-500 text-ink border-amber-500' : 'bg-white/12 text-white border-white/25 hover:bg-white/20 backdrop-blur-sm',
       )}
     >
@@ -99,7 +99,7 @@ export function HeroChip({ active, onClick, children }: { active?: boolean; onCl
       onClick={onClick}
       aria-pressed={!!active}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md border px-3 h-9 text-[13px] font-semibold transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
+        'inline-flex items-center gap-1.5 rounded-md border px-3 h-11 sm:h-9 text-[13px] font-semibold transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
         active ? 'border-crimson-700 text-crimson-700 bg-crimson-50' : 'border-border bg-surface text-navy-700 hover:border-border-strong',
       )}
     >
@@ -135,4 +135,4 @@ export function HeroDate({ value, min, onChange, label, sub }: { value: string; 
 }
 
 /** Borderless control inside a HeroCell: bold value type. */
-export const heroControl = 'h-7 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-ink tnum placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0 rounded-none';
+export const heroControl = 'h-11 lg:h-7 w-full border-0 bg-transparent p-0 text-[17px] font-bold text-ink tnum placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0 rounded-none';

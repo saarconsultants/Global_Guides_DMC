@@ -92,7 +92,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                 <li key={b.id} className="py-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <Link href={`/itinerary/${b.proposal.id}/customize` as any} className="inline-flex items-center min-h-6 font-mono text-[12.5px] font-bold text-crimson-700 hover:underline">{b.proposal.code}</Link>
+                      <Link href={`/itinerary/${b.proposal.id}/customize` as any} className="inline-flex items-center min-h-6 hit-area font-mono text-[12.5px] font-bold text-crimson-700 hover:underline">{b.proposal.code}</Link>
                       <div className="font-bold text-ink truncate">{b.proposal.lead?.customerName ?? '—'}</div>
                       <div className="text-[13px] text-[rgb(var(--text-secondary))] break-words">{b.proposal.name}</div>
                     </div>
@@ -105,7 +105,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                   {b.pnrs && <div className="font-mono text-xs text-[rgb(var(--text-secondary))] break-all">PNR {b.pnrs}</div>}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
                     {b.supplierJson && <SupplierItems bookingId={b.id} code={b.proposal.code} items={supplierRows(b.supplierJson)} />}
-                    <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
+                    <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 hit-area text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
                   </div>
                 </li>
               ))}
@@ -138,7 +138,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                       <td className="py-3 pr-4 font-mono text-xs text-[rgb(var(--text-secondary))]">{b.pnrs ?? '—'}</td>
                       <td className="py-3 pl-4 text-right whitespace-nowrap space-x-3">
                         {b.supplierJson && <SupplierItems bookingId={b.id} code={b.proposal.code} items={supplierRows(b.supplierJson)} />}
-                        <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
+                        <a href={`/api/booking-voucher/${b.proposal.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 hit-area text-xs font-semibold text-crimson-700 hover:underline" title="Download voucher PDF"><FileCheck className="w-3.5 h-3.5" />Voucher</a>
                       </td>
                     </tr>
                   ))}
@@ -155,6 +155,6 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
 
 function FilterPill({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <Link href={href as any} className={`px-3 h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</Link>
+    <Link href={href as any} className={`px-3 h-11 sm:h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</Link>
   );
 }

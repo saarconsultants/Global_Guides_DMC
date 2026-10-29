@@ -82,7 +82,7 @@ export default async function TeamSettingsPage() {
                     <InviteLinkCopyButton path={`/invite/${inv.token}`} />
                     {isOwner && (
                       <ActionForm action={revokeInviteAction.bind(null, inv.id)} confirm="Revoke this invite?" success="Invite revoked" className="inline">
-                        <button className="inline-flex items-center min-h-6 text-danger-500 hover:underline text-xs font-medium">Revoke</button>
+                        <button className="inline-flex items-center min-h-6 hit-area text-danger-500 hover:underline text-xs font-medium">Revoke</button>
                       </ActionForm>
                     )}
                   </div>
@@ -104,7 +104,7 @@ export default async function TeamSettingsPage() {
                       <td className="py-3 text-right">
                         {isOwner && (
                           <ActionForm action={revokeInviteAction.bind(null, inv.id)} confirm="Revoke this invite?" success="Invite revoked" className="inline">
-                            <button className="inline-flex items-center min-h-6 text-danger-500 hover:underline text-xs font-medium">Revoke</button>
+                            <button className="inline-flex items-center min-h-6 hit-area text-danger-500 hover:underline text-xs font-medium">Revoke</button>
                           </ActionForm>
                         )}
                       </td>
@@ -166,7 +166,7 @@ function MemberActions({ u, isOwner, selfId }: { u: { id: string; email: string;
     <div className="inline-flex flex-wrap items-center gap-x-4 gap-y-1">
       {u.role !== 'SUPER_ADMIN' && <ResetPasswordButton userId={u.id} email={u.email} />}
       <ActionForm action={removeTeamMemberAction.bind(null, u.id)} confirm="Remove this team member? They lose access immediately." success="Member removed" className="inline">
-        <button className="inline-flex items-center min-h-6 text-danger-500 hover:underline text-xs font-medium">Remove</button>
+        <button className="inline-flex items-center min-h-6 hit-area text-danger-500 hover:underline text-xs font-medium">Remove</button>
       </ActionForm>
     </div>
   );

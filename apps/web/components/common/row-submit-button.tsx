@@ -23,7 +23,7 @@ export function RowSubmitButton({ icon, label, pendingLabel, title, className }:
       aria-busy={pending || undefined}
       title={title}
       className={cn(
-        'inline-flex items-center gap-1 min-h-6 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700 disabled:cursor-wait disabled:opacity-70',
+        'inline-flex items-center gap-1 min-h-6 hit-area text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700 disabled:cursor-wait disabled:opacity-70',
         className,
       )}
     >

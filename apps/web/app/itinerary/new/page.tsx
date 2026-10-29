@@ -189,7 +189,7 @@ function NewItineraryForm() {
               </DndContext>
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <button type="button" onClick={addDest} className="text-[13.5px] font-bold text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1">
+              <button type="button" onClick={addDest} className="hit-area text-[13.5px] font-bold text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1">
                 <Plus className="w-3.5 h-3.5" />Add another city
               </button>
               <p className="text-[12.5px] text-[rgb(var(--text-secondary))] tnum">{destinations.length} {destinations.length === 1 ? 'city' : 'cities'} · {totalNights} night{totalNights !== 1 ? 's' : ''}</p>
@@ -254,12 +254,12 @@ function NewItineraryForm() {
                           ))}
                         </div>
                       )}
-                      <button type="button" onClick={() => removeRoom(i)} disabled={rooms.length <= 1} className="text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 w-7 h-7 inline-flex items-center justify-center rounded-md ml-auto sm:ml-0" aria-label="Remove room">
+                      <button type="button" onClick={() => removeRoom(i)} disabled={rooms.length <= 1} className="hit-area text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 w-7 h-7 inline-flex items-center justify-center rounded-md ml-auto sm:ml-0" aria-label="Remove room">
                         <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
-                  {rooms.length < 5 && <button type="button" onClick={addRoom} className="text-[13.5px] font-bold text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add room</button>}
+                  {rooms.length < 5 && <button type="button" onClick={addRoom} className="hit-area text-[13.5px] font-bold text-crimson-700 hover:underline cursor-pointer inline-flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add room</button>}
                 </div>
               </div>
               <label className="sm:col-span-2 inline-flex items-center gap-2.5 text-[14px] font-semibold text-ink cursor-pointer select-none">
@@ -317,9 +317,9 @@ function NewItineraryForm() {
 function Stepper2({ value, onChange, min = 0, max = 9 }: { value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return (
     <div className="inline-flex items-center bg-surface rounded-md border border-border overflow-hidden">
-      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="w-8 h-8 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30 font-bold" disabled={value <= min} aria-label="Decrease">−</button>
+      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="w-11 h-11 sm:w-8 sm:h-8 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30 font-bold" disabled={value <= min} aria-label="Decrease">−</button>
       <span className="w-7 text-center font-mono text-[13px] font-bold tnum">{value}</span>
-      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="w-8 h-8 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30 font-bold" disabled={value >= max} aria-label="Increase">+</button>
+      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="w-11 h-11 sm:w-8 sm:h-8 inline-flex items-center justify-center hover:bg-navy-50 cursor-pointer disabled:opacity-30 font-bold" disabled={value >= max} aria-label="Increase">+</button>
     </div>
   );
 }

@@ -67,7 +67,7 @@ export default async function MarketingPage() {
                         href={`/api/flyer/${t.id}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-surface text-ink border border-border text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-11 sm:h-10 px-3 rounded-md bg-surface text-ink border border-border text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors"
                       >
                         <Download className="w-4 h-4" />Download PDF
                       </a>
@@ -75,7 +75,7 @@ export default async function MarketingPage() {
                         href={`https://wa.me/?text=${encodeURIComponent(`Have a look at this ${t.totalNights}-night ${t.title} trip we put together. Starting from ${fmt(t.startingPricePaise)}. Ask us for the PDF brochure!`)}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-md bg-surface text-ink border border-border text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors"
+                        className="inline-flex items-center justify-center gap-1.5 h-11 sm:h-10 px-3 rounded-md bg-surface text-ink border border-border text-sm font-bold hover:border-border-strong hover:bg-surface-2 transition-colors"
                       >
                         <MessageCircle className="w-4 h-4 text-[#25D366]" aria-hidden />Pitch
                       </a>

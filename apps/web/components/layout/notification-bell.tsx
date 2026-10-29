@@ -75,7 +75,7 @@ export function NotificationBell({ initialUnread, initialItems }: Props) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={openAndMarkRead}
-        className="inline-flex items-center justify-center w-9 h-9 rounded-md text-navy-700 hover:bg-navy-50 hover:text-ink transition-colors cursor-pointer relative"
+        className="inline-flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-md text-navy-700 hover:bg-navy-50 hover:text-ink transition-colors cursor-pointer relative"
       >
         <Bell className="w-4 h-4" aria-hidden />
         {unread > 0 && (

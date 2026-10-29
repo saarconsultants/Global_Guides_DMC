@@ -57,7 +57,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
         aria-label="Open city search"
         aria-expanded={open}
         onClick={() => setOpen(true)}
-        className="h-11 w-full min-w-0 flex items-center gap-2 rounded-md border border-border bg-surface px-3 text-[15px] text-left overflow-hidden hover:border-border-strong focus:border-crimson-700 focus:outline-none focus:ring-2 focus:ring-crimson-700/15 transition-colors cursor-text"
+        className="h-11 w-full min-w-0 flex items-center gap-2 cursor-pointer rounded-md border border-border bg-surface px-3 text-[15px] text-left overflow-hidden hover:border-border-strong focus:border-crimson-700 focus:outline-none focus:ring-2 focus:ring-crimson-700/15 transition-colors cursor-text"
       >
         <MapPin className="w-4 h-4 text-[rgb(var(--text-tertiary))] flex-shrink-0" />
         {selected ? (

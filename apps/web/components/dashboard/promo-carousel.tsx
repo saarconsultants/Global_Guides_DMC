@@ -109,7 +109,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
                 type="button"
                 aria-label={`Go to promotion ${i + 1}`}
                 onClick={() => setIdx(i)}
-                className="group/dot h-6 min-w-6 px-[3px] inline-flex items-center justify-center rounded-full"
+                className="group/dot hit-area h-6 min-w-6 px-[3px] inline-flex items-center justify-center rounded-full"
               >
                 <span aria-hidden="true" className={`block h-1.5 rounded-full transition-[width,background-color] duration-200 ease-out ${i === idx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/50 group-hover/dot:bg-white/80'}`} />
               </button>

@@ -41,7 +41,7 @@ export function SortableDestinationRow({ id, index, cityCode, nights, disabledCo
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
-        className="col-start-1 row-start-1 text-[rgb(var(--text-tertiary))] cursor-grab active:cursor-grabbing touch-none w-7 h-7 inline-flex items-center justify-center rounded hover:bg-navy-50"
+        className="col-start-1 row-start-1 text-[rgb(var(--text-tertiary))] cursor-grab active:cursor-grabbing touch-none w-11 h-11 sm:w-7 sm:h-7 inline-flex items-center justify-center rounded hover:bg-navy-50"
       >
         <GripVertical className="w-4 h-4" />
       </button>
@@ -55,7 +55,7 @@ export function SortableDestinationRow({ id, index, cityCode, nights, disabledCo
         onClick={onRemove}
         disabled={!canRemove}
         aria-label="Remove destination"
-        className="col-start-4 row-start-1 sm:col-start-5 text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 disabled:cursor-not-allowed w-7 h-7 inline-flex items-center justify-center rounded hover:bg-danger-100"
+        className="col-start-4 row-start-1 sm:col-start-5 text-[rgb(var(--text-tertiary))] hover:text-danger-500 disabled:opacity-30 disabled:cursor-not-allowed w-11 h-11 sm:w-7 sm:h-7 inline-flex cursor-pointer items-center justify-center rounded hover:bg-danger-100"
       >
         <X className="w-4 h-4" />
       </button>

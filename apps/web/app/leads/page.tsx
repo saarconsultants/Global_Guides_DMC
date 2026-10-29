@@ -86,7 +86,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                   <li key={l.id} className="py-4 space-y-2">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <Link href={`/leads/${l.id}` as any} className="inline-flex items-center min-h-6 font-bold text-ink hover:text-crimson-700 break-words">{l.customerName}</Link>
+                        <Link href={`/leads/${l.id}` as any} className="inline-flex items-center min-h-6 hit-area font-bold text-ink hover:text-crimson-700 break-words">{l.customerName}</Link>
                         {l.customerPhone && <div className="text-[12.5px] text-[rgb(var(--text-secondary))]">{l.customerPhone}</div>}
                       </div>
                       <Pill variant={statusVariant[l.status] ?? 'neutral'}>{statusLabel(l.status)}</Pill>

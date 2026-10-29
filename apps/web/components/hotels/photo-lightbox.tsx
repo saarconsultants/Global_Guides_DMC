@@ -64,7 +64,7 @@ export function PhotoLightbox({ open, onClose, images, startIndex = 0, hotelName
       {/* Image */}
       <img
         src={images[index]}
-        alt=""
+        alt={`Photo ${index + 1} of ${images.length}`}
         onClick={(e) => e.stopPropagation()}
         className="max-w-full max-h-[85vh] object-contain rounded-md shadow-2xl"
       />

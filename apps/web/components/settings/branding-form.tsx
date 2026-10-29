@@ -105,7 +105,7 @@ export function BrandingForm({ initial }: Props) {
                       <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={onLogoFile} className="hidden" />
                     </label>
                     {logoUrl && (
-                      <button type="button" onClick={() => { setLogoUrl(''); setLogoLink(''); }} className="inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-danger-500">
+                      <button type="button" onClick={() => { setLogoUrl(''); setLogoLink(''); }} className="hit-area inline-flex items-center gap-1 text-xs text-[rgb(var(--text-secondary))] hover:text-danger-500">
                         <X className="w-3 h-3" /> Remove
                       </button>
                     )}
@@ -159,7 +159,7 @@ function ColorField({ label, hint, value, onChange }: { label: string; hint?: st
       <div className="flex items-center gap-2">
         <input type="color" aria-label={`${label} picker`} value={value} onChange={(e) => onChange(e.target.value)} className="h-11 w-12 shrink-0 rounded-md border border-border cursor-pointer" />
         <Input aria-label={`${label} hex value`} value={value} onChange={(e) => onChange(e.target.value)} maxLength={7} className="font-mono min-w-0 flex-1 max-w-[140px]" />
-        <button type="button" onClick={() => navigator.clipboard.writeText(value).then(() => toast.success('Copied', value))} className="h-10 w-10 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-navy-50 cursor-pointer text-[rgb(var(--text-tertiary))]" aria-label={`Copy ${label} hex`}>
+        <button type="button" onClick={() => navigator.clipboard.writeText(value).then(() => toast.success('Copied', value))} className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-navy-50 cursor-pointer text-[rgb(var(--text-tertiary))]" aria-label={`Copy ${label} hex`}>
           <Copy className="w-4 h-4" />
         </button>
       </div>

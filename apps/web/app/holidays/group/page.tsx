@@ -21,7 +21,7 @@ export default async function GroupToursPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-6">
       <div className="flex items-center gap-2 text-sm">
-        <Link href="/holidays" className="text-[rgb(var(--text-secondary))] hover:text-ink">Holidays</Link>
+        <Link href="/holidays" className="hit-area text-[rgb(var(--text-secondary))] hover:text-ink">Holidays</Link>
         <span className="text-[rgb(var(--text-tertiary))]">›</span>
         <span className="text-ink font-medium">Group tours</span>
       </div>

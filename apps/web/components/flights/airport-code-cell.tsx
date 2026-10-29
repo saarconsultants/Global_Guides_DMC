@@ -33,7 +33,7 @@ export function AirportSwapButton({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="Swap origin and destination"
-      className="absolute z-20 right-5 bottom-0 translate-y-1/2 rotate-90 lg:rotate-0 lg:right-0 lg:bottom-auto lg:top-1/2 lg:translate-x-1/2 lg:-translate-y-1/2 flex w-8 h-8 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-700 hover:bg-crimson-50 transition-colors"
+      className="absolute z-20 right-5 bottom-0 translate-y-1/2 rotate-90 lg:rotate-0 lg:right-0 lg:bottom-auto lg:top-1/2 lg:translate-x-1/2 lg:-translate-y-1/2 flex w-11 h-11 lg:w-8 lg:h-8 rounded-full bg-surface border border-border shadow-sm items-center justify-center text-crimson-700 hover:bg-crimson-50 transition-colors"
     >
       <ArrowLeftRight className="w-3.5 h-3.5" />
     </button>

@@ -71,7 +71,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                 <li key={p.id} className="py-4 space-y-2">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <Link href={`/itinerary/${p.id}/customize` as any} className="inline-flex items-center min-h-6 font-mono text-[12.5px] font-bold text-crimson-700 hover:underline">{p.code}</Link>
+                      <Link href={`/itinerary/${p.id}/customize` as any} className="inline-flex items-center min-h-6 hit-area font-mono text-[12.5px] font-bold text-crimson-700 hover:underline">{p.code}</Link>
                       {(p as any).version > 1 && <span className="ml-1.5 text-[10px] text-[rgb(var(--text-tertiary))]">v{(p as any).version}</span>}
                       <div className="font-bold text-ink truncate">{p.lead?.customerName ?? '—'}</div>
                       <div className="text-[13px] text-[rgb(var(--text-secondary))] break-words">{p.name}</div>
@@ -148,14 +148,14 @@ function ProposalActions({ p, walletBalance, stacked }: { p: ProposalRow; wallet
         />
       )}
       {p.status === 'BOOKED' && (
-        <a href={`/api/booking-voucher/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs font-semibold text-success-600 hover:underline" title="Download booking voucher"><FileCheck className="w-3 h-3" />Voucher</a>
+        <a href={`/api/booking-voucher/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 hit-area text-xs font-semibold text-success-600 hover:underline" title="Download booking voucher"><FileCheck className="w-3 h-3" />Voucher</a>
       )}
       {/* Always visible — hidden-until-hover actions were missed by agents. */}
       <div className="inline-flex flex-wrap items-center gap-3">
-        <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs text-crimson-700 hover:underline" title="Open customer link">
+        <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 hit-area text-xs text-crimson-700 hover:underline" title="Open customer link">
           Open <ExternalLink className="w-3 h-3" />
         </a>
-        <a href={`/api/proposal-pdf/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Download branded PDF"><Download className="w-3 h-3" />PDF</a>
+        <a href={`/api/proposal-pdf/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 hit-area text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Download branded PDF"><Download className="w-3 h-3" />PDF</a>
         <form action={reviseProposalAction.bind(null, p.id)} className="inline">
           <RowSubmitButton icon={<GitBranch className="w-3 h-3" />} label="Revise" pendingLabel="Revising…" title="Create a revised version (v2)" />
         </form>

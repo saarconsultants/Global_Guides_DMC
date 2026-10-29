@@ -127,6 +127,6 @@ function FilterRail({ label, children }: { label: string; children: React.ReactN
 
 function FilterPill({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
-    <a href={href} className={`shrink-0 whitespace-nowrap px-3 h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</a>
+    <a href={href} className={`shrink-0 whitespace-nowrap px-3 h-11 sm:h-9 inline-flex items-center rounded-md text-[12.5px] font-bold border transition-colors cursor-pointer ${active ? 'bg-ink text-white border-ink' : 'bg-surface text-navy-700 border-border hover:border-border-strong'}`}>{label}</a>
   );
 }

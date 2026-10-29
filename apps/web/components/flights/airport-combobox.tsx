@@ -61,7 +61,7 @@ export function AirportCombobox({ value, onChange, label, placeholder = 'City or
           placeholder={placeholder}
           aria-label={bare ? label : undefined}
           className={bare
-            ? 'h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
+            ? 'h-11 lg:h-7 w-full border-0 bg-transparent p-0 text-[15px] font-semibold text-ink placeholder:text-[rgb(var(--text-tertiary))] placeholder:font-medium focus:outline-none focus:ring-0'
             : 'h-11 w-full rounded-md border border-border bg-surface pr-3.5 pl-10 text-[15px] font-medium text-ink transition-colors duration-150 hover:border-border-strong focus:border-crimson-700 focus:outline-none focus:ring-2 focus:ring-crimson-700/15'}
           autoComplete="off"
         />

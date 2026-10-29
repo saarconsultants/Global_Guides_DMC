@@ -69,7 +69,7 @@ export function DashboardSearch() {
           const Icon = t.icon; const on = tab === t.id;
           return (
             <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => setTab(t.id)}
-              className={cn('inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-[13px] font-bold border transition-colors',
+              className={cn('inline-flex items-center gap-1.5 h-11 sm:h-9 px-4 rounded-full text-[13px] font-bold border transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
                 on ? 'bg-amber-500 text-ink border-amber-500' : 'bg-white/12 text-white border-white/25 hover:bg-white/22 backdrop-blur-sm')}>
               <Icon className="w-3.5 h-3.5" />{t.label}
             </button>

@@ -91,7 +91,7 @@ export function FilterBar({
           )}
           {children}
           {clearHref && active && (
-            <Link href={clearHref as any} className="inline-flex items-center gap-1 h-9 px-2 rounded-md text-[13px] font-semibold text-navy-700 hover:bg-navy-50 hover:text-ink">
+            <Link href={clearHref as any} className="inline-flex items-center gap-1 h-11 sm:h-9 px-2 rounded-md text-[13px] font-semibold text-navy-700 hover:bg-navy-50 hover:text-ink">
               <X className="w-3.5 h-3.5" />Clear
             </Link>
           )}
@@ -111,7 +111,7 @@ export function FilterChip({ href, active, children, className }: { href: string
       href={href as any}
       aria-current={active ? 'true' : undefined}
       className={cn(
-        'inline-flex items-center gap-1.5 h-9 px-3 rounded-md border text-[13px] font-semibold whitespace-nowrap transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
+        'inline-flex items-center gap-1.5 h-11 sm:h-9 px-3 rounded-md border text-[13px] font-semibold whitespace-nowrap transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]',
         active ? 'border-crimson-700 bg-crimson-50 text-crimson-700' : 'border-border bg-surface text-ink-soft hover:border-border-strong',
         className,
       )}

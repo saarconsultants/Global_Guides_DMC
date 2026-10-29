@@ -104,7 +104,7 @@ export default async function AdminBugReportsPage({ searchParams }: Props) {
                         <p className="text-[13px] text-[rgb(var(--text-secondary))] mt-1 line-clamp-1 break-all">{firstLine.slice(0, 160)}</p>
                       )}
                       {r.pageUrl && (
-                        <a href={r.pageUrl} target="_blank" rel="noreferrer" title={r.pageUrl} className="mt-1.5 flex items-center min-h-6 min-w-0 text-[13px] text-crimson-700 hover:underline">
+                        <a href={r.pageUrl} target="_blank" rel="noreferrer" title={r.pageUrl} className="mt-1.5 flex items-center min-h-6 hit-area min-w-0 text-[13px] text-crimson-700 hover:underline">
                           <span className="truncate">{r.pageUrl}</span>
                         </a>
                       )}

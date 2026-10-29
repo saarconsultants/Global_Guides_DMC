@@ -73,7 +73,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
       onKeyDown={(e) => { if (e.key === 'Escape' && mobileOpen) { setMobileOpen(false); mobileToggleRef.current?.focus(); } }}
     >
       <div className="mx-auto max-w-[1400px] px-4 lg:px-6 h-16 flex items-center gap-2 lg:gap-4">
-        <Link href="/dashboard" className="flex items-center shrink-0 mr-1" aria-label="Global Guides — home">
+        <Link href="/dashboard" className="flex items-center shrink-0 mr-1 min-h-11" aria-label="Global Guides — home">
           <img src="/brand/ggdmc-logo.svg" alt="Global Guides DMC" className="h-9 w-auto" />
         </Link>
 
@@ -128,7 +128,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
           </Link>
           {notif && <NotificationBell initialUnread={notif.unread} initialItems={notif.items} />}
           <div className="hidden lg:block"><NavAccount actor={actor} walletLabel={walletLabel} /></div>
-          <button ref={mobileToggleRef} type="button" onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-10 h-10 inline-flex items-center justify-center rounded-md text-navy-700 hover:bg-navy-50" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
+          <button ref={mobileToggleRef} type="button" onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-11 h-11 inline-flex items-center justify-center rounded-md text-navy-700 hover:bg-navy-50" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>

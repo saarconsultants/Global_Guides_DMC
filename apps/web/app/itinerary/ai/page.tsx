@@ -246,13 +246,13 @@ function AiPlanner() {
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {NOTE_IDEAS.map((n) => (
                     <button key={n} type="button" onClick={() => set('notes', brief.notes ? `${brief.notes.replace(/[.\s]+$/, '')}, ${n.toLowerCase()}` : n)}
-                      className="min-h-8 px-2.5 rounded-full border border-border-subtle text-xs font-semibold hover:border-crimson-300">+ {n}</button>
+                      className="min-h-11 sm:min-h-8 px-3 rounded-full border border-border-subtle text-xs font-semibold hover:border-crimson-300">+ {n}</button>
                   ))}
                 </div>
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border-subtle">
-                <Link href={manualHref as any} className="text-sm font-semibold text-[rgb(var(--text-secondary))] hover:text-ink">Prefer to build it yourself?</Link>
+                <Link href={manualHref as any} className="hit-area text-sm font-semibold text-[rgb(var(--text-secondary))] hover:text-ink">Prefer to build it yourself?</Link>
                 <div className="flex flex-col items-stretch sm:items-end gap-1">
                   <Button onClick={build} disabled={!!briefError} className="gap-2 h-11 px-5"><Wand2 className="w-4 h-4" />Build my trip</Button>
                   {briefError && <p className="text-xs text-[rgb(var(--text-secondary))]">{briefError}</p>}
@@ -319,10 +319,10 @@ function AiPlanner() {
 
 function Counter({ value, min, max, onChange, label }: { value: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
   return (
-    <div className="inline-flex items-center rounded-md border border-border bg-surface h-11">
-      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`Fewer ${label}`} className="w-11 h-full inline-flex items-center justify-center disabled:opacity-30 transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]"><Minus className="w-4 h-4" /></button>
+    <div className="inline-flex items-center rounded-md border border-border bg-surface h-11 overflow-hidden">
+      <button type="button" onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label={`Fewer ${label}`} className="w-11 h-11 inline-flex items-center justify-center disabled:opacity-30 transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]"><Minus className="w-4 h-4" /></button>
       <span className="min-w-[3rem] text-center font-bold tnum" aria-live="polite">{value}</span>
-      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`More ${label}`} className="w-11 h-full inline-flex items-center justify-center disabled:opacity-30 transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]"><Plus className="w-4 h-4" /></button>
+      <button type="button" onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} aria-label={`More ${label}`} className="w-11 h-11 inline-flex items-center justify-center disabled:opacity-30 transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.97]"><Plus className="w-4 h-4" /></button>
     </div>
   );
 }

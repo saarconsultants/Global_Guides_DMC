@@ -117,7 +117,7 @@ export default async function AdminAgenciesPage() {
                         <td className="py-3 pr-4 money text-right whitespace-nowrap">{formatINR(a.walletPaise)}</td>
                         <td className="py-3 pr-4 text-[rgb(var(--text-secondary))]"><PrintedDate d={a.createdAt} /></td>
                         <td className="py-3 pr-4 text-right">
-                          <Link href={`/admin/agencies/${a.id}` as any} className="text-xs font-semibold text-crimson-700 hover:underline opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity inline-flex items-center gap-1 min-h-6 whitespace-nowrap">Open <ArrowRight className="w-3 h-3" /></Link>
+                          <Link href={`/admin/agencies/${a.id}` as any} className="text-xs font-semibold text-crimson-700 hover:underline opacity-100 [@media(hover:hover)_and_(pointer:fine)]:lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100 transition-opacity inline-flex items-center gap-1 min-h-6 hit-area whitespace-nowrap">Open <ArrowRight className="w-3 h-3" /></Link>
                         </td>
                       </tr>
                     ))}

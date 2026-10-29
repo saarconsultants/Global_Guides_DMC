@@ -141,7 +141,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                       <li key={p.id} className="py-3.5 space-y-1.5">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <Link href={`/itinerary/${p.id}/customize` as any} className="inline-flex items-center min-h-6 font-mono text-[12.5px] font-bold text-crimson-700 hover:underline whitespace-nowrap">{p.code}</Link>
+                            <Link href={`/itinerary/${p.id}/customize` as any} className="inline-flex items-center min-h-6 hit-area font-mono text-[12.5px] font-bold text-crimson-700 hover:underline whitespace-nowrap">{p.code}</Link>
                             <div className="text-[13.5px] text-ink break-words">{p.name}</div>
                           </div>
                           <Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill>
@@ -151,7 +151,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                           <span className="text-[rgb(var(--text-secondary))]">Created <span className="font-mono">{formatDayMonth(p.createdAt)}</span></span>
                           <span className="money text-[14px] text-ink">{fmt(p.pricePaise)}</span>
                         </div>
-                        <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-crimson-700 hover:underline inline-flex items-center gap-1 min-h-6">Open customer link <ExternalLink className="w-3 h-3" /></a>
+                        <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-crimson-700 hover:underline inline-flex items-center gap-1 min-h-6 hit-area">Open customer link <ExternalLink className="w-3 h-3" /></a>
                       </li>
                     );
                   })}
@@ -170,7 +170,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                             <td className="py-3 pr-4 money text-right whitespace-nowrap">{fmt(p.pricePaise)}</td>
                             <td className="py-3 pr-4"><Pill variant={proposalStatusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill></td>
                             <td className="py-3 text-right">
-                              <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline inline-flex items-center gap-1 min-h-6">Open <ExternalLink className="w-3 h-3" /></a>
+                              <a href={`/p/${p.shareToken}`} target="_blank" rel="noreferrer" className="text-xs text-crimson-700 hover:underline inline-flex items-center gap-1 min-h-6 hit-area">Open <ExternalLink className="w-3 h-3" /></a>
                             </td>
                           </tr>
                         );

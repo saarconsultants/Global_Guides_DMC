@@ -84,7 +84,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
         <button
           type="button"
           onClick={() => { setSupportOpen(!supportOpen); setProfileOpen(false); }}
-          className="inline-flex items-center justify-center w-9 h-9 rounded-md text-navy-700 hover:bg-navy-50 hover:text-ink transition-colors"
+          className="inline-flex items-center justify-center w-11 h-11 lg:w-9 lg:h-9 rounded-md text-navy-700 hover:bg-navy-50 hover:text-ink transition-colors"
           aria-label="Support"
           aria-expanded={supportOpen}
         >
