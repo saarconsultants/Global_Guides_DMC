@@ -12,6 +12,7 @@ import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { exitImpersonationAction } from '@/app/actions/impersonation';
 import { Eye } from 'lucide-react';
 import { countUnread, listNotifications } from '@/lib/db/notifications';
+import { preconnect } from 'react-dom';
 
 // Boarding-pass world: Archivo carries every UI voice (labels, body, display);
 // B612 Mono — the Airbus cockpit face — sets codes, PNRs, dates and money.
@@ -25,9 +26,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const viewport = { themeColor: '#101828' };
+export const viewport = { themeColor: '#FFFFFF', colorScheme: 'light' as const };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Supplier photo hosts: open the connection early so hotel and tour images start sooner.
+  preconnect('https://photos.hotelbeds.com');
+  preconnect('https://images.pexels.com');
   const actor = await getActor();
   let walletLabel = '₹ 0';
   let currency = 'INR';

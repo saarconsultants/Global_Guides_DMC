@@ -77,7 +77,7 @@ export function ResponseButtons({ token, accent = '#C9A24A' }: { token: string; 
     return (
       <div className="mt-6 rounded-md bg-white/10 backdrop-blur-md border border-white/20 p-4 text-sm space-y-3">
         <label htmlFor="change-request" className="block">Tell us what you'd like to change and we'll send you an updated proposal.</label>
-        <textarea id="change-request" value={message} maxLength={2000} onChange={(e) => setMessage(e.target.value)} placeholder="e.g. Different hotel in Paris, fewer activities, July dates instead of June..." className="w-full h-24 rounded-md p-3 text-sm bg-white/10 border border-white/20 text-white placeholder:text-navy-200 focus:outline-none focus:ring-2 focus:ring-white/60" />
+        <textarea id="change-request" value={message} maxLength={2000} onChange={(e) => setMessage(e.target.value)} placeholder="e.g. Different hotel in Paris, fewer activities, July dates instead of June…" className="w-full h-24 rounded-md p-3 text-sm bg-white/10 border border-white/20 text-white placeholder:text-navy-200 focus:outline-none focus:ring-2 focus:ring-white/60" />
         {errorBox}
         <div className="flex gap-2 justify-end">
           <button type="button" disabled={submitting} onClick={() => { setMode(null); setError(null); }} className="px-4 py-2 rounded-md text-sm text-navy-100 hover:text-white disabled:opacity-50">Cancel</button>

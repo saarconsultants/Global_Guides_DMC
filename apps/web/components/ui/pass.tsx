@@ -64,7 +64,7 @@ export function Field({ label, value, sub, mono, big, className }: { label: stri
 /** Route chip: DEL → CDG → AMS in cockpit mono on ink. */
 export function RouteCode({ codes, className, light }: { codes: string[]; className?: string; light?: boolean }) {
   return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-[6px] px-2 py-1 font-mono text-[11.5px] font-bold tracking-[0.04em] tnum', light ? 'bg-white/90 text-ink' : 'bg-ink text-white', className)}>
+    <span translate="no" className={cn('inline-flex items-center gap-1.5 rounded-[6px] px-2 py-1 font-mono text-[11.5px] font-bold tracking-[0.04em] tnum', light ? 'bg-white/90 text-ink' : 'bg-ink text-white', className)}>
       {codes.map((c, i) => (
         <React.Fragment key={i}>{i > 0 && <span className="opacity-60">→</span>}<span>{c}</span></React.Fragment>
       ))}

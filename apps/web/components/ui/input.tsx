@@ -27,7 +27,17 @@ export function useFieldId() {
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-export const Input = React.forwardRef<InputProps extends never ? never : HTMLInputElement, InputProps>(({ className, id, ...props }, ref) => {
+// Sensible defaults per type: the right phone keyboard and autofill, and no
+// spellcheck squiggles under emails. Explicit props always win.
+const TYPE_DEFAULTS: Record<string, Partial<React.InputHTMLAttributes<HTMLInputElement>>> = {
+  email: { autoComplete: 'email', spellCheck: false, autoCapitalize: 'none', inputMode: 'email' },
+  tel: { autoComplete: 'tel', inputMode: 'tel' },
+  url: { autoComplete: 'url', spellCheck: false, autoCapitalize: 'none', inputMode: 'url' },
+  search: { autoComplete: 'off', spellCheck: false },
+};
+
+export const Input = React.forwardRef<InputProps extends never ? never : HTMLInputElement, InputProps>(({ className, id, ...rawProps }, ref) => {
+  const props = { ...(TYPE_DEFAULTS[rawProps.type ?? ''] ?? {}), ...rawProps };
   const fieldId = React.useContext(FieldContext);
   return (
     <input

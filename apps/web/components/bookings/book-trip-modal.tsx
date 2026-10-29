@@ -230,8 +230,8 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                       <input className="control" aria-label="Lead passenger last name" placeholder="Last name" value={contact.lastName} onChange={(e) => setContact({ ...contact, lastName: e.target.value })} />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <input className="control" type="email" aria-label="Lead passenger email" placeholder="Email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
-                      <input className="control" type="tel" aria-label="Lead passenger mobile" placeholder="Mobile, e.g. +919876543210" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
+                      <input className="control" type="email" autoComplete="email" spellCheck={false} inputMode="email" aria-label="Lead passenger email" placeholder="Email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
+                      <input className="control" type="tel" autoComplete="tel" inputMode="tel" aria-label="Lead passenger mobile" placeholder="Mobile, e.g. +919876543210" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} />
                     </div>
                     {prep.transfers.some((t) => t.kind === 'arrival' || t.kind === 'departure') && (
                       <input className="control w-full" aria-label="Arrival flight number" placeholder="Flight number (optional, helps the driver track delays)" value={contact.flightNumber} onChange={(e) => setContact({ ...contact, flightNumber: e.target.value })} />

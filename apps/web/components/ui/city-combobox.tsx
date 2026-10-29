@@ -82,7 +82,7 @@ export function CityCombobox({ value, onChange, placeholder = 'City…', disable
               value={query}
               onChange={(e) => { setQuery(e.target.value); setHi(0); }}
               onKeyDown={onKey}
-              placeholder="Search 100+ cities, e.g. Bali, Lisbon, Goa"
+              placeholder="Search 100+ cities, e.g. Bali, Lisbon, Goa…"
               className="w-full pl-9 pr-3 h-10 text-sm bg-transparent focus:outline-none"
             />
           </div>

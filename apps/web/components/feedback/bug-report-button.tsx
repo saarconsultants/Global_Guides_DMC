@@ -149,7 +149,7 @@ export function BugReportButton() {
 
             <div>
               <Label required>What happened (step-by-step)</Label>
-              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm" placeholder="1. I went to ...&#10;2. I clicked ...&#10;3. I expected ... but instead ..." maxLength={4000} required />
+              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} className="w-full rounded-sm border border-border bg-surface px-3 py-2 text-sm" placeholder="1. I went to …&#10;2. I clicked …&#10;3. I expected … but instead …" maxLength={4000} required />
               <p className="text-[10px] text-[rgb(var(--text-tertiary))] mt-1">Screenshots? Drop them in WhatsApp afterwards — we'll match them by timestamp.</p>
             </div>
 

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 
 export interface PromoBanner {
   key: string;
@@ -23,12 +23,18 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
   const [idx, setIdx] = useState(0);
   const hover = useRef(false);
   const n = banners.length;
+  // Auto-rotation can be paused by the viewer (WCAG 2.2.2) and never starts
+  // for people who ask for reduced motion.
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPaused(true);
+  }, []);
 
   useEffect(() => {
-    if (n <= 1) return;
+    if (n <= 1 || paused) return;
     const t = setInterval(() => { if (!hover.current && !document.hidden) setIdx((i) => (i + 1) % n); }, 6000);
     return () => clearInterval(t);
-  }, [n]);
+  }, [n, paused]);
 
   if (n === 0) return null;
 
@@ -39,6 +45,8 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
       className="relative"
       onMouseEnter={() => { hover.current = true; }}
       onMouseLeave={() => { hover.current = false; }}
+      onFocus={() => { hover.current = true; }}
+      onBlur={() => { hover.current = false; }}
     >
       <div className="overflow-hidden rounded-lg shadow-md">
         <div className="flex transition-transform duration-500 ease-drawer" style={{ transform: `translateX(-${idx * 100}%)` }}>
@@ -95,6 +103,15 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
           {/* Controls sit together on the band's top-right edge, clear of the copy and CTAs.
               Each dot sits in a 24px-tall hit area (WCAG 2.5.8) while the visual dot stays small. */}
           <div className="absolute top-3 right-3 flex items-center gap-1">
+            <button
+              type="button"
+              aria-label={paused ? 'Play promotions' : 'Pause promotions'}
+              aria-pressed={paused}
+              onClick={() => setPaused((p) => !p)}
+              className="hit-area flex w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white items-center justify-center transition-colors"
+            >
+              {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+            </button>
             <button
               type="button"
               aria-label="Previous promotion"

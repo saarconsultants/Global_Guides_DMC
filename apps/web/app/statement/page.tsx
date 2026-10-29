@@ -61,7 +61,7 @@ export default async function StatementPage() {
               body="Confirm a booking to see a debit, or top up to see a credit. Every wallet movement is logged here forever."
             />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Transactions">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left label border-b border-border">
