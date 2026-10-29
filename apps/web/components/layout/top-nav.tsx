@@ -107,7 +107,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
                         const Icon = i.icon;
                         return (
                           <Link key={i.href} href={i.href as any} className={cn('flex items-start gap-3 px-3 py-2.5 rounded-md hover:bg-surface-2 transition-colors', isActive(pathname, i.href) && 'bg-crimson-50')}>
-                            <span className="mt-0.5 w-8 h-8 rounded-md bg-navy-50 text-crimson-700 inline-flex items-center justify-center shrink-0"><Icon className="w-4 h-4" /></span>
+                            <span className="mt-0.5 w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]"><Icon className="w-4 h-4" /></span>
                             <span className="min-w-0"><span className="block text-sm font-bold text-ink">{i.label}</span><span className="block text-xs text-[rgb(var(--text-secondary))] mt-0.5">{i.desc}</span></span>
                           </Link>
                         );

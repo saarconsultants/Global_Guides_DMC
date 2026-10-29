@@ -144,7 +144,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                 const t = inc.transfer;
                 return (
                   <li key={t.id + i} className="flex items-center gap-3 py-2.5 text-sm">
-                    <span className="w-8 h-8 rounded-md bg-navy-50 text-navy-700 inline-flex items-center justify-center shrink-0"><Car className="w-4 h-4" /></span>
+                    <span className="w-5 inline-flex justify-center shrink-0 text-[rgb(var(--text-tertiary))]"><Car className="w-4 h-4" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-bold text-ink text-[13.5px] truncate">{t.kind === 'rental' ? `Car with driver · ${t.leamigoRental?.hours ?? ''}h from ${t.fromName}` : <>{t.kind === 'arrival' ? 'Airport pickup' : t.kind === 'departure' ? 'Airport drop-off' : 'Inter-city transfer'} · {t.fromName} → {t.toName}</>}</span>
                       <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{t.kind === 'rental' ? `${t.leamigoRental?.vehicleName ?? 'Car'} · starts ${t.leamigoRental?.pickupTime ?? ''}` : `${vehicleLabel(t.vehicle)} · ${t.bagsAllowed} bags`}</span>

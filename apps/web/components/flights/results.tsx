@@ -34,7 +34,7 @@ function OfferPass({ offer, returnTo, cabin, leg, fmt }: { offer: FlightOffer; r
     <Pass className="lift">
       <PassMain>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="w-8 h-8 rounded-md bg-navy-50 text-crimson-700 inline-flex items-center justify-center"><Plane className="w-4 h-4" /></span>
+          <span className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]"><Plane className="w-4 h-4" /></span>
           <span className="font-bold text-ink text-[14px]">{first.airlineName}</span>
           <span className="font-mono text-[12px] text-[rgb(var(--text-secondary))] tnum">{offer.segments.map((s) => `${s.airlineCode} ${s.flightNumber}`).join(' · ')}</span>
           <span className="ml-auto flex items-center gap-1.5">

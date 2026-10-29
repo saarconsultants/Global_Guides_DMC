@@ -98,9 +98,7 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
           ghost="stay"
           img={heroImg}
         >
-          {/* Own subtitle: the photo is bright on the right, so the line needs a
-              heavier shadow than the shared band gives to stay readable on phones. */}
-          <p className="mt-3 text-[15px] font-medium text-white max-w-2xl [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_0_14px_rgba(0,0,0,0.6)]">
+          <p className="mt-3 text-[15px] font-medium text-white max-w-2xl">
             Global wholesale rates · every board type · rooms &amp; occupancy per your booking
           </p>
         </HeroBand>

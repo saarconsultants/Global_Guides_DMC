@@ -19,7 +19,8 @@ export function HeroBand({ title, accent, subtitle, img, children }: {
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div aria-hidden className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,12,18,0.82)_0%,rgba(10,12,18,0.48)_45%,rgba(10,12,18,0.08)_85%)]" />
+          {/* Neutral scrim for legibility: even on phones (text spans the photo), fading right on wide screens. */}
+          <div aria-hidden className="absolute inset-0 bg-[rgba(10,12,18,0.62)] lg:bg-[linear-gradient(90deg,rgba(10,12,18,0.84)_0%,rgba(10,12,18,0.55)_45%,rgba(10,12,18,0.12)_85%)]" />
         </>
       )}
       <div className="relative mx-auto max-w-7xl">
@@ -57,7 +58,7 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
 export function HeroBar({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className="relative z-20 mx-auto max-w-7xl px-6 -mt-[60px]">
-      <div className={cn('bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch', className)}>
+      <div className={cn('bg-surface rounded-lg shadow-md flex flex-col lg:flex-row lg:items-stretch', className)}>
         {children}
       </div>
     </div>

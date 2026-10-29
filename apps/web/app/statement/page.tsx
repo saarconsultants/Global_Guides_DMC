@@ -29,7 +29,7 @@ export default async function StatementPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3 items-start">
         <div className="lg:col-span-2 rounded-lg bg-ink text-white shadow-sm overflow-hidden flex flex-col lg:flex-row">
           <div className="flex-1 px-6 py-6">
             <p className="label text-white/70 inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>

@@ -15,7 +15,7 @@ export default async function InviteAcceptPage({ params }: { params: Promise<{ t
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-canvas">
-      <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-crimson-500 via-crimson-700 to-crimson-900 text-white items-center justify-center p-12">
+      <div className="hidden lg:flex relative overflow-hidden bg-ink text-white items-center justify-center p-12">
         <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-amber-500/25 blur-3xl" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-300/15 blur-3xl" />
         <div className="relative max-w-md">

@@ -120,7 +120,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     <th className="py-3 pr-4 font-bold">Destinations</th>
                     <th className="py-3 pr-4 font-bold">From</th>
                     <th className="py-3 pr-4 font-bold">Travel</th>
-                    <th className="py-3 pr-4 font-bold">Nights</th>
+                    <th className="py-3 pr-4 font-bold text-right">Nights</th>
                     <th className="py-3 pr-4 font-bold">Status</th>
                     <th className="py-3 pr-4 font-bold">Latest quote</th>
                     <th className="py-3 pl-4 font-semibold text-right">Actions</th>
@@ -137,7 +137,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                         <td className="py-3 pr-4"><RouteCode codes={l.destinations.split(',').map((c) => c.trim()).filter(Boolean)} /></td>
                         <td className="py-3 pr-4">{l.originCity ?? '—'}</td>
                         <td className="py-3 pr-4 font-mono text-[12.5px] whitespace-nowrap">{l.travelDate ? formatDateShort(l.travelDate) : '—'}</td>
-                        <td className="py-3 pr-4 font-mono">{l.nights ?? '—'}</td>
+                        <td className="py-3 pr-4 text-right tnum">{l.nights ?? '—'}</td>
                         <td className="py-3 pr-4"><Pill variant={statusVariant[l.status] ?? 'neutral'}>{statusLabel(l.status)}</Pill></td>
                         <td className="py-3 pr-4">{latest ? <span><span className="font-mono text-[12px] font-bold">{latest.code}</span> <span className="money">{fmt(latest.pricePaise)}</span></span> : <span className="text-[rgb(var(--text-tertiary))]">—</span>}</td>
                         <td className="py-3 pl-4">

@@ -370,7 +370,7 @@ function SelectedFlightCard({ flight, searchHref, onRemove }: { flight: NonNulla
       </div>
       <div className="rounded-md border border-border-subtle bg-surface-2 p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-md bg-crimson-50 text-crimson-700 flex items-center justify-center">
+          <div className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]">
             <Plane className="w-4 h-4" />
           </div>
           <div className="flex-1">

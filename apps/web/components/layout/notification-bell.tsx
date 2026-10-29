@@ -102,7 +102,7 @@ export function NotificationBell({ initialUnread, initialItems }: Props) {
                 {items.map((n) => {
                   const inner = (
                     <div className={cn('px-4 py-3 flex gap-3 hover:bg-surface-2 transition-colors', !n.readAt && 'bg-amber-50/40')}>
-                      <span className="w-8 h-8 rounded-md bg-navy-50 text-crimson-700 inline-flex items-center justify-center flex-shrink-0" aria-hidden="true">{(() => { const I = kindIcon[n.kind] ?? Bell; return <I className="w-4 h-4" />; })()}</span>
+                      <span className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]" aria-hidden="true">{(() => { const I = kindIcon[n.kind] ?? Bell; return <I className="w-4 h-4" />; })()}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-navy-900 leading-snug">{n.title}</p>
                         {n.body && <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5 leading-snug line-clamp-2">{n.body}</p>}

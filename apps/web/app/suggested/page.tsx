@@ -15,13 +15,13 @@ export const dynamic = 'force-dynamic';
 
 // Per-region tint so cards aren't all the same navy
 const regionTint: Record<string, string> = {
-  EUROPE:      'from-crimson-500 to-crimson-900',
-  SE_ASIA:     'from-emerald-500 to-navy-900',
-  MIDDLE_EAST: 'from-amber-500 to-navy-900',
-  INDIAN_SUB:  'from-rose-500 to-navy-900',
-  OCEANIA:     'from-cyan-500 to-navy-900',
-  AFRICA:      'from-orange-500 to-navy-900',
-  AMERICAS:    'from-fuchsia-500 to-navy-900',
+  EUROPE:      'bg-crimson-900',
+  SE_ASIA:     'bg-navy-900',
+  MIDDLE_EAST: 'bg-navy-900',
+  INDIAN_SUB:  'bg-navy-900',
+  OCEANIA:     'bg-navy-900',
+  AFRICA:      'bg-navy-900',
+  AMERICAS:    'bg-navy-900',
 };
 
 export default async function SuggestedPage({ searchParams }: { searchParams: Promise<{ region?: string; category?: string }> }) {
@@ -74,7 +74,7 @@ export default async function SuggestedPage({ searchParams }: { searchParams: Pr
               const codes = dests.map((d) => d.cityCode).filter(Boolean);
               return (
                 <article key={t.id} className="group flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
-                  <div className={`relative h-52 bg-gradient-to-br ${regionTint[t.region] ?? 'from-navy-500 to-navy-900'}`}>
+                  <div className={`relative h-52 ${regionTint[t.region] ?? 'bg-navy-900'}`}>
                     {(t.hero ?? regionSrc(t.region)) ? <img src={(t.hero ?? regionSrc(t.region))!} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" /> : null}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3 flex gap-1.5">

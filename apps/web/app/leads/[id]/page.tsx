@@ -91,7 +91,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
         }
       />
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+      <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
         <div className="space-y-6 min-w-0">
           {/* KPI strip */}
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
@@ -225,7 +225,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                     <span className="absolute -left-[19px] top-1 w-3 h-3 rounded-full bg-crimson-700 border-2 border-canvas" />
                     <p className="text-xs text-ink font-medium">{e.title}</p>
                     {e.sub && <p className="text-[11px] text-[rgb(var(--text-secondary))]">{e.sub}</p>}
-                    <p className="text-[10px] font-mono text-[rgb(var(--text-tertiary))] mt-0.5 tnum">{formatDayMonth(e.at)} · {e.at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-[11px] font-mono text-[rgb(var(--text-tertiary))] mt-0.5 tnum">{formatDayMonth(e.at)} · {e.at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
                   </li>
                 ))}
               </ol>

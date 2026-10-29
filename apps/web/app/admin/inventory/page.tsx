@@ -63,7 +63,7 @@ export default async function AdminInventoryPage() {
               <CardContent className="pt-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 shrink-0 rounded-md inline-flex items-center justify-center ${a.live ? 'bg-success-100 text-success-500' : 'bg-navy-50 text-navy-500'}`}>
+                    <div className={`w-5 shrink-0 inline-flex justify-center ${a.live ? 'text-success-500' : 'text-[rgb(var(--text-tertiary))]'}`}>
                       <Icon className="w-5 h-5" aria-hidden />
                     </div>
                     <div className="min-w-0">

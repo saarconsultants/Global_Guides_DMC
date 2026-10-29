@@ -50,7 +50,7 @@ export default function HolidaysPage() {
           <Card key={href} className="lift group">
             <CardContent className="pt-6 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-md bg-navy-50 text-crimson-700 inline-flex items-center justify-center">
+                <div className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]">
                   <Icon className="w-5 h-5" />
                 </div>
                 <Pill variant={pill.variant}>{pill.label}</Pill>

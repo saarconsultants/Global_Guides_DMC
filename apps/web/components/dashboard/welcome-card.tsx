@@ -1,7 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { dismissWelcomeAction } from '@/app/actions/onboarding';
-import { Sparkles, Check, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, CheckCircle2, Circle } from 'lucide-react';
 import Link from 'next/link';
 
 interface Step {
@@ -41,9 +41,9 @@ export function WelcomeCard({ firstName, steps }: Props) {
             {steps.map((s, i) => (
               <li key={i} className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1.5 py-2.5">
                 {s.done ? (
-                  <span className="w-6 h-6 rounded-[5px] bg-success-100 text-success-600 inline-flex items-center justify-center shrink-0"><Check className="w-3.5 h-3.5" /></span>
+                  <span className="w-6 inline-flex justify-center shrink-0 text-success-600" role="img" aria-label="Done"><CheckCircle2 className="w-5 h-5" /></span>
                 ) : (
-                  <span className="w-6 h-6 rounded-[5px] bg-navy-50 text-navy-500 font-mono text-[11px] font-bold inline-flex items-center justify-center shrink-0 tnum">{i + 1}</span>
+                  <span className="w-6 inline-flex justify-center shrink-0 text-[rgb(var(--text-tertiary))]" role="img" aria-label="To do"><Circle className="w-5 h-5" /></span>
                 )}
                 <span className="min-w-0 flex-1 basis-[calc(100%-2.25rem)] sm:basis-auto">
                   <span className={`block text-[14px] font-bold ${s.done ? 'text-navy-500 line-through' : 'text-ink'}`}>{s.title}</span>

@@ -97,9 +97,9 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
             <span className="shrink-0 whitespace-nowrap font-mono text-[12px] font-bold tracking-[0.06em] bg-white/10 border border-white/20 rounded-[6px] px-2 py-1">{p.code}</span>
           </div>
           <h1 className="mt-8 text-[34px] lg:text-[48px] font-extrabold leading-[1.02] tracking-[-0.02em] [text-wrap:balance]">
-            {cities.length === 1 ? cities[0] : `${cities.slice(0, -1).join(', ')} & ${cities.at(-1)}`}
+            Your {cities.length === 1 ? cities[0] : `${cities.slice(0, -1).join(', ')} & ${cities.at(-1)}`} trip
           </h1>
-          <p className="mt-3 text-[16px] text-white/80">Your trip proposal from {p.agency.name}. Every hotel, transfer and fare below is a real, bookable option.</p>
+          <p className="mt-3 text-[16px] text-white/80 max-w-[60ch]">Your trip proposal from {p.agency.name}. Every hotel, transfer and fare below is a real, bookable option.</p>
           {heroPhotos.length >= 2 && (
             <div className="relative mt-8 grid grid-cols-3 gap-3">
               {heroPhotos.map((src) => (
@@ -114,7 +114,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
 
       {/* The pass, overlapping the brand band. */}
       <div className="relative mx-auto max-w-3xl px-4 sm:px-6 -mt-16">
-        <div className="rounded-lg bg-surface shadow-xl overflow-hidden flex flex-col sm:flex-row">
+        <div className="rounded-lg bg-surface shadow-md overflow-hidden flex flex-col sm:flex-row">
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 p-5">
             <div><div className="label">Destinations</div><div className="mt-1 text-[15px] font-bold text-ink truncate">{cities.length}</div><div className="text-[12px] text-[rgb(var(--text-secondary))] truncate">{cities.join(' · ')}</div></div>
             <div><div className="label">Nights</div><div className="mt-1 font-mono text-[22px] font-bold text-ink leading-none tnum">{nights}</div></div>
@@ -165,7 +165,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                     <span className="absolute -left-[33px] top-1 w-6 h-6 rounded-full text-white text-[10px] font-bold inline-flex items-center justify-center shadow-sm tnum" style={{ background: primary }}>{first.dayNo}</span>
                     <p className="font-mono text-[11.5px] font-bold tracking-[0.06em] text-[rgb(var(--text-secondary))] tnum">{formatDayMonth(first.date)} → {formatDayMonth(last.date)}</p>
                     <p className="text-lg font-bold text-ink mt-0.5">Days {first.dayNo}–{last.dayNo} · Free days at leisure in {first.cityName}</p>
-                    <p className="text-sm text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed">{g.length} days to explore {first.cityName} at your own pace. Ask us to add tours or experiences on any of these days.</p>
+                    <p className="text-[16px] text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed max-w-[65ch]">{g.length} days to explore {first.cityName} at your own pace. Ask us to add tours or experiences on any of these days.</p>
                     {hotel && (
                       <div className="mt-3 inline-flex items-center gap-1.5 text-xs bg-surface-2 px-2.5 py-1 rounded-md text-navy-700">
                         <Bed className="w-3.5 h-3.5" /> Overnight at {hotel.name}
@@ -181,7 +181,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
                   <span className="absolute -left-[33px] top-1 w-6 h-6 rounded-full text-white text-xs font-bold inline-flex items-center justify-center shadow-sm tnum" style={{ background: primary }}>{day.dayNo}</span>
                   <p className="font-mono text-[11.5px] font-bold tracking-[0.06em] text-[rgb(var(--text-secondary))] tnum">{formatWeekdayDate(day.date)}</p>
                   <p className="text-lg font-bold text-ink mt-0.5">{heading(day)}</p>
-                  <p className="text-sm text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed">{customerNarrative(day)}</p>
+                  <p className="text-[16px] text-[rgb(var(--text-primary))] mt-1.5 leading-relaxed max-w-[65ch]">{customerNarrative(day)}</p>
                   {(day.morning || day.afternoon || day.evening) && (
                     <div className="mt-3 grid sm:grid-cols-3 gap-2">
                       {(['morning','afternoon','evening'] as const).map((s) => {

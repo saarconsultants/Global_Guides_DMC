@@ -29,12 +29,12 @@ function trend(curr: number, prev: number) {
 }
 
 const DESTINATIONS: Array<{ city: string; country: string; code: string; img: string; tint: string }> = [
-  { city: 'Paris',     country: 'France',      code: 'PAR', img: 'paris.jpg',     tint: 'from-[#5B6E9E] to-[#1E2A4A]' },
-  { city: 'Dubai',     country: 'UAE',         code: 'DXB', img: 'dubai.jpg',     tint: 'from-[#C89A5B] to-[#6A4416]' },
-  { city: 'Bali',      country: 'Indonesia',   code: 'DPS', img: 'bali.jpg',      tint: 'from-[#3E8E68] to-[#123B2A]' },
-  { city: 'Singapore', country: 'Singapore',   code: 'SIN', img: 'singapore.jpg', tint: 'from-[#7E5BA6] to-[#2B1B47]' },
-  { city: 'Zurich',    country: 'Switzerland', code: 'ZRH', img: 'alps.jpg',      tint: 'from-[#6B8FA8] to-[#20364A]' },
-  { city: 'Bangkok',   country: 'Thailand',    code: 'BKK', img: 'bangkok.jpg',   tint: 'from-[#C4763B] to-[#59280E]' },
+  { city: 'Paris',     country: 'France',      code: 'PAR', img: 'paris.jpg',     tint: 'bg-[#1E2A4A]' },
+  { city: 'Dubai',     country: 'UAE',         code: 'DXB', img: 'dubai.jpg',     tint: 'bg-[#6A4416]' },
+  { city: 'Bali',      country: 'Indonesia',   code: 'DPS', img: 'bali.jpg',      tint: 'bg-[#123B2A]' },
+  { city: 'Singapore', country: 'Singapore',   code: 'SIN', img: 'singapore.jpg', tint: 'bg-[#2B1B47]' },
+  { city: 'Zurich',    country: 'Switzerland', code: 'ZRH', img: 'alps.jpg',      tint: 'bg-[#20364A]' },
+  { city: 'Bangkok',   country: 'Thailand',    code: 'BKK', img: 'bangkok.jpg',   tint: 'bg-[#59280E]' },
 ];
 
 export default async function DashboardPage() {
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
       cta: { label: 'Plan a trip with AI', href: '/itinerary/ai' },
       cta2: { label: 'Browse templates', href: '/suggested' },
       img: promoSrc('banner-ai.jpg'),
-      tint: 'from-crimson-500 via-crimson-700 to-crimson-900',
+      tint: 'bg-crimson-900',
       ghost: 'magic',
     },
     {
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
       cta: { label: 'Explore packages', href: '/suggested?region=SE_ASIA' },
       cta2: { label: 'Search hotels', href: '/hotels?city=DPS' },
       img: promoSrc('banner-sea.jpg'),
-      tint: 'from-[#0E5E4A] via-[#0A4436] to-[#062B22]',
+      tint: 'bg-[#0A4436]',
       ghost: 'islands',
     },
     {
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
       cta: { label: 'Set up branding', href: '/settings' },
       cta2: { label: 'Marketing flyers', href: '/marketing' },
       img: promoSrc('banner-brand.jpg'),
-      tint: 'from-[#1E2A4A] via-[#131C33] to-[#0A0F1E]',
+      tint: 'bg-[#131C33]',
       ghost: 'brand',
     },
   ];
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
 
       <div className="mx-auto max-w-7xl px-6 py-10 lg:py-12 space-y-12">
         {/* ── Ready to sell + your desk ── */}
-        <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_320px]">
+        <section className="grid gap-5 items-start lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_320px]">
           <div className="lg:col-span-3 min-w-0">
             <div className="flex items-end justify-between mb-4">
               <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Ready to sell</h2>
@@ -226,7 +226,7 @@ export default async function DashboardPage() {
                     {newLeads.map((l) => (
                       <li key={'l' + l.id} className="border-t border-dashed border-border-subtle first:border-0">
                         <Link href={`/leads/${l.id}` as any} className="flex items-center gap-3 px-1 py-2.5 rounded-md hover:bg-surface-2 transition-colors">
-                          <span className="w-8 h-8 rounded-md bg-action-100 text-action-600 inline-flex items-center justify-center flex-shrink-0"><MessageCircleQuestion className="w-4 h-4" /></span>
+                          <span className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]"><MessageCircleQuestion className="w-4 h-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13.5px] font-bold text-ink truncate">{l.customerName}</span>
                             <span className="block text-[12px] text-[rgb(var(--text-secondary))] truncate tnum" title={`${l.destinations} · ${relTime(l.createdAt)}`}><span className="font-mono">{relTime(l.createdAt)}</span> · {l.destinations}</span>
@@ -238,7 +238,7 @@ export default async function DashboardPage() {
                     {viewedNoResponse.map((p) => (
                       <li key={'v' + p.id} className="border-t border-dashed border-border-subtle">
                         <Link href={`/itinerary/${p.id}/customize` as any} className="flex items-center gap-3 px-1 py-2.5 rounded-md hover:bg-surface-2 transition-colors">
-                          <span className="w-8 h-8 rounded-md bg-amber-100 text-amber-900 inline-flex items-center justify-center flex-shrink-0"><Eye className="w-4 h-4" /></span>
+                          <span className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]"><Eye className="w-4 h-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13.5px] font-bold text-ink truncate">{p.lead?.customerName ?? p.name}</span>
                             <span className="block text-[12px] text-[rgb(var(--text-secondary))] truncate tnum">Viewed <span className="font-mono">{relTime(p.lastViewedAt!)}</span></span>
@@ -250,7 +250,7 @@ export default async function DashboardPage() {
                     {sentNotViewed.map((p) => (
                       <li key={'s' + p.id} className="border-t border-dashed border-border-subtle">
                         <Link href={`/itinerary/${p.id}/customize` as any} className="flex items-center gap-3 px-1 py-2.5 rounded-md hover:bg-surface-2 transition-colors">
-                          <span className="w-8 h-8 rounded-md bg-navy-50 text-navy-500 inline-flex items-center justify-center flex-shrink-0"><Clock className="w-4 h-4" /></span>
+                          <span className="w-5 inline-flex justify-center flex-shrink-0 text-[rgb(var(--text-tertiary))]"><Clock className="w-4 h-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13.5px] font-bold text-ink truncate">{p.lead?.customerName ?? p.name}</span>
                             <span className="block text-[12px] text-[rgb(var(--text-secondary))] truncate tnum">Sent <span className="font-mono">{relTime(p.createdAt)}</span>, not opened</span>
@@ -290,7 +290,7 @@ export default async function DashboardPage() {
             {DESTINATIONS.map((d) => {
               const src = promoSrc(d.img);
               return (
-                <Link key={d.code} href={`/hotels?city=${d.code}` as any} className={`relative aspect-[4/5] rounded-lg overflow-hidden group bg-gradient-to-b ${d.tint} lift`}>
+                <Link key={d.code} href={`/hotels?city=${d.code}` as any} className={`relative aspect-[4/5] rounded-lg overflow-hidden group ${d.tint} lift`}>
                   {src && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={src} alt={d.city} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300 ease-out" />

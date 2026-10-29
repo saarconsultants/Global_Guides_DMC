@@ -77,7 +77,7 @@ export function DashboardSearch() {
         })}
       </div>
 
-      <div className="relative z-20 bg-surface rounded-lg shadow-xl flex flex-col lg:flex-row lg:items-stretch">
+      <div className="relative z-20 bg-surface rounded-lg shadow-md flex flex-col lg:flex-row lg:items-stretch">
         {tab === 'flights' && (
           <>
             <HeroCell eyebrow="From" grow>
