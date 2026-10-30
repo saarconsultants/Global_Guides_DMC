@@ -38,7 +38,7 @@ const SECTIONS = [
 
 export default function HolidaysPage() {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+    <div className="shell py-8 lg:py-10 space-y-6">
       <PageHeader
         eyebrow="Holidays"
         title="What kind of trip are you putting together?"

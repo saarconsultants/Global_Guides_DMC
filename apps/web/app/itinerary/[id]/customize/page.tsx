@@ -130,7 +130,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     <div className="bg-canvas min-h-screen">
       {/* sticky stepper bar */}
       <div className="sticky top-16 z-20 bg-canvas/95 backdrop-blur border-b border-border-subtle">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between gap-x-4 gap-y-2">
+        <div className="shell py-3 flex items-center justify-between gap-x-4 gap-y-2">
           <Stepper step={2} />
           <div className="text-right">
             <p className="hidden sm:block text-[12px] text-[rgb(var(--text-secondary))] tnum"><span className="font-mono">{formatDateShort(itinerary.intake.departureDate)}</span> · {totalNights} night{totalNights !== 1 ? 's' : ''} · {rooms} room{rooms !== 1 ? 's' : ''} · {adults} adult{adults !== 1 ? 's' : ''}</p>
@@ -142,7 +142,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
       <h1 className="sr-only">Customize proposal</h1>
       <QuickNavRail />
 
-      <div className="mx-auto max-w-7xl px-6 py-8 grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div className="shell py-8 grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* main column */}
         <div className="space-y-8 min-w-0">
           {/* Flights */}

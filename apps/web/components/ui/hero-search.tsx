@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn, openDatePicker } from '@/lib/utils';
 
 // Search hero in the boarding-pass world: a photo band with a headline, then
 // the PASS — a white bar of label-grid cells with a perforation before the
@@ -14,7 +14,7 @@ export function HeroBand({ title, accent, subtitle, img, children }: {
   children?: React.ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden bg-ink text-white px-6 pt-12 pb-[92px]">
+    <div className="relative overflow-hidden bg-ink text-white pt-12 pb-[92px]">
       {img && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -23,7 +23,7 @@ export function HeroBand({ title, accent, subtitle, img, children }: {
           <div aria-hidden className="absolute inset-0 bg-[rgba(10,12,18,0.62)] lg:bg-[linear-gradient(90deg,rgba(10,12,18,0.84)_0%,rgba(10,12,18,0.55)_45%,rgba(10,12,18,0.12)_85%)]" />
         </>
       )}
-      <div className="relative mx-auto max-w-7xl">
+      <div className="relative shell">
         <h1 className="text-[34px] lg:text-[42px] leading-[1.02] font-extrabold tracking-[-0.02em] max-w-3xl [text-wrap:balance]">
           {title}{accent && <> {accent}</>}
         </h1>
@@ -57,7 +57,7 @@ export function HeroTab({ active, onClick, children }: { active: boolean; onClic
 /** The pass: white sheet, overlapping the band's bottom edge. */
 export function HeroBar({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="relative z-20 mx-auto max-w-7xl px-6 -mt-[60px]">
+    <div className="relative z-20 shell -mt-[60px]">
       <div className={cn('bg-surface rounded-lg shadow-md flex flex-col lg:flex-row lg:items-stretch', className)}>
         {children}
       </div>
@@ -128,6 +128,7 @@ export function HeroDate({ value, min, onChange, label, sub }: { value: string; 
         value={value}
         min={min}
         onChange={(e) => onChange(e.target.value)}
+        onClick={openDatePicker}
         aria-label={label}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />

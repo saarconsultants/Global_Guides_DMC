@@ -29,4 +29,4 @@ export function SettingsTabs({ active }: { active: (typeof TABS)[number]['key'] 
 }
 
 /** One container for every settings page — same width and left edge as the rest of the app. */
-export const SETTINGS_CONTAINER = 'mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6';
+export const SETTINGS_CONTAINER = 'shell py-8 lg:py-10 space-y-6';

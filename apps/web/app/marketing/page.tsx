@@ -26,7 +26,7 @@ export default async function MarketingPage() {
 
   return (
     <div>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
+      <div className="shell py-8 lg:py-10 space-y-6">
         <PageHeader
           eyebrow="Marketing"
           title="Download branded flyers"

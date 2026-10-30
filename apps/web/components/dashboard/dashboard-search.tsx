@@ -63,7 +63,7 @@ export function DashboardSearch() {
   );
 
   return (
-    <form onSubmit={submit} className="relative mx-auto max-w-7xl px-6 -mt-[124px]">
+    <form onSubmit={submit} className="relative shell -mt-[124px]">
       <div className="flex flex-wrap items-center gap-2 mb-3 pl-1" role="tablist" aria-label="Search type">
         {TABS.map((t) => {
           const Icon = t.icon; const on = tab === t.id;

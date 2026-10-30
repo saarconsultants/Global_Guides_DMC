@@ -52,7 +52,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
       />
       <ActivitySearchForm defaults={{ city, from, to, adults }} />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 relative space-y-6">
+      <div className="shell pt-6 relative space-y-6">
 
       {!hasQuery && (
         <section>

@@ -21,7 +21,7 @@ import {
   RotateCcw, X, Route, Search, ListChecks, Star, Minus, Plus, Calendar,
 } from 'lucide-react';
 import { Stepper } from '@/components/itinerary/stepper';
-import { formatDateShort } from '@/lib/utils';
+import { formatDateShort, openDatePicker } from '@/lib/utils';
 
 type Step = 'brief' | 'building' | 'review';
 type Stage = 'route' | 'inventory' | 'select' | 'compose';
@@ -156,7 +156,7 @@ function AiPlanner() {
   return (
     <div className="pb-16">
       {/* Same header pattern as New trip: stepper, then the page title. */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 lg:pt-10">
+      <div className="shell pt-8 lg:pt-10">
         <Stepper step={(['brief', 'building', 'review'].indexOf(step) + 1) as 1 | 2 | 3} steps={['Brief', 'Building', 'Review']} />
         <h1 className="mt-3 text-[28px] leading-[1.1] font-extrabold tracking-[-0.02em] text-ink">
           {step === 'review' ? 'Your trip is ready to review' : 'Plan a trip with AI'}
@@ -164,7 +164,7 @@ function AiPlanner() {
         {step !== 'review' && <p className="mt-2 text-[14.5px] text-[rgb(var(--text-secondary))] max-w-xl">Describe the trip. We build it from live hotel rooms, fares and activities; you fine-tune it in the builder.</p>}
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6">
+      <div className="shell mt-6">
         {step === 'brief' && (
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
             <section className="rounded-lg bg-surface border border-border-subtle shadow-sm p-5 sm:p-6 space-y-6">
@@ -206,7 +206,7 @@ function AiPlanner() {
                   <div className="relative h-11 rounded-md border border-border bg-surface px-3.5 flex items-center hover:border-border-strong focus-within:border-crimson-700 focus-within:ring-2 focus-within:ring-crimson-700/15 transition-colors">
                     <span className="font-mono text-[15px] font-bold text-ink tnum">{brief.date ? formatDateShort(brief.date) : 'Pick a date'}</span>
                     <Calendar className="w-4 h-4 ml-auto text-[rgb(var(--text-tertiary))]" aria-hidden />
-                    <input id="ai-date" type="date" value={brief.date} min={inDays(1)} onChange={(e) => set('date', e.target.value)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                    <input id="ai-date" type="date" value={brief.date} min={inDays(1)} onChange={(e) => set('date', e.target.value)} onClick={openDatePicker} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   </div>
                 </div>
                 <div>

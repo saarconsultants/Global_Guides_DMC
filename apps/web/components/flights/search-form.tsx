@@ -99,7 +99,7 @@ export function FlightSearchForm({ defaults, returnTo, leg, hero, heroImg }: Pro
           <HeroSubmit caption="Live fares">Search flights</HeroSubmit>
         </HeroBar>
 
-        <div className="mx-auto max-w-7xl px-6 mt-3.5 flex flex-wrap items-center gap-2">
+        <div className="shell mt-3.5 flex flex-wrap items-center gap-2">
           <HeroChip active={directOnly} onClick={() => setDirectOnly((v) => !v)}>
             {directOnly && <Check className="w-3.5 h-3.5" />}Direct flights only
           </HeroChip>

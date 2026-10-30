@@ -74,9 +74,9 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
         className="hidden sm:inline-flex items-center gap-2 h-9 rounded-md border border-dashed border-border px-3 hover:border-border-strong hover:bg-surface-2 transition-colors"
         aria-label={`Wallet ${walletLabel}. Recharge`}
       >
-        <span className="label">Wallet</span>
+        <span className="label hidden min-[1440px]:inline">Wallet</span>
         <span className="money text-[13px] text-ink">{walletLabel}</span>
-        <span className="text-[12px] font-bold text-crimson-700">Recharge</span>
+        <span className="text-[12px] font-bold text-crimson-700 hidden min-[1440px]:inline">Recharge</span>
       </button>
 
       {/* Support */}

@@ -17,7 +17,7 @@ export default async function StatementPage() {
   const [balance, txns] = await Promise.all([getWalletBalance(), listWalletTxns()]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
+    <div className="shell py-8 lg:py-10 space-y-6">
       <PageHeader
         title="Account statement"
         description="Wallet ledger and booking-level debits. Top up to enable instant bookings."

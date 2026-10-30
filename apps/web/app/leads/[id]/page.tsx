@@ -72,7 +72,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
   events.sort((a, b) => b.at.getTime() - a.at.getTime());
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6 overflow-x-clip">
+    <div className="shell py-8 lg:py-10 space-y-6 overflow-x-clip">
       <Link href="/leads" className="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--text-secondary))] hover:text-ink"><ArrowLeft className="w-4 h-4" />Back to leads</Link>
 
       <PageHeader

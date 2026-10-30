@@ -153,13 +153,13 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1 className="sr-only">Dashboard</h1>
-      <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-7">
+      <div className="shell pt-6 lg:pt-7">
         {/* ── Shop window + the pass ── */}
         <PromoCarousel banners={banners} />
       </div>
       <DashboardSearch />
 
-      <div className="mx-auto max-w-7xl px-6 py-10 lg:py-12 space-y-12">
+      <div className="shell py-10 lg:py-12 space-y-12">
         {/* ── Ready to sell + your desk ── */}
         <section className="grid gap-5 items-start lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_320px]">
           <div className="lg:col-span-3 min-w-0">

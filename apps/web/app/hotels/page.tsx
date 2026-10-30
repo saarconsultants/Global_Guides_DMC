@@ -101,7 +101,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
     <div className="pb-12">
       <HotelSearchForm hero heroImg={promoSrc('hero-hotels.jpg')} defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 space-y-6">
+      <div className="shell pt-6 space-y-6">
         {dateInvalid && (
           <div className="rounded-md border border-danger-500/40 bg-danger-100 text-danger-500 px-4 py-3 text-sm" role="alert">
             Check-out must be after check-in. Please adjust the dates and search again.

@@ -134,3 +134,9 @@
      surface loads visible. Kept as a no-op so existing markup is harmless. */
   .stagger > * { opacity: 1; }
 }
+
+/* Page frame: one width and side margin shared by the top nav and every page,
+   so content edges line up with the logo and the account menu. */
+@layer components {
+  .shell { @apply mx-auto w-full max-w-[1400px] px-4 lg:px-6; }
+}

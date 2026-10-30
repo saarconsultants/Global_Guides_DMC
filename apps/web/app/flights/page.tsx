@@ -45,7 +45,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       {/* Standalone browsing: full-bleed portal hero. Attach flow: compact card in-container. */}
       {!sp.returnTo && searchForm}
 
-      <div className="mx-auto max-w-7xl px-6 pt-6 space-y-6">
+      <div className="shell pt-6 space-y-6">
         {sp.returnTo && (
           <>
             <div className="mt-4 rounded-md border border-crimson-700/30 bg-crimson-50 text-crimson-900 px-4 py-2.5 flex items-center justify-between gap-3">

@@ -44,3 +44,9 @@ export function formatDateRange(a: string | Date, b: string | Date): string {
   if (isNaN(x.getTime()) || isNaN(y.getTime())) return '—';
   return x.getFullYear() === y.getFullYear() ? `${formatDayMonth(x)} → ${formatDateShort(y)}` : `${formatDateShort(x)} → ${formatDateShort(y)}`;
 }
+
+/** Opens the native calendar for a date input styled as invisible over a printed
+ *  date. Without this Chrome only focuses the field and the picker never shows. */
+export function openDatePicker(e: { currentTarget: HTMLInputElement }) {
+  try { e.currentTarget.showPicker?.(); } catch { /* unsupported or not a user gesture */ }
+}

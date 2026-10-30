@@ -13,7 +13,7 @@ import { airportByIata } from '@/lib/airports';
 import { Sparkles, Plus, X, Calendar, Users, Star, Car } from 'lucide-react';
 import { RouteCode } from '@/components/ui/pass';
 import { Stepper } from '@/components/itinerary/stepper';
-import { formatDateShort } from '@/lib/utils';
+import { formatDateShort, openDatePicker } from '@/lib/utils';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
@@ -145,7 +145,7 @@ function NewItineraryForm() {
   const departLabel = departureDate ? formatDateShort(departureDate) : '—';
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10">
+    <div className="shell py-8 lg:py-10">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <Stepper step={1} />
@@ -215,7 +215,7 @@ function NewItineraryForm() {
                 <div className="relative h-11 rounded-md border border-border bg-surface px-3.5 flex items-center hover:border-border-strong focus-within:border-crimson-700 focus-within:ring-2 focus-within:ring-crimson-700/15 transition-colors">
                   <span className="font-mono text-[15px] font-bold text-ink tnum">{departLabel}</span>
                   <Calendar className="w-4 h-4 ml-auto text-[rgb(var(--text-tertiary))]" />
-                  <input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} aria-label="Leaving on" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                  <input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} min={new Date().toISOString().slice(0, 10)} aria-label="Leaving on" onClick={openDatePicker} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 </div>
               </div>
               <div>

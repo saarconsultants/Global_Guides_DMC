@@ -7,7 +7,7 @@ import { cn, formatDateShort } from '@/lib/utils';
 /** One admin container: 16px mobile gutter, same max width on every page. */
 export function AdminPage({ children, narrow, className }: { children: React.ReactNode; narrow?: boolean; className?: string }) {
   return (
-    <div className={cn('w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6', narrow ? 'max-w-3xl lg:mx-0' : 'max-w-7xl', className)}>
+    <div className={cn('w-full mx-auto px-4 lg:px-6 py-6 lg:py-8 space-y-6', narrow ? 'max-w-3xl lg:mx-0' : 'max-w-[1400px]', className)}>
       {children}
     </div>
   );

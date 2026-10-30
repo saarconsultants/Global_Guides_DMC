@@ -32,7 +32,7 @@ export default async function TeamPerformancePage({ searchParams }: PageProps) {
   const leader = rows.find((r) => r.won > 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
+    <div className="shell py-8 lg:py-10 space-y-6">
       <PageHeader
         title="Team performance"
         description="How your counsellors are converting enquiries into bookings. Compare proposals sent, win rate, and revenue."

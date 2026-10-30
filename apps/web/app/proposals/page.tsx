@@ -33,7 +33,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
   ]);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+    <div className="shell py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My proposals"
         description="Proposals you've prepared. Click a row to open it. Customer views update status automatically."

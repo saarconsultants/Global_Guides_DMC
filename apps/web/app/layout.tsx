@@ -58,7 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:z-[100] focus:top-2 focus:left-2 focus:inline-flex focus:items-center focus:min-h-[44px] focus:rounded-md focus:bg-crimson-900 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white focus:shadow-lg">Skip to content</a>
           {actor?.impersonating && (
             <div className="bg-amber-500 text-crimson-900">
-              <div className="mx-auto max-w-7xl px-6 h-9 flex items-center justify-between gap-3 text-sm">
+              <div className="shell h-9 flex items-center justify-between gap-3 text-sm">
                 <span className="inline-flex items-center gap-1.5 font-medium"><Eye className="w-4 h-4" /> Viewing <strong>{actor.agency?.name}</strong> as platform admin</span>
                 <form action={exitImpersonationAction}><button className="text-xs font-bold underline hover:no-underline">Exit to admin</button></form>
               </div>

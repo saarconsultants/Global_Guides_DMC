@@ -60,7 +60,7 @@ function CardGrid({ n = 6 }: { n?: number }) {
 
 export function PageLoading({ variant = 'list' }: { variant?: 'list' | 'search' | 'dashboard' }) {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 space-y-6" aria-busy="true">
+    <div className="shell py-10 space-y-6" aria-busy="true">
       <Header />
       {variant === 'dashboard' && <><StatsRow /><div className="grid gap-6 lg:grid-cols-2"><TableBlock rows={4} /><TableBlock rows={4} /></div></>}
       {variant === 'list' && <><StatsRow /><TableBlock /></>}

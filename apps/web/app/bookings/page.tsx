@@ -46,7 +46,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const totalSpend = rows.filter((b) => b.status === 'CONFIRMED').reduce((s, b) => s + b.paidPaise, 0n);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 lg:py-10 space-y-6">
+    <div className="shell py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My bookings"
         description="Confirmed and pending bookings. Each row links back to the proposal it was converted from."

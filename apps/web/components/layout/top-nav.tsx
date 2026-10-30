@@ -72,12 +72,12 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
       className="sticky top-0 z-30 w-full bg-surface border-b border-border-subtle"
       onKeyDown={(e) => { if (e.key === 'Escape' && mobileOpen) { setMobileOpen(false); mobileToggleRef.current?.focus(); } }}
     >
-      <div className="mx-auto max-w-[1400px] px-4 lg:px-6 h-16 flex items-center gap-2 lg:gap-4">
+      <div className="shell h-16 flex items-center gap-2 xl:gap-4">
         <Link href="/dashboard" className="flex items-center shrink-0 mr-1 min-h-11" aria-label="Global Guides — home">
           <img src="/brand/ggdmc-logo.svg" alt="Global Guides DMC" className="h-9 w-auto" />
         </Link>
 
-        <nav className="hidden lg:flex items-center" aria-label="Primary">
+        <nav className="hidden xl:flex items-center" aria-label="Primary">
           {NAV.map((n) => {
             if ('items' in n) {
               const active = n.items.some((i) => isActive(pathname, i.href));
@@ -122,20 +122,20 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5 lg:gap-2.5">
+        <div className="ml-auto flex items-center gap-1.5 xl:gap-2.5">
           <Link href="/itinerary/new" className="hidden md:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-crimson-700 text-white text-[13px] font-bold hover:bg-crimson-900 transition-colors shadow-sm">
             <Plus className="w-4 h-4" />New trip
           </Link>
           {notif && <NotificationBell initialUnread={notif.unread} initialItems={notif.items} />}
-          <div className="hidden lg:block"><NavAccount actor={actor} walletLabel={walletLabel} /></div>
-          <button ref={mobileToggleRef} type="button" onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden w-11 h-11 inline-flex items-center justify-center rounded-md text-navy-700 hover:bg-navy-50" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
+          <div className="hidden xl:block"><NavAccount actor={actor} walletLabel={walletLabel} /></div>
+          <button ref={mobileToggleRef} type="button" onClick={() => setMobileOpen(!mobileOpen)} className="xl:hidden w-11 h-11 inline-flex items-center justify-center rounded-md text-navy-700 hover:bg-navy-50" aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border-subtle bg-surface">
+        <div className="xl:hidden border-t border-border-subtle bg-surface">
           <nav className="px-3 py-3 grid grid-cols-2 gap-1 text-sm" aria-label="Primary mobile">
             {NAV.flatMap((n) => ('items' in n ? n.items : [n])).map((n) => {
               const active = isActive(pathname, n.href, (n as NavLink).match);

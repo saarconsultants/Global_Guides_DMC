@@ -37,7 +37,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10 space-y-6">
+    <div className="shell py-8 lg:py-10 space-y-6">
       <PageHeader
         title="My leads"
         description="Every enquiry, proposal request, and customer interaction in one place."

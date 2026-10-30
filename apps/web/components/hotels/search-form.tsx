@@ -131,7 +131,7 @@ export function HotelSearchForm({ defaults, hero, heroImg }: Props) {
           <HeroSubmit caption="Wholesale rates">Search hotels</HeroSubmit>
         </HeroBar>
 
-        <div className="mx-auto max-w-7xl px-6 mt-3.5 space-y-3">
+        <div className="shell mt-3.5 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <HeroChip active={showFilters} onClick={() => setShowFilters((s) => !s)}>
               <SlidersHorizontal className="w-3.5 h-3.5" />{showFilters ? 'Hide filters' : 'Filters & sort'}
