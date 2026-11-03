@@ -27,7 +27,7 @@ const cache = new Map<string, CachedEntry>();
 
 function cacheKey(input: AvailabilitySearchInput): string {
   const rooms = input.rooms.map((r) => `${r.adults}-${r.children ?? 0}-${(r.childAges ?? []).join('.')}`).join(',');
-  return `${input.hotelCodes?.join('.') ?? input.cityCode}|${input.checkIn}|${input.checkOut}|${rooms}|${input.minStars ?? ''}|${input.maxStars ?? ''}`;
+  return `${input.sourceMarket ?? ''}|${input.hotelCodes?.join('.') ?? input.cityCode}|${input.checkIn}|${input.checkOut}|${rooms}|${input.minStars ?? ''}|${input.maxStars ?? ''}`;
 }
 
 export async function searchHotels(input: AvailabilitySearchInput): Promise<AvailabilitySearchResult> {
@@ -55,6 +55,7 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
       // Certification 2.4 / 3.3 / 3.4: every room of the booking in ONE call,
       // identical rooms grouped, and each child sent with its age.
       occupancies: buildOccupancies(input.rooms),
+      ...(input.sourceMarket ? { sourceMarket: input.sourceMarket } : {}),
       ...(input.hotelCodes?.length
         ? { hotels: { hotel: input.hotelCodes.slice(0, 2000) } }
         : { destination: { code: destinationCode } }),

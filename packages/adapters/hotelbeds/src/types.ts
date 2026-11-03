@@ -65,6 +65,8 @@ export interface AvailabilitySearchInput {
   rooms: Array<{ adults: number; children?: number; childAges?: number[] }>;
   /** Search specific hotels instead of a whole destination (booking-time re-quote). Max 2000. */
   hotelCodes?: number[];
+  /** Guest's market (ISO-2): rates can differ by country of residence. */
+  sourceMarket?: string;
   // Optional filters
   minStars?: StarRating;
   maxStars?: StarRating;

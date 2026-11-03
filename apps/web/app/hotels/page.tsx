@@ -1,3 +1,5 @@
+import { decodeRooms, encodeRooms } from '@/lib/hotels/occupancy';
+import type { Room } from '@/lib/itinerary/types';
 import { HotelSearchForm } from '@/components/hotels/search-form';
 import { HotelResults } from '@/components/hotels/results';
 import { hotelsForCity, CITY_BANK } from '@/lib/itinerary/mock-inventory';
@@ -13,7 +15,7 @@ import { formatDateRange } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-  searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string; rooms?: string; children?: string; star?: string; board?: string; refundable?: string; sort?: string }>;
+  searchParams: Promise<{ city?: string; checkin?: string; checkout?: string; adults?: string; rooms?: string; children?: string; occ?: string; nationality?: string; residence?: string; star?: string; board?: string; refundable?: string; sort?: string }>;
 }
 
 export default async function HotelsPage({ searchParams }: PageProps) {
@@ -21,11 +23,14 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   const city = (sp.city ?? 'PAR').toUpperCase();
   const checkin = sp.checkin ?? nextWeekIso();
   const checkout = sp.checkout ?? nextWeekIso(3);
-  const adults = sp.adults ?? '2';
-  const roomsCount = Math.max(1, Math.min(4, parseInt(sp.rooms ?? '1', 10) || 1));
-  const childrenPerRoom = Math.max(0, Math.min(3, parseInt(sp.children ?? '0', 10) || 0));
-  const adultsPerRoom = parseInt(adults, 10) || 2;
-  const occupancy = Array.from({ length: roomsCount }, () => ({ adults: adultsPerRoom, children: childrenPerRoom }));
+  // Room-by-room guests; the older flat params still work for saved links.
+  const legacyRooms = Math.max(1, Math.min(4, parseInt(sp.rooms ?? '1', 10) || 1));
+  const legacyChildren = Math.max(0, Math.min(3, parseInt(sp.children ?? '0', 10) || 0));
+  const occupancy: Room[] = decodeRooms(sp.occ) ?? Array.from({ length: legacyRooms }, () => ({
+    adults: parseInt(sp.adults ?? '2', 10) || 2, children: legacyChildren, childAges: Array.from({ length: legacyChildren }, () => 8),
+  }));
+  const adults = String(occupancy.reduce((sum, r) => sum + r.adults, 0));
+  const residence = sp.residence ?? 'IN';
   const hasQuery = !!sp.city;
 
   const cityName = CITY_BANK[city]?.name ?? city;
@@ -46,6 +51,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
           checkIn: checkin,
           checkOut: checkout,
           rooms: occupancy,
+          sourceMarket: residence,
         });
         source = res.source;
         warning = res.warning;
@@ -99,7 +105,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
 
   return (
     <div className="pb-12">
-      <HotelSearchForm hero heroImg={promoSrc('hero-hotels.jpg')} defaults={{ city, checkin, checkout, adults, rooms: String(roomsCount), children: String(childrenPerRoom), star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
+      <HotelSearchForm heroImg={promoSrc('hero-hotels.jpg')} defaults={{ city, checkin, checkout, rooms: occupancy, nationality: sp.nationality, residence, star: sp.star, board: sp.board, refundable: sp.refundable, sort: sp.sort }} />
 
       <div className="shell pt-6 space-y-6">
         {dateInvalid && (
@@ -124,7 +130,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
               {HOTEL_CITIES.map((d) => {
                 const src = promoSrc(d.img);
                 return (
-                  <Link key={d.code} href={`/hotels?${new URLSearchParams({ city: d.code, checkin, checkout, adults, rooms: '1', children: '0' })}` as any} className="relative aspect-[4/5] rounded-lg overflow-hidden group bg-navy-900 lift">
+                  <Link key={d.code} href={`/hotels?${new URLSearchParams({ city: d.code, checkin, checkout, occ: encodeRooms(occupancy) })}` as any} className="relative aspect-[4/5] rounded-lg overflow-hidden group bg-navy-900 lift">
                     {src && <img src={src} alt={d.city} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300 ease-out" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
                     <div className="absolute top-3 left-3"><RouteCode codes={[d.code]} light /></div>

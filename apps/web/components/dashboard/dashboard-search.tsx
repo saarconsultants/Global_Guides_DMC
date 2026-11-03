@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation';
 import { Plane, Hotel, Ticket, Sparkles } from 'lucide-react';
 import { AirportCodeCell, AirportSwapButton } from '@/components/flights/airport-code-cell';
 import { CitySearchCombobox } from '@/components/common/city-search-combobox';
+import { RoomsGuestsPicker } from '@/components/common/rooms-guests-picker';
+import { encodeRooms } from '@/lib/hotels/occupancy';
+import type { Room } from '@/lib/itinerary/types';
 import { HeroCell, HeroSubmit, HeroDate, heroControl } from '@/components/ui/hero-search';
 import { findCity } from '@/lib/cities';
 import { cn } from '@/lib/utils';
@@ -34,7 +37,7 @@ export function DashboardSearch() {
   const [city, setCity] = useState('PAR');
   const [checkin, setCheckin] = useState(iso(30));
   const [checkout, setCheckout] = useState(iso(33));
-  const [rooms, setRooms] = useState('1');
+  const [rooms, setRooms] = useState<Room[]>([{ adults: 2, children: 0, childAges: [] }]);
   // ai
   const [dest, setDest] = useState('Paris, Amsterdam, Zurich');
   const [nights, setNights] = useState('7');
@@ -44,7 +47,7 @@ export function DashboardSearch() {
     if (tab === 'flights') {
       router.push(`/flights?${new URLSearchParams({ from, to, date, adults, cabin: 'ECONOMY' })}`);
     } else if (tab === 'hotels') {
-      router.push(`/hotels?${new URLSearchParams({ city, checkin, checkout, adults, rooms, children: '0' })}`);
+      router.push(`/hotels?${new URLSearchParams({ city, checkin, checkout, occ: encodeRooms(rooms) })}`);
     } else if (tab === 'activities') {
       router.push(`/activities?${new URLSearchParams({ city, from: checkin, to: checkout, adults })}`);
     } else {
@@ -55,7 +58,7 @@ export function DashboardSearch() {
   const adultsCell = (
     <div className="relative">
       <div className="text-[19px] font-bold leading-none text-ink tnum">{adults} Adult{Number(adults) > 1 ? 's' : ''}</div>
-      <div className="mt-1 text-[12px] text-[rgb(var(--text-secondary))]">Economy · {rooms} room{Number(rooms) > 1 ? 's' : ''}</div>
+      <div className="mt-1 text-[12px] text-[rgb(var(--text-secondary))]">Economy · 1 room</div>
       <select value={adults} onChange={(e) => setAdults(e.target.value)} aria-label="Adults" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
         {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Adult{n > 1 ? 's' : ''}</option>)}
       </select>
@@ -97,8 +100,7 @@ export function DashboardSearch() {
             <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={setCity} placeholder="Search destination" /></HeroCell>
             <HeroCell eyebrow="Check-in"><HeroDate value={checkin} min={iso(0)} onChange={setCheckin} label="Check-in" sub="Arrive" /></HeroCell>
             <HeroCell eyebrow="Check-out"><HeroDate value={checkout} min={checkin} onChange={setCheckout} label="Check-out" sub="Depart" /></HeroCell>
-            <HeroCell eyebrow="Rooms"><select value={rooms} onChange={(e) => setRooms(e.target.value)} className={heroControl} aria-label="Rooms">{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n} Room{n > 1 ? 's' : ''}</option>)}</select></HeroCell>
-            <HeroCell eyebrow="Adults / room">{adultsCell}</HeroCell>
+            <HeroCell eyebrow="Rooms & guests"><RoomsGuestsPicker value={rooms} onChange={setRooms} /></HeroCell>
             <HeroSubmit caption="Wholesale rates">Search hotels</HeroSubmit>
           </>
         )}
