@@ -9,6 +9,8 @@ interface ItineraryStoreState {
   upsert: (it: Itinerary) => void;
   get: (id: string) => Itinerary | undefined;
   changeHotel: (id: string, cityCode: string, hotel: Hotel) => void;
+  removeHotel: (id: string, cityCode: string) => void;
+  restoreHotel: (id: string, cityCode: string) => void;
   setFlight: (id: string, flight: FlightSelection | undefined) => void;
   setReturnFlight: (id: string, leg: FlightLeg | undefined) => void;
   addTransfer: (id: string, dayNo: number, transfer: Transfer) => void;
@@ -76,6 +78,30 @@ export const useItineraryStore = create<ItineraryStoreState>((set, get) => ({
       next.days = cur.days.map((day) =>
         day.cityCode === cityCode ? { ...day, overnightAtHotelId: hotel.id, inclusions: day.inclusions.map((i) => i.kind === 'transfer' && i.transfer.kind === 'arrival' ? { kind: 'transfer', transfer: { ...i.transfer, toName: hotel.name } } : i.kind === 'transfer' && i.transfer.kind === 'departure' ? { kind: 'transfer', transfer: { ...i.transfer, fromName: hotel.name } } : i) } : day,
       );
+      next.pricePaise = recalcPrice(next);
+      next.pricePerAdultPaise = recalcPerAdult(next);
+      return { byId: { ...s.byId, [id]: next } };
+    }),
+
+  removeHotel: (id, cityCode) =>
+    set((s) => {
+      const cur = s.byId[id]; if (!cur) return s;
+      const next: Itinerary = {
+        ...cur,
+        destinations: cur.destinations.map((d) => (d.cityCode === cityCode && d.stay ? { ...d, stay: undefined, removedStay: d.stay } : d)),
+      };
+      next.pricePaise = recalcPrice(next);
+      next.pricePerAdultPaise = recalcPerAdult(next);
+      return { byId: { ...s.byId, [id]: next } };
+    }),
+
+  restoreHotel: (id, cityCode) =>
+    set((s) => {
+      const cur = s.byId[id]; if (!cur) return s;
+      const next: Itinerary = {
+        ...cur,
+        destinations: cur.destinations.map((d) => (d.cityCode === cityCode && d.removedStay ? { ...d, stay: d.removedStay, removedStay: undefined } : d)),
+      };
       next.pricePaise = recalcPrice(next);
       next.pricePerAdultPaise = recalcPerAdult(next);
       return { byId: { ...s.byId, [id]: next } };

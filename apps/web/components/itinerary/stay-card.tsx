@@ -17,9 +17,10 @@ interface Props {
   stay: Stay;
   rooms?: Room[];
   onChange: (h: Hotel) => void;
+  onRemove?: () => void;
 }
 
-export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: Props) {
+export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange, onRemove }: Props) {
   const money = useMoney();
   const [open, setOpen] = useState(false);
   const h = stay.hotel;
@@ -60,6 +61,7 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange }: 
           <div className="text-[12px] text-[rgb(var(--text-secondary))] mb-1">for the stay</div>
           <Button size="sm" variant="secondary" onClick={() => setOpen(true)} className="w-full">Change hotel</Button>
           <Button size="sm" variant="ghost" className="w-full" onClick={() => setOpen(true)}>Change room</Button>
+          {onRemove && <Button size="sm" variant="ghost" className="w-full" onClick={onRemove}>Remove hotel</Button>}
         </PassStub>
       </Pass>
       <ChangeHotelModal

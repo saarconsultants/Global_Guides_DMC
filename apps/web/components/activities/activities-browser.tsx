@@ -9,6 +9,7 @@ import { Clock, MapPin, Tag, Ticket } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
 import { supplierOf, fmtDuration, unitPrice } from '@/lib/activities/format';
 import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
+import { ActivityFilterBar, useActivityFilters } from '@/components/activities/activity-filters';
 
 /**
  * No supplier photo: the same ink plate the stay card uses, so the two
@@ -24,11 +25,14 @@ const ImgFallback = (
 export function ActivitiesBrowser({ activities, cityName, travellers }: { activities: Activity[]; cityName: string; travellers: number }) {
   const money = useMoney();
   const [detail, setDetail] = useState<Activity | null>(null);
+  const filters = useActivityFilters(activities);
 
   return (
     <>
+      <ActivityFilterBar f={filters} total={activities.length} />
+      {filters.filtered.length === 0 && <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-10">Nothing matches these filters.</p>}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {activities.map((a) => (
+        {filters.filtered.map((a) => (
           <button key={a.id} type="button" onClick={() => setDetail(a)} className="text-left h-full">
             <article className="group h-full flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
               <div className="w-full h-40 bg-navy-50 relative">

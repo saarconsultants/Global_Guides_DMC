@@ -30,6 +30,8 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   const itinerary = useItineraryStore((s) => s.byId[id]);
   const upsert = useItineraryStore((s) => s.upsert);
   const changeHotel = useItineraryStore((s) => s.changeHotel);
+  const removeHotel = useItineraryStore((s) => s.removeHotel);
+  const restoreHotel = useItineraryStore((s) => s.restoreHotel);
   const setActivity = useItineraryStore((s) => s.setActivity);
   const removeInclusion = useItineraryStore((s) => s.removeInclusion);
   const toggleVisa = useItineraryStore((s) => s.toggleVisa);
@@ -223,7 +225,13 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     stay={d.stay}
                     rooms={itinerary.intake.rooms}
                     onChange={(h) => { changeHotel(itinerary.id, d.cityCode, h); toast.success('Hotel changed', `Now staying at ${h.name} in ${d.cityName}.`); }}
+                    onRemove={() => removeHotel(itinerary.id, d.cityCode)}
                   />
+                </div>
+              ) : d.removedStay ? (
+                <div key={d.cityCode} className="mb-6 rounded-lg border border-dashed border-border bg-surface px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-[rgb(var(--text-secondary))]">No hotel in <span className="font-bold text-ink">{d.cityName}</span>. {d.removedStay.hotel.name} was removed from this trip.</p>
+                  <button type="button" onClick={() => restoreHotel(itinerary.id, d.cityCode)} className="min-h-11 text-sm font-bold text-crimson-700 hover:underline">Put it back</button>
                 </div>
               ) : null
             ))}

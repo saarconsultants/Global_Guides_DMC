@@ -74,7 +74,7 @@ export default async function AdminInventoryPage() {
                   <Pill variant={a.live ? 'success' : 'warning'}>{a.live ? 'Live' : 'Not connected'}</Pill>
                 </div>
                 <p className="text-sm text-[rgb(var(--text-secondary))] mt-3">
-                  {a.live ? a.note.replace(/STAGING/g, 'test server') : 'Using sample rates until connected.'}
+                  {a.live || a.note.startsWith('Turned off') ? a.note.replace(/STAGING/g, 'test server') : 'Using sample rates until connected.'}
                 </p>
                 <InventoryProbe apiKey={a.key} live={a.live} />
               </CardContent>

@@ -136,14 +136,7 @@ export async function prepareHotelBookings(it: Itinerary): Promise<Omit<PrepareR
     const stay = d.stay;
     if (!stay) return;
     const h = stay.hotel;
-    if (!h.id.startsWith('HB-')) {
-      out.manual.push({ cityName: d.cityName, hotelName: h.name, reason: 'Not a live Hotelbeds rate — booked by operations.' });
-      return;
-    }
-    if (!isLive('hotels')) {
-      out.manual.push({ cityName: d.cityName, hotelName: h.name, reason: 'Live hotel booking is off — booked by operations.' });
-      return;
-    }
+    if (!h.id.startsWith('HB-') || !isLive('hotels')) return;   // reported by sampleItems
     const hotelCode = parseInt(h.id.slice(3), 10);
     const checkIn = ymd(stay.checkIn), checkOut = ymd(stay.checkOut);
     try {

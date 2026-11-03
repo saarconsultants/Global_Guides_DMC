@@ -8,6 +8,7 @@ import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
 import { supplierOf, fmtDuration, withOption, forTrip } from '@/lib/activities/format';
 import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
+import { ActivityFilterBar, useActivityFilters } from '@/components/activities/activity-filters';
 import { ExpandableText } from '@/components/common/expandable-text';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock, Search, ArrowLeft, Tag, ChevronRight } from 'lucide-react';
@@ -34,7 +35,6 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   const [liveActivities, setLiveActivities] = useState<Activity[]>([]);
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
-  const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Activity | null>(null);
   const [timing, setTiming] = useState<Activity | null>(null);   // timed Leamigo activity awaiting a start time
   // requestId guards against a stale response from an earlier fetch overwriting
@@ -76,7 +76,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   }, [open, cityCode, date, paxAdults, paxChildren]);
 
   // Reset the search box + detail view whenever the modal opens or context changes.
-  useEffect(() => { if (open) { setQuery(''); setDetail(null); setTiming(null); } }, [open, cityCode, slot]);
+  useEffect(() => { if (open) { setDetail(null); setTiming(null); } }, [open, cityCode, slot]);
 
   // Activities that need a start time go through the time picker first.
   const choose = (a: Activity) => {
@@ -90,13 +90,8 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   const merged = date && liveActivities.length ? liveActivities : activitiesForCity(cityCode);
   const party = paxAdults + paxChildren;
 
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? merged.filter((a) =>
-        a.name.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q) ||
-        (a.description ?? '').toLowerCase().includes(q))
-    : merged;
+  const filters = useActivityFilters(merged);
+  const filtered = filters.filtered;
 
   return (
     <Dialog open={open} onClose={onClose} title={timing ? 'Choose a start time' : detail ? 'Activity details' : `Add activity — ${slot} in ${cityName}`} size="lg">
@@ -113,25 +108,12 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       ) : (
       <>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs text-[rgb(var(--text-secondary))]">
-          {merged.length === 0 ? 'No options' : q ? `${filtered.length} of ${merged.length}` : `${merged.length} options`}
-        </p>
+        <p className="text-xs text-[rgb(var(--text-secondary))]">{merged.length === 0 ? 'No options' : `${merged.length} options`}</p>
         <SourceBadge source={source} liveCount={liveActivities.length} />
       </div>
 
       {source !== 'loading' && merged.length > 0 && (
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--text-tertiary))]" />
-          <input
-            type="search"
-            aria-label="Search activities"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search activities by name, type, or description…"
-            className="h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-crimson-500"
-            autoComplete="off"
-          />
-        </div>
+        <div className="mb-3"><ActivityFilterBar f={filters} total={merged.length} /></div>
       )}
 
       {warning && source !== 'live' && (
@@ -147,7 +129,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       ) : merged.length === 0 ? (
         <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">No activities for {cityName} yet.</p>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">No activities match “{query}”. Try a different search.</p>
+        <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">Nothing matches these filters.</p>
       ) : (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
           {filtered.map((a) => (

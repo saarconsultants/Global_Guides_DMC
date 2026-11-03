@@ -7,3 +7,5 @@ export { searchRentals, prebookRental, createRentalBooking, rentalCancellationPo
 export type { LeamigoRental, LeamigoRentalSearchInput } from './rentals';
 export { searchLeamigoCityDirectory, searchLeamigoActivities, leamigoActivityInfo, leamigoActivityCities, matchesCity, activityAvailability, reserveActivity, bookActivity, activityBookingDetails, activityCancellationPolicy, cancelActivityBooking, inrRatesFor } from './activities';
 export type { LeamigoActivityCity, LeamigoActivityOption, LeamigoActivityInfo, ActivityTicketLine, LeamigoActivity, ActivityReserveRequest, ActivityTimeslot } from './activities';
+export { listLeamigoBookings, leamigoBookingLive, amendRentalBooking, rescheduleActivityBooking } from './manage';
+export type { LeamigoProduct, LeamigoBookingRow, LeamigoBookingLive } from './manage';

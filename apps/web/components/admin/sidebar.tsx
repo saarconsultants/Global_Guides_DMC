@@ -13,6 +13,7 @@ const items = [
   { href: '/admin/revenue',     label: 'Revenue ledger',   icon: Coins },
   { href: '/admin/performance', label: 'Performance',      icon: BarChart3 },
   { href: '/admin/inventory',   label: 'Inventory APIs',   icon: Plug },
+  { href: '/admin/leamigo',     label: 'Leamigo bookings', icon: Plug },
   { href: '/admin/bug-reports', label: 'Bug reports',      icon: Bug },
 ] as const;
 

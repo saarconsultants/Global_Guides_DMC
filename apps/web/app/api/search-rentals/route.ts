@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         vehicle: 'PRIVATE',
         bagsAllowed: r.maxLuggage,
         pricePaise: r.pricePaise,
-        description: [`Leamigo · ${r.vehicleName}`, `${r.hours}h`, r.kmsIncluded ? `${r.kmsIncluded} km included` : '', r.cityRadiusOnly ? 'within city' : '', r.tollsAndParkingIncluded ? 'tolls & parking included' : 'tolls & parking extra', r.freeCancellation ? 'free cancellation' : ''].filter(Boolean).join(' · '),
+        description: [`Leamigo · ${r.vehicleName}`, `${r.hours}h`, r.kmsIncluded ? `${r.kmsIncluded} km included` : '', r.minimumHours ? `${r.minimumHours}h minimum` : '', r.instantConfirmation ? 'instant confirmation' : '', r.cityRadiusOnly ? 'within city' : '', r.tollsAndParkingIncluded ? 'tolls & parking included' : 'tolls & parking extra', r.freeCancellation ? 'free cancellation' : ''].filter(Boolean).join(' · '),
         leamigoRental: { pickup, pickupDate: b.pickupDate, pickupTime: b.pickupTime, hours, passengers, providerId: r.providerId, vehicleName: r.vehicleName },
       });
     }

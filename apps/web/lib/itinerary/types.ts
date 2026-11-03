@@ -200,6 +200,8 @@ export interface Itinerary {
     cityName: string;
     nights: number;
     stay?: Stay;
+    /** The hotel an agent took off the trip, kept so it can be put back. */
+    removedStay?: Stay;
   }>;
   days: Day[];
   flights?: FlightSelection;

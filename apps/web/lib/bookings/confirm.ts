@@ -12,6 +12,7 @@ import { db } from '@/lib/db/client';
 import { emitNotification } from '@/lib/db/notifications';
 import { proposalToItinerary } from '@/lib/db/proposals';
 import { isLive } from '@gg/hotelbeds';
+import { sampleItems } from '@/lib/bookings/sample';
 import { verifyQuote, validateGuests, bookHotels, PRICE_TOLERANCE_PCT, type GuestsInput, type SupplierHotelBooking, type HotelQuote } from './hotelbeds';
 import { leamigoLegs, validateContact, bookTransfers, type TransferQuote, type SupplierTransferBooking, type LeadContact } from './leamigo';
 import { isLive as leamigoLive } from '@gg/leamigo';
@@ -35,6 +36,10 @@ export async function confirmProposalBooking(args: {
 
   const it = proposalToItinerary(proposal as any);
   if (!it) return { ok: false, code: 'bad_status', error: 'Proposal data is unreadable.' };
+
+  // Never take payment on a made-up price, however this was reached.
+  const samples = sampleItems(it);
+  if (samples.length) return { ok: false, code: 'bad_status', error: `Can't book sample prices: ${samples.map((x) => x.hotelName).join(', ')}.` };
 
   // Which stays must go through Hotelbeds?
   const liveStays = isLive('hotels') ? it.destinations.filter((d) => d.stay?.hotel.id.startsWith('HB-')) : [];

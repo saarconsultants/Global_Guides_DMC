@@ -19,7 +19,9 @@ import { suggestItinerary, type SuggestedCity } from './suggest-itinerary';
 import { findCity, findCityCodeByName } from '@/lib/cities';
 import { chat } from './openrouter';
 import { composeItineraryAction } from '@/app/actions/compose-itinerary';
-import { searchHotels, searchActivities, isLive as hbLive } from '@gg/hotelbeds';
+import { searchHotels, isLive as hbLive } from '@gg/hotelbeds';
+import { searchAllActivities } from '@/lib/activities/search';
+import { forTrip } from '@/lib/activities/format';
 import { searchFlights, type FlightOffer } from '@gg/tripjack';
 import { hotelsForCity, activitiesForCity, cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Activity, CabinClass, FlightLeg, Hotel, IntakeForm, Itinerary, StarRating } from '@/lib/itinerary/types';
@@ -170,13 +172,13 @@ export async function architectTrip(input: ArchitectInput, onProgress?: (p: Arch
     })),
     Promise.all(windows.map(async (w) => {
       try {
-        if (hbLive('activities')) {
-          const res = await withTimeout(searchActivities({ cityCode: w.cityCode, fromDate: w.checkIn, toDate: w.checkOut, paxAdults: adults }), 8_000);
-          const mapped: Activity[] = res.activities.slice(0, CAND_ACTS).map((a) => ({
-            id: a.id, cityCode: a.cityCode, name: a.name, durationMin: a.durationMin,
-            pricePaise: a.pricePaise, thumb: a.thumb, description: a.description, category: 'tour' as const,
-          }));
-          if (mapped.length > 0) return mapped;
+        const res = await withTimeout(searchAllActivities({ cityCode: w.cityCode, fromDate: w.checkIn, toDate: w.checkOut, adults, children }), 20_000);
+        if (res.source === 'live') {
+          // The model picks from a short menu: real experiences, no train tickets,
+          // and products that don't need a start time chosen by hand.
+          const sellable = res.activities.filter((a) => a.supplierCategory !== 'Transportation');
+          const menu = [...sellable.filter((a) => !a.leamigo?.timed), ...sellable.filter((a) => a.leamigo?.timed)].slice(0, CAND_ACTS).map(forTrip);
+          if (menu.length > 0) return menu;
         }
       } catch { /* fall through to mock */ }
       return activitiesForCity(w.cityCode).slice(0, CAND_ACTS);
