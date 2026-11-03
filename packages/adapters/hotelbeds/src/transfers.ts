@@ -3,7 +3,7 @@
 // Endpoint: GET /transfer-api/1.0/availability/{language}/from/{fromType}/{fromCode}/to/{toType}/{toCode}/{fromDate}/{toDate}/{adults}/{children}/{infants}
 // Docs:     https://developer.hotelbeds.com/documentation/transfers/
 
-import { hbCall, isLive } from './client';
+import { hbCall, isLive, isEnabled } from './client';
 import { getRates, toInrPaiseWith, type Rates } from './fx';
 
 export type TransferLocationType = 'IATA' | 'ATLAS';
@@ -53,7 +53,7 @@ export async function searchTransfers(input: TransferSearchInput): Promise<Trans
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
 
   const promise = (async (): Promise<TransferSearchResult> => {
-    if (!isLive('transfers')) return { transfers: [], source: 'mock', warning: 'HOTELBEDS_TRANSFERS_API_KEY (or fallback HOTELBEDS_API_KEY) not set' };
+    if (!isLive('transfers')) return { transfers: [], source: 'mock', warning: isEnabled() ? 'HOTELBEDS_TRANSFERS_API_KEY (or fallback HOTELBEDS_API_KEY) not set' : undefined };
 
     const path = `/transfer-api/1.0/availability/en/from/${input.fromType}/${input.fromCode}/to/${input.toType}/${input.toCode}/${input.pickupDate}/${input.pickupDate}/${input.adults}/${input.children ?? 0}/${input.infants ?? 0}`;
     try {

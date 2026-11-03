@@ -141,7 +141,7 @@ export async function prepareHotelBookings(it: Itinerary): Promise<Omit<PrepareR
       return;
     }
     if (!isLive('hotels')) {
-      out.manual.push({ cityName: d.cityName, hotelName: h.name, reason: 'Hotelbeds keys not set — booked by operations.' });
+      out.manual.push({ cityName: d.cityName, hotelName: h.name, reason: 'Live hotel booking is off — booked by operations.' });
       return;
     }
     const hotelCode = parseInt(h.id.slice(3), 10);

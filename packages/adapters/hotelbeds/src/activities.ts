@@ -6,7 +6,7 @@
 // We normalize the response into the app's existing Activity type so the
 // Add Activity modal can render it without caring about the source.
 
-import { hbCall, isLive } from './client';
+import { hbCall, isLive, isEnabled } from './client';
 import { toHotelbedsDestination } from './destinations';
 import { getRates, toInrPaiseWith, type Rates } from './fx';
 
@@ -57,7 +57,7 @@ export async function searchActivities(input: ActivitiesSearchInput): Promise<Ac
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
 
   const promise = (async (): Promise<ActivitiesSearchResult> => {
-    if (!isLive('activities')) return { activities: [], source: 'mock', warning: 'HOTELBEDS_ACTIVITIES_API_KEY (or fallback HOTELBEDS_API_KEY) not set' };
+    if (!isLive('activities')) return { activities: [], source: 'mock', warning: isEnabled() ? 'HOTELBEDS_ACTIVITIES_API_KEY (or fallback HOTELBEDS_API_KEY) not set' : undefined };
 
     const destinationCode = toHotelbedsDestination(input.cityCode);
     if (!destinationCode) {

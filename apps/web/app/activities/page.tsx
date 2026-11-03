@@ -13,9 +13,10 @@ import { RouteCode } from '@/components/ui/pass';
 import { formatDateRange } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 interface PageProps {
-  searchParams: Promise<{ city?: string; from?: string; to?: string; adults?: string }>;
+  searchParams: Promise<{ city?: string; from?: string; to?: string; adults?: string; name?: string; country?: string }>;
 }
 
 export default async function ActivitiesPage({ searchParams }: PageProps) {
@@ -36,7 +37,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   if (hasQuery) {
     const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2 });
     ({ activities, source, warning, counts } = res);
-    cityName = res.cityName;
+    cityName = sp.name ?? res.cityName;
     partial = !!res.partial;
   }
 
@@ -53,7 +54,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
         subtitle="Live tours, tickets and day trips. Browse to quote, then add them inside any itinerary."
         img={promoSrc('hero-activities.jpg')}
       />
-      <ActivitySearchForm defaults={{ city, from, to, adults }} />
+      <ActivitySearchForm defaults={{ city, from, to, adults, cityName: sp.name, country: sp.country }} />
 
       <div className="shell pt-6 relative space-y-6">
 

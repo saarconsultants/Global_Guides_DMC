@@ -3,7 +3,7 @@
 // source of truth) — kept here separately so client components can import it
 // without pulling the adapter's node:crypto client into the browser bundle.
 
-export interface SupportedCity { code: string; name: string; country: string }
+export interface SupportedCity { code: string; name: string; country: string; note?: string }
 
 export const HOTEL_SEARCH_CITIES: SupportedCity[] = [
   // Europe

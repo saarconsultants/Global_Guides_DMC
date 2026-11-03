@@ -1,5 +1,5 @@
 // Client-safe helpers for showing activities from any supplier.
-import type { Activity } from '@/lib/itinerary/types';
+import type { Activity, ActivityOptionChoice } from '@/lib/itinerary/types';
 
 export type ActivitySupplier = 'Hotelbeds' | 'Leamigo' | null;
 
@@ -21,4 +21,28 @@ export function fmtDuration(min: number | undefined): string | null {
 /** The "from" figure and its basis for cards: per person, or per group for private products. */
 export function unitPrice(a: Activity): { paise: number; basis: 'person' | 'group' } {
   return { paise: a.perPersonPaise ?? a.pricePaise, basis: a.priceBasis ?? 'person' };
+}
+
+/** The same activity, switched to another of its options. */
+export function withOption(a: Activity, o: ActivityOptionChoice): Activity {
+  if (!a.leamigo) return a;
+  const parts = (a.description ?? '').split(' · ').slice(1).filter((p) => p !== 'Free cancellation' && p !== 'Non-refundable');
+  return {
+    ...a,
+    id: `LMA-${a.leamigo.activityId}:${o.optionId}:${o.ticketId}`,
+    pricePaise: o.pricePaise, perPersonPaise: o.perPersonPaise, priceBasis: o.priceBasis,
+    // First segment is the option name — booking reads it back as the voucher sub-line.
+    description: [o.name, ...parts, o.freeCancellation ? 'Free cancellation' : 'Non-refundable'].filter(Boolean).join(' · '),
+    leamigo: {
+      ...a.leamigo, optionId: o.optionId, ticketId: o.ticketId, quantity: o.quantity, lines: o.lines,
+      openDated: o.bookingType === 'open_dated', timed: o.bookingType === 'date_time_required',
+      freeCancellation: o.freeCancellation, cancellationRules: o.cancellationRules,
+    },
+  };
+}
+
+/** What gets saved on a trip: the chosen option only, not the whole price list. */
+export function forTrip(a: Activity): Activity {
+  const { options: _options, ...rest } = a;
+  return rest;
 }

@@ -115,7 +115,23 @@ export interface Activity {
     /** Needs a start time (date_time_required). Picked in the builder; required to book. */
     timed?: boolean;
     startTime?: string;          // HH:mm
+    /** Tickets to buy, when adults and children need different ones. */
+    lines?: Array<{ ticketId: string; quantity: number; name?: string }>;
   };
+  /** Every option on sale (search results only — not saved with the trip). */
+  options?: ActivityOptionChoice[];
+  supplierCategory?: string;
+  supplierName?: string;
+}
+
+export interface ActivityOptionChoice {
+  optionId: number; name: string; description?: string; ticketId: string; quantity: number;
+  lines: Array<{ ticketId: string; quantity: number; name: string }>;
+  pricePaise: number; perPersonPaise: number; priceBasis: 'person' | 'group';
+  bookingType: 'date_required' | 'date_time_required' | 'open_dated';
+  instantConfirmation: boolean; freeCancellation: boolean;
+  cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
+  tickets: Array<{ id: string; name: string; unitPaise: number; rangeFrom: number | null; rangeTo: number | null }>;
 }
 
 export type DayInclusion =

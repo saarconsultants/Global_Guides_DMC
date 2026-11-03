@@ -20,7 +20,16 @@ export async function POST(req: Request) {
       const tk = t.tickets.find((k) => k.id === String(b.ticketId)) ?? (t.tickets.length === 1 ? t.tickets[0] : undefined);
       const unitMinor = tk?.priceMinor ?? t.priceMinor;
       const cur = tk?.currency ?? t.currency;
-      const pricePaise = unitMinor !== undefined && cur ? fx(Math.round(unitMinor * quantity), cur) : null;
+      // Adults and children on different tickets: add up each line's own price.
+      const lines: Array<{ ticketId: string; quantity: number }> = Array.isArray(b.lines) ? b.lines : [];
+      const lineTotal = lines.length > 1
+        ? lines.reduce<number | null>((sum, l) => {
+            const k = t.tickets.find((x) => x.id === String(l.ticketId));
+            const p = k?.priceMinor !== undefined && k.currency ? fx(Math.round(k.priceMinor * l.quantity), k.currency) : null;
+            return sum === null || p === null ? null : sum + p;
+          }, 0)
+        : undefined;
+      const pricePaise = lineTotal !== undefined ? lineTotal : unitMinor !== undefined && cur ? fx(Math.round(unitMinor * quantity), cur) : null;
       return {
         start: t.start, end: t.end,
         available: t.available && (t.capacity === null || t.capacity >= quantity),

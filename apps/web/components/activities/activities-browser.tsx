@@ -8,6 +8,7 @@ import { useMoney } from '@/components/providers/currency-provider';
 import { Clock, MapPin, Tag, Ticket } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
 import { supplierOf, fmtDuration, unitPrice } from '@/lib/activities/format';
+import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
 
 /**
  * No supplier photo: the same ink plate the stay card uses, so the two
@@ -43,7 +44,7 @@ export function ActivitiesBrowser({ activities, cityName, travellers }: { activi
               </div>
               <div className="mt-auto border-t-2 border-dashed border-border-subtle px-4 py-3 flex items-end justify-between">
                 <div><div className="label">{unitPrice(a).basis === 'group' ? 'Private, per group' : 'From, per person'}</div><div className="money text-[17px] text-ink mt-0.5">{money(unitPrice(a).paise)}</div></div>
-                <span className="text-[12.5px] font-bold text-crimson-700">Details</span>
+                <span className="text-[12.5px] font-bold text-crimson-700">{(a.options?.length ?? 0) > 1 ? `${a.options!.length} options` : 'Details'}</span>
               </div>
             </article>
           </button>
@@ -62,7 +63,12 @@ export function ActivitiesBrowser({ activities, cityName, travellers }: { activi
               <span className="inline-flex items-center gap-1 capitalize"><Tag className="w-3.5 h-3.5" />{detail.category}</span>
               <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
             </div>
-            {detail.description ? (
+            {detail.leamigo ? (
+              <>
+                <ActivityOptions a={detail} />
+                <ActivityInfo a={detail} />
+              </>
+            ) : detail.description ? (
               <div>
                 <p className="label mb-1.5">About this experience</p>
                 <ExpandableText text={detail.description} maxChars={320} className="text-sm text-ink leading-relaxed" />

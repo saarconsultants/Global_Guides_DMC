@@ -39,7 +39,7 @@ export interface TransferQuote {
   freeCancellation: boolean;
   cancellationRules: Rules;
   cancellationText: string;
-  activity?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean; startTime?: string };
+  activity?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean; startTime?: string; lines?: Array<{ ticketId: string; quantity: number }> };
 }
 
 export interface SupplierTransferBooking {
@@ -178,8 +178,9 @@ async function quoteActivity(a: Activity, key: string, dayNo: number, date: stri
       if (!slot || !slot.available) return `The ${lm.startTime} start is no longer available on ${date}. Re-add the activity to pick another time.`;
       if (slot.capacity !== null && slot.capacity < lm.quantity) return `Only ${slot.capacity} places left at ${lm.startTime} on ${date}.`;
     }
-    const perGuest = av.requiredFields.filter((f) => f.required && f.level === 'ALL_CUSTOMER' && !['NAME', 'FULL_NAME'].includes(f.id.toUpperCase()));
-    if (perGuest.length) return `The supplier needs per-guest details (${perGuest.map((f) => f.id).join(', ')}). Our team will book this one.`;
+    // Name, email and phone we can answer at booking; anything else needs our team.
+    const unknown = av.requiredFields.filter((f) => f.required && !/name|e-?mail|phone|mobile/i.test(`${f.id} ${f.name}`));
+    if (unknown.length) return `The supplier needs extra details (${unknown.map((f) => f.name).join(', ')}). Our team will book this one.`;
   }
   return {
     product: 'activity', key, dayNo, kind: 'activity', fromName: a.name, toName: a.description?.split(' · ')[0] ?? '',
@@ -190,7 +191,7 @@ async function quoteActivity(a: Activity, key: string, dayNo: number, date: stri
     netPaise: a.pricePaise, quotedPaise: a.pricePaise, priceChangePct: 0, sameVehicle: true,
     freeCancellation: lm.freeCancellation, cancellationRules: lm.cancellationRules,
     cancellationText: lm.cancellationRules.length ? describeRules(lm.cancellationRules, 'the activity') : 'Non-refundable.',
-    activity: { activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, openDated: lm.openDated, startTime: lm.startTime },
+    activity: { activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, openDated: lm.openDated, startTime: lm.startTime, lines: lm.lines?.map((l) => ({ ticketId: l.ticketId, quantity: l.quantity })) },
   };
 }
 
@@ -255,7 +256,7 @@ async function bookOneActivity(q: TransferQuote, base: Omit<SupplierTransferBook
   const names = Array.from({ length: a.quantity }, (_, i) => (i === 0 ? lead : guestNames[i] || lead));
   const { prefix, number } = splitPhone(phone);
   const hold = await reserveActivity({
-    activityId: a.activityId, optionId: a.optionId, ticketId: a.ticketId, quantity: a.quantity,
+    activityId: a.activityId, optionId: a.optionId, lines: a.lines?.length ? a.lines : [{ ticketId: a.ticketId, quantity: a.quantity }],
     visitDate: a.openDated ? undefined : q.pickupDate,
     timeslot: a.startTime,
     leadName: lead, email: c.email.trim(), phonePrefix: prefix, phoneNumber: number,

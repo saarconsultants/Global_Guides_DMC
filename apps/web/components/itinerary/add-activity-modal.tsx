@@ -6,7 +6,8 @@ import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
-import { supplierOf, fmtDuration } from '@/lib/activities/format';
+import { supplierOf, fmtDuration, withOption, forTrip } from '@/lib/activities/format';
+import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
 import { ExpandableText } from '@/components/common/expandable-text';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock, Search, ArrowLeft, Tag, ChevronRight } from 'lucide-react';
@@ -20,7 +21,7 @@ interface Props {
   onPick: (a: Activity) => void;
   onClear: () => void;
   currentId?: string;
-  // New: when set, we hit Hotelbeds for that date. Without it we stay mock-only.
+  // When set, we search live activities for that date. Without it we stay mock-only.
   date?: string;             // YYYY-MM-DD of the day this activity is for
   paxAdults?: number;
   paxChildren?: number;
@@ -80,7 +81,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   // Activities that need a start time go through the time picker first.
   const choose = (a: Activity) => {
     if (a.leamigo?.timed && date) { setTiming(a); return; }
-    onPick(a); onClose();
+    onPick(forTrip(a)); onClose();
   };
 
   // The search returns live activities from every supplier, or sample ones
@@ -100,12 +101,13 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   return (
     <Dialog open={open} onClose={onClose} title={timing ? 'Choose a start time' : detail ? 'Activity details' : `Add activity — ${slot} in ${cityName}`} size="lg">
       {timing && date ? (
-        <StartTimePicker a={timing} date={date} slot={slot} onBack={() => setTiming(null)} onConfirm={(a) => { onPick(a); onClose(); }} />
+        <StartTimePicker a={timing} date={date} slot={slot} onBack={() => setTiming(null)} onConfirm={(a) => { onPick(forTrip(a)); onClose(); }} />
       ) : detail ? (
         <ActivityDetail
           a={detail}
           isCurrent={detail.id === currentId}
           onBack={() => setDetail(null)}
+          onOption={(o) => setDetail(withOption(detail, o))}
           onAdd={() => choose(detail)}
         />
       ) : (
@@ -194,7 +196,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   );
 }
 
-function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurrent: boolean; onBack: () => void; onAdd: () => void }) {
+function ActivityDetail({ a, isCurrent, onBack, onAdd, onOption }: { a: Activity; isCurrent: boolean; onBack: () => void; onAdd: () => void; onOption: (o: NonNullable<Activity['options']>[number]) => void }) {
   const money = useMoney();
   return (
     <div className="space-y-4">
@@ -217,7 +219,12 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd }: { a: Activity; isCurren
         </div>
       </div>
 
-      {a.description ? (
+      {a.leamigo ? (
+        <>
+          <ActivityOptions a={a} chosenOptionId={a.leamigo.optionId} onChoose={onOption} />
+          <ActivityInfo a={a} chosenOptionId={a.leamigo.optionId} />
+        </>
+      ) : a.description ? (
         <div>
           <p className="label mb-1">About this experience</p>
           <ExpandableText text={a.description} maxChars={300} className="text-sm text-[rgb(var(--text-primary))]" />
@@ -263,7 +270,7 @@ function StartTimePicker({ a, date, slot, onBack, onConfirm }: { a: Activity; da
   useEffect(() => {
     let live = true;
     fetch('/api/activity-times', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, date }) })
+      body: JSON.stringify({ activityId: lm.activityId, optionId: lm.optionId, ticketId: lm.ticketId, quantity: lm.quantity, lines: lm.lines, date }) })
       .then((r) => r.json())
       .then((r) => {
         if (!live) return;
@@ -288,7 +295,7 @@ function StartTimePicker({ a, date, slot, onBack, onConfirm }: { a: Activity; da
     onConfirm({
       ...a,
       pricePaise: pick?.pricePaise ?? a.pricePaise,
-      leamigo: { ...lm, startTime: chosen, ticketId: pick?.ticketId ?? lm.ticketId },
+      leamigo: { ...lm, startTime: chosen, ticketId: (lm.lines?.length ?? 0) > 1 ? lm.ticketId : pick?.ticketId ?? lm.ticketId, lines: (lm.lines?.length ?? 0) > 1 ? lm.lines : undefined },
     });
   };
 

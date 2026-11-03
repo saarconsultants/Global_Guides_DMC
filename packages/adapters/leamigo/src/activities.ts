@@ -32,6 +32,32 @@ export interface LeamigoActivity {
   instantConfirmation: boolean;
   freeCancellation: boolean;
   cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
+  /** Tickets to buy: adults and children can need different ones. */
+  lines: ActivityTicketLine[];
+  /** Every option on sale for this party, cheapest first. The fields above are the cheapest. */
+  options: LeamigoActivityOption[];
+  category?: string;
+  supplierName?: string;
+}
+
+export interface ActivityTicketLine { ticketId: string; quantity: number; name: string }
+
+export interface LeamigoActivityOption {
+  optionId: number;
+  name: string;
+  description?: string;
+  ticketId: string;
+  quantity: number;
+  lines: ActivityTicketLine[];
+  pricePaise: number;
+  perPersonPaise: number;
+  priceBasis: 'person' | 'group';
+  bookingType: LeamigoActivity['bookingType'];
+  instantConfirmation: boolean;
+  freeCancellation: boolean;
+  cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
+  /** The supplier's price list: one guest, or one ticket for a whole group. */
+  tickets: Array<{ id: string; name: string; unitPaise: number; rangeFrom: number | null; rangeTo: number | null }>;
 }
 
 // ── small caches (catalogue data changes slowly) ────────────────────────────
@@ -45,7 +71,7 @@ async function cityId(name: string, countryCode?: string): Promise<number | null
   const k = name.trim().toLowerCase() + (cc ? `|${cc}` : '');
   const hit = cityCache.get(k);
   if (hit && Date.now() - hit.at < TTL) return hit.id;
-  const res = await lmCall<any>('/v1/activities/cities', { query: { search: name, limit: '20' } });
+  const res = await lmCall<any>('/v1/activities/cities', { query: { search: name, limit: '100' } });
   const rows: any[] = res?.data ?? [];
   const wanted = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   const named = rows.filter((r) => String(r.city).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === wanted);
@@ -71,25 +97,93 @@ function durationMin(d: any): number {
   return Math.round(u.startsWith('min') ? v : u.startsWith('day') ? v * 480 : v * 60);
 }
 
-/** Cheapest option+ticket that sells to `pax` people on a fixed date or open date. */
-function pickOption(options: any[], pax: number) {
-  let best: { opt: any; ticket: any; qty: number; minor: number } | null = null;
+const GROUP_PRICING = ['per_vehicle', 'per_group'];
+const CHILD_TICKET = /\b(child|children|kid|kids|infant|youth)\b/i;
+
+const numOrNull = (v: unknown) => (v === null || v === undefined || v === '' ? null : Number(v));
+const fitsQty = (t: any, qty: number) => qty >= Number(t.min_purchase_qty ?? 1) && qty <= Number(t.max_purchase_qty ?? 999);
+const isChildTicket = (t: any) => CHILD_TICKET.test(String(t.name ?? '')) || (numOrNull(t.range_to) !== null && numOrNull(t.range_to)! < 18);
+const cheapest = (tickets: any[]) => tickets.reduce((x, y) => (Number(y.price) < Number(x.price) ? y : x));
+
+/**
+ * The tickets this party needs from one option, or null if it can't be sold to
+ * them. On per-person options the ticket range is an age band (Adult 18-65,
+ * Child 5-17), so adults never get a child ticket however cheap. On per-ticket
+ * options the range is a head count ("Ticket for 1-5 pax").
+ */
+function ticketsForParty(option: any, adults: number, children: number): Array<{ ticket: any; quantity: number }> | null {
+  const active = (option.tickets ?? []).filter((t: any) => t.status === 'active');
+  if (!active.length) return null;
+  const pax = adults + children;
+
+  if (GROUP_PRICING.includes(String(option.pricing_type))) {
+    if (option.default_capacity && pax > option.default_capacity) return null;
+    const fit = active.filter((t: any) => fitsQty(t, 1));
+    return fit.length ? [{ ticket: cheapest(fit), quantity: 1 }] : null;
+  }
+
+  if (String(option.pricing_type) === 'per_ticket' && active.some((t: any) => numOrNull(t.range_to) !== null)) {
+    const ranged = active.filter((t: any) => numOrNull(t.range_to) !== null);
+    const covering = ranged.filter((t: any) => pax >= (numOrNull(t.range_from) ?? 1) && pax <= numOrNull(t.range_to)!);
+    if (covering.length) return [{ ticket: cheapest(covering), quantity: 1 }];
+    const largest = ranged.reduce((x: any, y: any) => (numOrNull(y.range_to)! > numOrNull(x.range_to)! ? y : x));
+    const quantity = Math.ceil(pax / numOrNull(largest.range_to)!);
+    return fitsQty(largest, quantity) ? [{ ticket: largest, quantity }] : null;
+  }
+
+  const forAdults = active.filter((t: any) => !isChildTicket(t) && fitsQty(t, adults));
+  if (!forAdults.length) return null;
+  const adult = cheapest(forAdults);
+  if (!children) return [{ ticket: adult, quantity: adults }];
+  const forChildren = active.filter((t: any) => isChildTicket(t) && fitsQty(t, children));
+  if (!forChildren.length) return fitsQty(adult, pax) ? [{ ticket: adult, quantity: pax }] : null;
+  return [{ ticket: adult, quantity: adults }, { ticket: cheapest(forChildren), quantity: children }];
+}
+
+function bookingTypeOf(o: any): LeamigoActivity['bookingType'] {
+  return o.is_open_dated || o.booking_type === 'open' ? 'open_dated' : (o.booking_type === 'date_time_required' || o.has_timeslots) ? 'date_time_required' : 'date_required';
+}
+
+/** Every option this party can buy, priced in INR, cheapest first. */
+function priceOptions(options: any[], adults: number, children: number, fallbackCurrency: string, rates: Awaited<ReturnType<typeof inrRates>>): LeamigoActivityOption[] {
+  const toPaise = (minor: number, cur: string) => minorToInrPaise(rates, minor, cur, precisionOf(cur));
+  const out: LeamigoActivityOption[] = [];
   for (const o of options ?? []) {
     if (o.status !== 'active') continue;
-    // Timed products (date_time_required / timeslots) are kept: the agent picks
-    // a start time in the builder before the activity is added to the day.
-    if (!['date_required', 'date_time_required'].includes(o.booking_type) && !o.is_open_dated) continue;
-    const perGroup = ['per_vehicle', 'per_group'].includes(String(o.pricing_type));
-    for (const t of o.tickets ?? []) {
-      if (t.status !== 'active') continue;
-      const qty = perGroup ? 1 : pax;
-      if (qty < (t.min_purchase_qty ?? 1) || qty > (t.max_purchase_qty ?? 999)) continue;
-      if (perGroup && o.default_capacity && pax > o.default_capacity) continue;
-      const minor = Math.round(Number(t.price) * qty);
-      if (!best || minor < best.minor) best = { opt: o, ticket: t, qty, minor };
+    if (!['date_required', 'date_time_required', 'open'].includes(o.booking_type) && !o.is_open_dated) continue;
+    const picked = ticketsForParty(o, adults, children);
+    if (!picked) continue;
+    let total = 0;
+    let priced = true;
+    for (const { ticket, quantity } of picked) {
+      const p = toPaise(Math.round(Number(ticket.price) * quantity), String(ticket.currency ?? fallbackCurrency));
+      if (p === null) { priced = false; break; }
+      total += p;
     }
+    if (!priced) continue;
+    const quantity = picked.reduce((sum, l) => sum + l.quantity, 0);
+    const perGroup = GROUP_PRICING.includes(String(o.pricing_type)) || (String(o.pricing_type) === 'per_ticket' && numOrNull(picked[0]!.ticket.range_to) !== null);
+    const lead = picked[0]!;
+    const cp = o.cancellation_policy ?? {};
+    out.push({
+      optionId: o.id, name: String(o.name ?? ''), description: o.description ?? undefined,
+      ticketId: String(lead.ticket.id), quantity,
+      lines: picked.map((l) => ({ ticketId: String(l.ticket.id), quantity: l.quantity, name: String(l.ticket.name ?? '') })),
+      pricePaise: total,
+      perPersonPaise: perGroup ? total : (toPaise(Math.round(Number(lead.ticket.price)), String(lead.ticket.currency ?? fallbackCurrency)) ?? total),
+      priceBasis: perGroup ? 'group' : 'person',
+      bookingType: bookingTypeOf(o),
+      instantConfirmation: !!o.is_instant_confirmation,
+      freeCancellation: !!cp.free_cancellation,
+      cancellationRules: (cp.rules ?? []).map((r: any) => ({ hoursBefore: Number(r.min_hours_before ?? r.minHoursBefore ?? 0), chargePct: Number(r.charge_percentage ?? r.chargePercentage ?? 0) })),
+      tickets: (o.tickets ?? []).filter((t: any) => t.status === 'active').map((t: any) => ({
+        id: String(t.id), name: String(t.name ?? ''),
+        unitPaise: toPaise(Math.round(Number(t.price)), String(t.currency ?? fallbackCurrency)) ?? 0,
+        rangeFrom: numOrNull(t.range_from), rangeTo: numOrNull(t.range_to),
+      })),
+    });
   }
-  return best;
+  return out.sort((x, y) => x.pricePaise - y.pricePaise);
 }
 
 // ── which cities actually sell activities ──────────────────────────────────
@@ -100,9 +194,7 @@ export interface LeamigoActivityCity { id: number; name: string; country: string
 
 const INDEX_TTL = 6 * 60 * 60_000;
 const INDEX_RETRY_TTL = 5 * 60_000;   // a partial build is retried sooner
-const INDEX_WAIT_MS = 4_000;          // a search never waits longer than this for the first build
-const SEARCH_BUDGET_MS = 10_000;      // the caller gives up at 12s; return what is priced by then
-const MAX_PAGES = 300;
+const SEARCH_BUDGET_MS = 50_000;      // the server stops a request at 60s; return what is priced by then
 const PAGE_SIZE = 100;
 const CONCURRENCY = 8;
 
@@ -152,8 +244,7 @@ async function buildCityIndex(): Promise<LeamigoActivityCity[]> {
   };
   const first = await lmCall<any>('/v1/activities', { query: { limit: String(PAGE_SIZE), page: '1' }, timeoutMs: 15_000 });
   add(first?.data ?? []);
-  const pages = Math.min(Number(first?.meta?.total_pages ?? 1), MAX_PAGES);
-  if (Number(first?.meta?.total_pages ?? 1) > MAX_PAGES) complete = false;
+  const pages = Number(first?.meta?.total_pages ?? 1);
   await mapLimit(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => i + 2), 5, async (page) => {
     try {
       const res = await lmCall<any>('/v1/activities', { query: { limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 15_000 });
@@ -173,11 +264,15 @@ export async function leamigoActivityCities(): Promise<LeamigoActivityCity[]> {
   return cityIndexBuild;
 }
 
+/** Leamigo's full city directory (~157k), searched by name. Most have no activities yet. */
+export async function searchLeamigoCityDirectory(query: string): Promise<Array<{ id: number; name: string; country: string }>> {
+  if (!isLive() || query.trim().length < 2) return [];
+  const res = await lmCall<any>('/v1/activities/cities', { query: { search: query.trim(), limit: '100' } });
+  return (res?.data ?? []).map((r: any) => ({ id: Number(r.id), name: String(r.city), country: String(r.country_name ?? '') }));
+}
+
 async function cityIdsFor(name: string, countryCode?: string): Promise<number[]> {
-  const cities = await Promise.race([
-    leamigoActivityCities().catch(() => null),
-    new Promise<null>((r) => setTimeout(() => r(null), INDEX_WAIT_MS)),
-  ]);
+  const cities = await leamigoActivityCities().catch(() => null);
   const hits = (cities ?? []).filter((c) => matchesCity(c, name, countryCode)).map((c) => c.id);
   if (hits.length) return hits;
   const id = await cityId(name, countryCode);
@@ -186,7 +281,7 @@ async function cityIdsFor(name: string, countryCode?: string): Promise<number[]>
 
 async function listCityActivities(cid: number): Promise<any[]> {
   const rows: any[] = [];
-  for (let page = 1; page <= MAX_PAGES; page++) {
+  for (let page = 1; ; page++) {
     const res = await lmCall<any>('/v1/activities', { query: { city_id: String(cid), limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 10_000 });
     rows.push(...(res?.data ?? []));
     if (!res?.meta?.has_next_page) break;
@@ -194,48 +289,91 @@ async function listCityActivities(cid: number): Promise<any[]> {
   return rows;
 }
 
-export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; pax: number }): Promise<{ activities: LeamigoActivity[]; warning?: string; partial?: boolean }> {
+export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number }): Promise<{ activities: LeamigoActivity[]; warning?: string; partial?: boolean }> {
   if (!isLive()) return { activities: [] };
   const startedAt = Date.now();
+  const adults = Math.max(1, input.adults), children = Math.max(0, input.children ?? 0);
   const ids = input.cityId ? [input.cityId] : await cityIdsFor(input.cityName ?? '', input.countryCode);
   if (!ids.length) return { activities: [], warning: `Leamigo has no activities in ${input.cityName}.` };
   const lists = await Promise.all(ids.map(listCityActivities));
   const list = [...new Map(lists.flat().map((a) => [a.id, a])).values()];
   const rates = await inrRates();
   const out: LeamigoActivity[] = [];
-  let priced = 0;
+  let finished = 0, failed = 0;
   const work = mapLimit(list, CONCURRENCY, async (a: any) => {
     try {
-      const [opts, det] = await Promise.all([
-        cached(optCache, a.id, `/v1/activities/${a.id}/options`),
-        cached(detCache, a.id, `/v1/activities/${a.id}`),
-      ]);
-      const cur = String(opts?.currency ?? a.pricing?.currency ?? 'USD');
-      const p = pickOption(opts?.options ?? [], Math.max(1, input.pax));
-      if (!p) return;
-      const paise = minorToInrPaise(rates, p.minor, p.ticket.currency ?? cur, precisionOf(p.ticket.currency ?? cur));
-      if (paise === null) return;
-      const cp = p.opt.cancellation_policy ?? {};
+      // One retry: a blip on one product shouldn't hide it from the agent.
+      const opts = await cached(optCache, a.id, `/v1/activities/${a.id}/options`)
+        .catch(() => cached(optCache, a.id, `/v1/activities/${a.id}/options`));
+      const det = await cached(detCache, a.id, `/v1/activities/${a.id}`).catch(() => null);
+      const options = priceOptions(opts?.options ?? [], adults, children, String(opts?.currency ?? a.pricing?.currency ?? 'USD'), rates);
+      const best = options[0];
+      if (!best) return;
       out.push({
-        id: `LMA-${a.id}:${p.opt.id}:${p.ticket.id}`,
-        activityId: a.id, optionId: p.opt.id, ticketId: String(p.ticket.id),
-        title: a.title, optionName: p.opt.name, city: a.city?.name ?? input.cityName ?? '',
-        durationMin: durationMin(det?.duration), quantity: p.qty, pricePaise: paise,
-        perPersonPaise: p.qty > 1 ? Math.round(paise / p.qty) : paise,
-        priceBasis: ['per_vehicle', 'per_group'].includes(String(p.opt.pricing_type)) ? 'group' : 'person',
-        thumb: a.media?.cover_image_url, description: det?.short_description ?? det?.full_description?.slice(0, 400),
-        bookingType: p.opt.is_open_dated ? 'open_dated' : (p.opt.booking_type === 'date_time_required' || p.opt.has_timeslots) ? 'date_time_required' : 'date_required',
-        instantConfirmation: !!p.opt.is_instant_confirmation,
-        freeCancellation: !!cp.free_cancellation,
-        cancellationRules: (cp.rules ?? []).map((r: any) => ({ hoursBefore: Number(r.min_hours_before ?? r.minHoursBefore ?? 0), chargePct: Number(r.charge_percentage ?? r.chargePercent ?? 0) })),
+        id: `LMA-${a.id}:${best.optionId}:${best.ticketId}`,
+        activityId: a.id, optionId: best.optionId, ticketId: best.ticketId,
+        title: a.title, optionName: best.name, city: a.city?.name ?? input.cityName ?? '',
+        durationMin: durationMin(det?.duration), quantity: best.quantity, pricePaise: best.pricePaise,
+        perPersonPaise: best.perPersonPaise, priceBasis: best.priceBasis,
+        thumb: a.media?.cover_image_url, description: det?.short_description ?? a.title,
+        bookingType: best.bookingType, instantConfirmation: best.instantConfirmation,
+        freeCancellation: best.freeCancellation, cancellationRules: best.cancellationRules,
+        lines: best.lines, options,
+        category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined,
       });
-    } catch { /* skip one bad product, keep the rest */ }
-    finally { priced++; }
+    } catch { failed++; }
+    finally { finished++; }
   });
-  // Large cities can outrun the budget: keep what is priced rather than lose it all.
+  // Keep what is priced if a huge city would outlast the server's own time limit.
   await Promise.race([work, new Promise((r) => setTimeout(r, Math.max(0, SEARCH_BUDGET_MS - (Date.now() - startedAt))))]);
   const activities = [...out].sort((x, y) => x.pricePaise - y.pricePaise);
-  return { activities, partial: priced < list.length };
+  return { activities, partial: finished < list.length || failed > 0 };
+}
+
+export interface LeamigoActivityInfo {
+  description?: string; included: string[]; excluded: string[]; knowBeforeYouGo?: string;
+  operatingHours: Array<{ day: number; start: string; end: string; closed: boolean }>;
+  blackoutDates: string[]; validFrom?: string; validTo?: string; productCode?: string;
+  address?: string; pickupIncluded?: boolean; latitude?: number; longitude?: number;
+  images: string[]; policies: string[];
+  options: Array<{ id: number; name: string; minTravellers?: number; maxTravellers?: number; terms?: string; howToUse?: string; included: string[]; excluded: string[]; eligibility: string[]; voucherType?: string }>;
+}
+
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : [])
+  .map((x: any) => (typeof x === 'string' ? x : x?.text ?? x?.name ?? x?.description ?? x?.title ?? ''))
+  .map((x: any) => String(x).trim()).filter(Boolean);
+
+/** Everything Leamigo publishes about one activity, for the details view. */
+export async function leamigoActivityInfo(activityId: number): Promise<LeamigoActivityInfo> {
+  const [d, o] = await Promise.all([
+    cached(detCache, activityId, `/v1/activities/${activityId}`),
+    cached(optCache, activityId, `/v1/activities/${activityId}/options`),
+  ]);
+  const media = d?.media ?? [];
+  const images = (Array.isArray(media) ? media : [media.cover_image_url, ...(media.images ?? []), ...(media.gallery ?? [])])
+    .filter((m: any) => typeof m === 'string' || !m?.type || m.type === 'image')
+    .map((m: any) => (typeof m === 'string' ? m : m?.url ?? m?.image_url)).filter(Boolean);
+  return {
+    description: d?.full_description ?? d?.short_description ?? undefined,
+    included: strings(d?.included), excluded: strings(d?.excluded),
+    knowBeforeYouGo: strings(d?.know_before_you_go).join('\n') || undefined,
+    operatingHours: (d?.operating_hours ?? []).map((h: any) => ({ day: Number(h.day_of_week), start: String(h.start_time ?? '').slice(0, 5), end: String(h.end_time ?? '').slice(0, 5), closed: !!h.is_closed })),
+    blackoutDates: strings(d?.blackout_dates).concat((d?.blackout_dates ?? []).map((b: any) => b?.date ?? '').filter(Boolean)),
+    validFrom: d?.valid_from ?? undefined, validTo: d?.valid_to ?? undefined, productCode: d?.product_code ?? undefined,
+    address: [d?.location?.address, d?.location?.city, d?.location?.country].filter(Boolean).join(', ') || undefined,
+    pickupIncluded: d?.location?.pickup_included ?? undefined,
+    latitude: Number(d?.location?.lat) || undefined, longitude: Number(d?.location?.lng) || undefined,
+    images: [...new Set<string>(images)],
+    policies: strings(d?.policies),
+    options: (o?.options ?? []).map((x: any) => ({
+      id: x.id, name: String(x.name ?? ''),
+      minTravellers: Math.min(...(x.tickets ?? []).map((t: any) => Number(t.min_purchase_qty ?? 1)).filter((n: number) => n > 0)),
+      maxTravellers: Math.max(...(x.tickets ?? []).map((t: any) => Number(t.max_purchase_qty ?? 0))),
+      terms: x.terms_and_conditions ?? undefined, howToUse: x.how_to_use ?? undefined,
+      included: strings(x.included), excluded: strings(x.excluded), eligibility: strings(x.eligibility),
+      voucherType: x.voucher_type ?? undefined,
+    })),
+  };
 }
 
 export interface ActivityTimeslot {
@@ -248,7 +386,7 @@ export interface ActivityTimeslot {
   tickets: Array<{ id: string; name: string; priceMinor?: number; currency?: string; min?: number; max?: number }>;
 }
 
-export async function activityAvailability(activityId: number, optionId: number, date: string, timeslot?: string): Promise<{ available: boolean; capacity: number | null; bookingType: string; timeslots: ActivityTimeslot[]; requiredFields: Array<{ id: string; level: string; required: boolean }> }> {
+export async function activityAvailability(activityId: number, optionId: number, date: string, timeslot?: string): Promise<{ available: boolean; capacity: number | null; bookingType: string; timeslots: ActivityTimeslot[]; requiredFields: Array<{ id: string; name: string; level: string; required: boolean }> }> {
   const res = await lmCall<any>(`/v1/activities/${activityId}/options/${optionId}/availability`, { query: { date, timeslot }, timeoutMs: 15_000 });
   return {
     bookingType: String(res?.booking_type ?? ''),
@@ -261,26 +399,47 @@ export async function activityAvailability(activityId: number, optionId: number,
     })).filter((t: ActivityTimeslot) => /^\d{2}:\d{2}$/.test(t.start)),
     available: !!res?.is_available,
     capacity: res?.is_unlimited ? null : Number(res?.available_capacity ?? 0),
-    requiredFields: (res?.requiredInputFields ?? []).map((f: any) => ({ id: String(f.id), level: String(f.level ?? 'BOOKING'), required: !!f.required })),
+    requiredFields: (res?.requiredInputFields ?? []).map((f: any) => ({ id: String(f.id), name: String(f.name ?? f.id), level: String(f.level ?? 'BOOKING'), required: !!f.required })),
   };
 }
 
+const STANDARD_FIELDS = new Set(['NAME', 'FULL_NAME', 'EMAIL', 'PHONE']);
+
 export interface ActivityReserveRequest {
-  activityId: number; optionId: number; ticketId: string; quantity: number;
+  activityId: number; optionId: number; lines: Array<{ ticketId: string; quantity: number }>;
   visitDate?: string;
   timeslot?: string;           // HH:mm, required for date_time_required products
   leadName: string; email: string; phonePrefix: string; phoneNumber: string;
-  guestNames: string[];        // length === quantity; [0] is the lead
+  guestNames: string[];        // one per ticket across all lines; [0] is the lead
   partnerReference?: string;
 }
 
 export async function reserveActivity(req: ActivityReserveRequest): Promise<{ prebookingId: string; expiresAt: string; totalMinor: number; currency: string; priceChange: string }> {
-  const customers = Array.from({ length: req.quantity }, (_, i) => ({
-    ...(i === 0 ? { isPrimary: true } : {}),
-    inputFields: [
-      { id: 'NAME', value: req.guestNames[i] ?? req.leadName },
-      ...(i === 0 ? [{ id: 'EMAIL', value: req.email }, { id: 'PHONE', value: `${req.phonePrefix}${req.phoneNumber}` }] : []),
-    ],
+  // Suppliers can ask their own questions ("Full Name", id 410); answer the ones we know.
+  const date = req.visitDate ?? new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  const av = await activityAvailability(req.activityId, req.optionId, date, req.timeslot).catch(() => null);
+  const asked = (av?.requiredFields ?? []).filter((f) => f.required && !STANDARD_FIELDS.has(f.id.toUpperCase()));
+  const phone = `${req.phonePrefix}${req.phoneNumber}`;
+  const answer = (f: { id: string; name: string }, guestName: string) => {
+    const label = `${f.id} ${f.name}`;
+    return /e-?mail/i.test(label) ? req.email : /phone|mobile/i.test(label) ? phone : /name/i.test(label) ? guestName : '';
+  };
+  let guest = 0;
+  const ticketTypes = req.lines.map((l) => ({
+    id: l.ticketId, quantity: l.quantity,
+    customers: Array.from({ length: l.quantity }, () => {
+      const i = guest++;
+      const name = req.guestNames[i] ?? req.leadName;
+      const mine = asked.filter((f) => f.level === 'ALL_CUSTOMER' || i === 0);
+      return {
+        ...(i === 0 ? { isPrimary: true } : {}),
+        inputFields: [
+          { id: 'NAME', value: name },
+          ...(i === 0 ? [{ id: 'EMAIL', value: req.email }, { id: 'PHONE', value: phone }] : []),
+          ...mine.map((f) => ({ id: f.id, value: answer(f, name) })),
+        ],
+      };
+    }),
   }));
   const res = await lmCall<any>(`/v1/activities/${req.activityId}/options/${req.optionId}/reserve`, {
     method: 'POST', timeoutMs: 30_000,
@@ -289,7 +448,7 @@ export async function reserveActivity(req: ActivityReserveRequest): Promise<{ pr
       ...(req.timeslot ? { timeslot: req.timeslot } : {}),
       customerName: req.leadName, email: req.email, mobilePrefix: req.phonePrefix, mobileNumber: req.phoneNumber,
       ...(req.partnerReference ? { partnerReference: req.partnerReference.slice(0, 60) } : {}),
-      ticketTypes: [{ id: req.ticketId, quantity: req.quantity, customers }],
+      ticketTypes,
     },
   });
   if (!res?.prebooking_id) throw new LeamigoError(res?.message ?? 'Leamigo could not hold this activity.', 409, undefined, false);

@@ -5,17 +5,18 @@ import { searchSupportedCities, cityByCode, type SupportedCity } from '@/lib/sup
 
 interface Props {
   value: string;                 // city code
-  onChange: (code: string) => void;
+  onChange: (code: string, city?: SupportedCity) => void;
   label: string;
   placeholder?: string;
   bare?: boolean;                // borderless input for use inside a HeroCell (label rendered by the cell)
   cities?: SupportedCity[];      // search this list instead of the Hotelbeds destinations
+  searchMore?: (query: string) => Promise<SupportedCity[]>;   // further matches from a supplier, as the agent types
 }
 
 // Autocomplete over the Hotelbeds-supported destinations (used by Hotels,
 // Activities, and Transfers search forms). Same UX as the flight airport
 // combobox; restricts to cities we have live coverage for.
-export function CitySearchCombobox({ value, onChange, label, placeholder = 'Search destination', bare, cities }: Props) {
+export function CitySearchCombobox({ value, onChange, label, placeholder = 'Search destination', bare, cities, searchMore }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -24,7 +25,17 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
   const selected = cities?.find((c) => c.code === value.toUpperCase()) ?? cityByCode(value);
   // A supplier-only code means nothing to read while its list is still loading.
   const displayWhenClosed = selected ? `${selected.name}, ${selected.country}` : value.startsWith('LM-') ? '' : value;
-  const results = searchSupportedCities(query, 8, cities);
+  const [more, setMore] = useState<SupportedCity[]>([]);
+  const local = searchSupportedCities(query, 8, cities);
+  const results = query.trim() ? [...local, ...more.filter((m) => !local.some((c) => c.code === m.code))] : local;
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!searchMore || q.length < 2) { setMore([]); return; }
+    let live = true;
+    const t = setTimeout(() => { searchMore(q).then((r) => { if (live) setMore(r); }).catch(() => {}); }, 250);
+    return () => { live = false; clearTimeout(t); };
+  }, [query, searchMore]);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -35,7 +46,7 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
   }, []);
 
   function pick(c: SupportedCity) {
-    onChange(c.code);
+    onChange(c.code, c);
     setQuery('');
     setOpen(false);
   }
@@ -82,7 +93,7 @@ export function CitySearchCombobox({ value, onChange, label, placeholder = 'Sear
               <MapPin className="w-4 h-4 text-[rgb(var(--text-tertiary))] flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-ink truncate">{c.name}</p>
-                <p className="text-xs text-[rgb(var(--text-secondary))] truncate">{c.country}</p>
+                <p className="text-xs text-[rgb(var(--text-secondary))] truncate">{c.country}{c.note ? ` · ${c.note}` : ''}</p>
               </div>
             </button>
           ))}

@@ -3,13 +3,10 @@
 // show the same inventory. Sample (mock) activities are only returned when no
 // supplier has live results — never mixed in with live ones.
 
-import { searchActivities, type HotelbedsActivity } from '@gg/hotelbeds';
+import { searchActivities, isLive as hotelbedsLive, type HotelbedsActivity } from '@gg/hotelbeds';
 import { searchLeamigoActivities, leamigoActivityCities, isLive as leamigoLive, type LeamigoActivity } from '@gg/leamigo';
 import { activitiesForCity, cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
-
-const within = <T,>(p: Promise<T>, ms: number, fallback: T): Promise<T> =>
-  Promise.race([p.catch(() => fallback), new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
 
 export interface ActivitySearch {
   cityCode: string;
@@ -39,7 +36,7 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
   if (lmCity) {
     const id = Number(lmCity[1]);
     const [lm, cities] = await Promise.all([
-      within(searchLeamigoActivities({ cityId: id, pax: adults + children }), 12_000, { activities: [] as LeamigoActivity[] }),
+      searchLeamigoActivities({ cityId: id, adults, children }).catch((e) => { console.error('[activities] leamigo', e?.message ?? e); return { activities: [] as LeamigoActivity[], partial: true }; }),
       leamigoActivityCities().catch(() => []),
     ]);
     return {
@@ -52,10 +49,13 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
 
   const city = cityInfo(q.cityCode);
   const [hb, lm] = await Promise.all([
-    searchActivities({ cityCode: q.cityCode, fromDate: q.fromDate, toDate: q.toDate, paxAdults: adults, paxChildren: children })
-      .catch((e) => { console.error('[activities] hotelbeds', e?.message ?? e); return { activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: 'error' }; }),
+    hotelbedsLive('activities')
+      ? searchActivities({ cityCode: q.cityCode, fromDate: q.fromDate, toDate: q.toDate, paxAdults: adults, paxChildren: children })
+          .catch((e) => { console.error('[activities] hotelbeds', e?.message ?? e); return { activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: 'error' as string | undefined }; })
+      : Promise.resolve({ activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: undefined as string | undefined }),
     leamigoLive()
-      ? within(searchLeamigoActivities({ cityName: city.name, countryCode: city.countryCode, pax: adults + children }), 12_000, { activities: [] as LeamigoActivity[] })
+      ? searchLeamigoActivities({ cityName: city.name, countryCode: city.countryCode, adults, children })
+          .catch((e) => { console.error('[activities] leamigo', e?.message ?? e); return { activities: [] as LeamigoActivity[], partial: true }; })
       : Promise.resolve({ activities: [] as LeamigoActivity[] }),
   ]);
   if (hb.warning && hb.source !== 'live') console.error('[activities] hotelbeds warning', hb.warning);
@@ -97,5 +97,9 @@ const lmToApp = (cityCode: string) => (a: LeamigoActivity): Activity => ({
     activityId: a.activityId, optionId: a.optionId, ticketId: a.ticketId, quantity: a.quantity,
     openDated: a.bookingType === 'open_dated', freeCancellation: a.freeCancellation, cancellationRules: a.cancellationRules,
     timed: a.bookingType === 'date_time_required',
+    lines: a.lines,
   },
+  options: a.options,
+  supplierCategory: a.category,
+  supplierName: a.supplierName,
 });

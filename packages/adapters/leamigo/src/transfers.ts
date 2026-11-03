@@ -118,7 +118,7 @@ function cacheKey(i: LeamigoSearchInput): string {
 }
 
 const POLL_INTERVAL_MS = 1_200;
-const MAX_POLLS = 3;
+const MAX_POLLS = 20;   // ~24s for the slowest suppliers; the flag normally clears much sooner
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function validPlace(p: LeamigoPlace): boolean {

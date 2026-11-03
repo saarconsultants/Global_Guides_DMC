@@ -2,7 +2,7 @@
 // Live = the relevant credentials are present in the environment. Used by
 // /api/health and the admin Inventory Status page. Server-only (reads env).
 
-import { isLive as hotelbedsIsLive } from '@gg/hotelbeds';
+import { isLive as hotelbedsIsLive, isEnabled as hotelbedsEnabled } from '@gg/hotelbeds';
 import { isLive as leamigoIsLive, baseUrl as leamigoBaseUrl } from '@gg/leamigo';
 
 export interface ApiStatus {
@@ -32,14 +32,14 @@ export function inventoryStatus(): ApiStatus[] {
       label: 'Hotels',
       provider: 'Hotelbeds (HBX Group)',
       live: hotelbedsIsLive('hotels'),
-      note: hotelbedsIsLive('hotels') ? 'Live · 250k+ properties' : 'Mock — set HOTELBEDS_HOTELS_API_KEY',
+      note: hotelbedsIsLive('hotels') ? 'Live · 250k+ properties' : (hotelbedsEnabled() ? 'Mock — set HOTELBEDS_HOTELS_API_KEY' : 'Turned off — set HOTELBEDS_ENABLED=true to restore'),
     },
     {
       key: 'transfers',
       label: 'Transfers',
       provider: 'Hotelbeds (HBX Group)',
       live: hotelbedsIsLive('transfers'),
-      note: hotelbedsIsLive('transfers') ? 'Live · airport ↔ hotel' : 'Mock — set HOTELBEDS_TRANSFERS_API_KEY',
+      note: hotelbedsIsLive('transfers') ? 'Live · airport ↔ hotel' : (hotelbedsEnabled() ? 'Mock — set HOTELBEDS_TRANSFERS_API_KEY' : 'Turned off — set HOTELBEDS_ENABLED=true to restore'),
     },
     {
       key: 'leamigo',

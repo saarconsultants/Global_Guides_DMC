@@ -59,7 +59,14 @@ function credsFor(product: Product): { key?: string; secret?: string } {
   return { key, secret };
 }
 
+/** Off unless HOTELBEDS_ENABLED=true. Stops all new searches and bookings; bookings
+ *  already made can still be cancelled, because those calls don't go through isLive. */
+export function isEnabled(): boolean {
+  return process.env.HOTELBEDS_ENABLED === 'true';
+}
+
 export function isLive(product: Product = 'hotels'): boolean {
+  if (!isEnabled()) return false;
   const { key, secret } = credsFor(product);
   return !!(key && secret);
 }

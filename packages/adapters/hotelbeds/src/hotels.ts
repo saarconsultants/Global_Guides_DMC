@@ -7,7 +7,7 @@
 // then normalize the response back into our Hotel type so the rest of the
 // app doesn't care which inventory provider returned the data.
 
-import { hbCall, isLive } from './client';
+import { hbCall, isLive, isEnabled } from './client';
 import { toHotelbedsDestination } from './destinations';
 import { fetchHotelImages } from './content';
 import { getRates, toInrPaiseWith } from './fx';
@@ -38,7 +38,7 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
 
   const promise = (async (): Promise<AvailabilitySearchResult> => {
     if (!isLive()) {
-      return { hotels: [], source: 'mock', warning: 'HOTELBEDS_API_KEY not set' };
+      return { hotels: [], source: 'mock', warning: isEnabled() ? 'HOTELBEDS_API_KEY not set' : undefined };
     }
 
     const destinationCode = input.hotelCodes?.length ? undefined : toHotelbedsDestination(input.cityCode);
