@@ -10,19 +10,27 @@ import { promoSrc } from '@/lib/promos';
 import { formatDateShort } from '@/lib/utils';
 
 interface PageProps {
-  searchParams: Promise<{ from?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
+  searchParams: Promise<{ from?: string; legs?: string; children?: string; infants?: string; airline?: string; fare?: string; to?: string; date?: string; adults?: string; cabin?: string; directOnly?: string; returnTo?: string; leg?: 'outbound' | 'return'; rdate?: string }>;
 }
 
 export default async function FlightsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const hasQuery = !!(sp.from && sp.to && sp.date);
+  // Multi-city: "DEL-CDG-2027-01-10|CDG-AMS-2027-01-15". Each flight is priced on its own.
+  const multiLegs = sp.returnTo ? [] : (sp.legs ?? '').split('|').map((part) => {
+    const m = part.match(/^([A-Za-z]{3})-([A-Za-z]{3})-(\d{4}-\d{2}-\d{2})$/);
+    return m ? { from: m[1]!.toUpperCase(), to: m[2]!.toUpperCase(), date: m[3]! } : null;
+  }).filter((l): l is { from: string; to: string; date: string } => !!l).slice(0, 5);
+  const isMulti = multiLegs.length > 1;
+  const hasQuery = !isMulti && !!(sp.from && sp.to && sp.date);
   // Round-trip only for standalone browsing (not when attaching a single leg).
   const isRoundTrip = !!sp.rdate && !sp.returnTo;
 
   const common = {
     adults: parseInt(sp.adults ?? '1', 10),
-    children: 0,
-    infants: 0,
+    children: parseInt(sp.children ?? '0', 10) || 0,
+    infants: parseInt(sp.infants ?? '0', 10) || 0,
+    preferredAirlines: sp.airline ? [sp.airline] : undefined,
+    fareType: sp.fare,
     cabin: (sp.cabin as any) ?? 'ECONOMY',
     directOnly: sp.directOnly === '1',
   };
@@ -36,8 +44,12 @@ export default async function FlightsPage({ searchParams }: PageProps) {
       ])
     : [null, null];
 
+  const multiResults = isMulti
+    ? await Promise.all(multiLegs.map((l) => searchFlights({ legs: [{ fromIATA: l.from, toIATA: l.to, date: l.date }], ...common }).catch((e) => { console.error('[flights] multi-city leg', e?.message ?? e); return { error: true as const }; })))
+    : [];
+
   const searchForm = (
-    <FlightSearchForm hero={!sp.returnTo} heroImg={promoSrc('hero-flights.jpg')} defaults={{ from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
+    <FlightSearchForm hero={!sp.returnTo} heroImg={promoSrc('hero-flights.jpg')} defaults={{ children: sp.children, infants: sp.infants, airline: sp.airline, fare: sp.fare, directOnly: sp.directOnly === '1', legs: isMulti ? multiLegs : undefined, from: sp.from ?? 'DEL', to: sp.to ?? 'CDG', date: sp.date ?? nextMonthIso(), adults: sp.adults ?? '1', cabin: sp.cabin ?? 'ECONOMY', rdate: sp.rdate }} returnTo={sp.returnTo} leg={sp.leg} />
   );
 
   return (
@@ -65,7 +77,7 @@ export default async function FlightsPage({ searchParams }: PageProps) {
           </>
         )}
 
-        {!hasQuery && !sp.returnTo && (
+        {!hasQuery && !isMulti && !sp.returnTo && (
           <section className="pt-6">
             <div className="flex items-end justify-between mb-4">
               <h2 className="text-[20px] font-extrabold tracking-[-0.01em] text-ink">Popular routes this season</h2>
@@ -128,6 +140,17 @@ export default async function FlightsPage({ searchParams }: PageProps) {
             <FlightResults result={returnResults} cabin={(sp.cabin as any) ?? 'ECONOMY'} />
           </div>
         )}
+        {multiLegs.length > 1 && multiLegs.map((l, i) => {
+          const r = multiResults[i]!;
+          return (
+            <div key={i} className="space-y-3 pt-2">
+              <h2 className="text-[18px] font-extrabold text-ink inline-flex items-center gap-3 flex-wrap">Flight {i + 1} <RouteCode codes={[l.from, l.to]} /> <span className="font-mono text-[13px] font-bold text-[rgb(var(--text-secondary))]">{formatDateShort(l.date)}</span></h2>
+              {'error' in r
+                ? <div className="rounded-lg bg-surface border border-border-subtle shadow-sm p-4 text-sm text-ink" role="alert"><span className="font-bold">Fares unavailable for this flight.</span> Try again in a minute.</div>
+                : <FlightResults result={r} cabin={(sp.cabin as any) ?? 'ECONOMY'} />}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

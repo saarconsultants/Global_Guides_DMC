@@ -17,6 +17,8 @@ export interface FlightSearchInput {
   cabin: Cabin;
   directOnly?: boolean;
   preferredAirlines?: string[];
+  /** Tripjack fare type: REGULAR (default), STUDENT, SENIOR_CITIZEN… */
+  fareType?: string;
 }
 
 export interface Airport {

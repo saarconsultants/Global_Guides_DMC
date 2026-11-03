@@ -17,6 +17,7 @@ const NAV: NavItem[] = [
   { href: '/flights', label: 'Flights' },
   { href: '/hotels', label: 'Hotels' },
   { href: '/activities', label: 'Activities' },
+  { href: '/transfers', label: 'Transfers' },
   {
     label: 'Packages',
     items: [
@@ -62,9 +63,9 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
   if (!actor) return null;
 
   const linkCls = (active: boolean) => cn(
-    'relative inline-flex items-center gap-1 h-16 px-3 text-[14px] font-semibold transition-colors',
+    'relative inline-flex items-center gap-1 h-16 px-2.5 min-[1440px]:px-3 text-[14px] font-semibold transition-colors',
     active ? 'text-crimson-700' : 'text-navy-700 hover:text-ink',
-    active && 'after:absolute after:left-3 after:right-3 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-crimson-700',
+    active && 'after:absolute after:left-2.5 after:right-2.5 min-[1440px]:after:left-3 min-[1440px]:after:right-3 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-crimson-700',
   );
 
   return (
@@ -123,7 +124,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
         </nav>
 
         <div className="ml-auto flex items-center gap-1.5 xl:gap-2.5">
-          <Link href="/itinerary/new" className="hidden md:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-crimson-700 text-white text-[13px] font-bold hover:bg-crimson-900 transition-colors shadow-sm">
+          <Link href="/itinerary/new" className="hidden md:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md whitespace-nowrap shrink-0 bg-crimson-700 text-white text-[13px] font-bold hover:bg-crimson-900 transition-colors shadow-sm">
             <Plus className="w-4 h-4" />New trip
           </Link>
           {notif && <NotificationBell initialUnread={notif.unread} initialItems={notif.items} />}

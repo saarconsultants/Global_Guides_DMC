@@ -17,7 +17,7 @@ const PUBLIC_PREFIXES = ['/login', '/signup', '/logout', '/p/', '/invite/', '/ap
 // signed-out visitors instead of redirecting them to sign in.
 const APP_SECTIONS = new Set([
   'dashboard', 'activities', 'admin', 'api', 'bookings', 'flights', 'holidays', 'hotels',
-  'itinerary', 'leads', 'marketing', 'proposals', 'settings', 'statement', 'suggested', 'team',
+  'itinerary', 'leads', 'marketing', 'proposals', 'settings', 'statement', 'suggested', 'team', 'transfers',
 ]);
 
 function isAppRoute(pathname: string): boolean {

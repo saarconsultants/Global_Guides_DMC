@@ -17,6 +17,7 @@ function cacheKey(input: FlightSearchInput): string {
     a: input.adults, c: input.children, i: input.infants,
     cb: input.cabin, d: input.directOnly ? 1 : 0,
     pa: (input.preferredAirlines ?? []).sort(),
+    ft: input.fareType ?? 'REGULAR',
   });
 }
 
@@ -36,9 +37,9 @@ export async function searchFlights(input: FlightSearchInput): Promise<FlightSea
     const body = {
       searchQuery: {
         cabinClass: input.cabin,
-        preferredAirline: input.preferredAirlines ?? [],
+        preferredAirline: (input.preferredAirlines ?? []).map((code) => ({ code })),
         searchModifiers: {
-          pfts: ['REGULAR'],
+          pfts: [input.fareType ?? 'REGULAR'],
           isDirectFlight: input.directOnly ?? false,
           isConnectingFlight: false,
         },
