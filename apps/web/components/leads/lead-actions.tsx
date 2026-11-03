@@ -1,12 +1,12 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input, Label } from '@/components/ui/input';
 import { toast } from '@/components/ui/toast';
-import { updateLeadAction } from '@/app/actions/leads';
-import { Eye, FileDown, Pencil } from 'lucide-react';
+import { deleteLeadAction, updateLeadAction } from '@/app/actions/leads';
+import { Eye, FileDown, Pencil, Trash2 } from 'lucide-react';
 
 interface Lead {
   id: string;
@@ -18,9 +18,13 @@ interface Lead {
 
 const STATUSES = ['NEW', 'QUOTED', 'FOLLOWUP', 'BOOKED', 'LOST'];
 
-export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProposalId?: string | null }) {
+export function LeadActions({ lead, latestProposalId, quoteCount = 0, deleteLocked = false }: { lead: Lead; latestProposalId?: string | null; quoteCount?: number; deleteLocked?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
   const [pending, start] = useTransition();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,8 +40,25 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
     });
   }
 
+  async function remove() {
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      const res = await deleteLeadAction(lead.id);
+      if (!res.ok) { setDeleteError(res.error); return; }
+      setDeleteOpen(false);
+      // The row goes at once; the page's refreshed list and counts can land a few seconds later.
+      rootRef.current?.closest('tr, li')?.setAttribute('hidden', '');
+      toast.success('Lead deleted', `${lead.customerName} was removed.`);
+    } catch {
+      setDeleteError('Could not delete this lead. Try again.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div ref={rootRef} className="flex items-center justify-end gap-1">
       <Link href={`/leads/${lead.id}` as any} title="View lead" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Eye className="w-4 h-4" />
       </Link>
@@ -52,6 +73,9 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
       )}
       <button type="button" onClick={() => setEditOpen(true)} title="Edit lead" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Pencil className="w-4 h-4" />
+      </button>
+      <button type="button" onClick={() => { setDeleteError(null); setDeleteOpen(true); }} title="Delete lead" aria-label={`Delete lead ${lead.customerName}`} className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-danger-100 hover:text-danger-500">
+        <Trash2 className="w-4 h-4" />
       </button>
 
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} title="Edit lead" size="sm">
@@ -75,6 +99,24 @@ export function LeadActions({ lead, latestProposalId }: { lead: Lead; latestProp
             <Button type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save lead'}</Button>
           </div>
         </form>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Delete this lead?" size="sm">
+        <div className="space-y-4 text-left">
+          {deleteLocked ? (
+            <p className="text-sm text-ink"><span className="font-bold">{lead.customerName}</span> has an accepted or booked quote, so this lead can&apos;t be deleted. Mark it as Lost instead.</p>
+          ) : (
+            <p className="text-sm text-ink">
+              <span className="font-bold">{lead.customerName}</span> and all its notes will be permanently deleted
+              {quoteCount > 0 ? <>, along with <span className="font-bold">{quoteCount} quote{quoteCount !== 1 ? 's' : ''}</span>. Any links already shared with the customer will stop working</> : ''}. This can&apos;t be undone.
+            </p>
+          )}
+          {deleteError && <p role="alert" className="text-sm text-danger-500">{deleteError}</p>}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setDeleteOpen(false)}>{deleteLocked ? 'Close' : 'Keep lead'}</Button>
+            {!deleteLocked && <Button type="button" disabled={deleting} onClick={remove} variant="destructive">{deleting ? 'Deleting…' : 'Delete lead'}</Button>}
+          </div>
+        </div>
       </Dialog>
     </div>
   );

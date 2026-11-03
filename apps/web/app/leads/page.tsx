@@ -105,6 +105,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     <LeadActions
                       lead={{ id: l.id, customerName: l.customerName, customerEmail: l.customerEmail, customerPhone: l.customerPhone, status: l.status }}
                       latestProposalId={latest?.id ?? null}
+                      quoteCount={l.proposals.length}
+                      deleteLocked={l.proposals.some((p) => p.status === 'ACCEPTED' || p.status === 'BOOKED')}
                     />
                   </li>
                 );
@@ -144,6 +146,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                           <LeadActions
                             lead={{ id: l.id, customerName: l.customerName, customerEmail: l.customerEmail, customerPhone: l.customerPhone, status: l.status }}
                             latestProposalId={latest?.id ?? null}
+                      quoteCount={l.proposals.length}
+                      deleteLocked={l.proposals.some((p) => p.status === 'ACCEPTED' || p.status === 'BOOKED')}
                           />
                         </td>
                       </tr>

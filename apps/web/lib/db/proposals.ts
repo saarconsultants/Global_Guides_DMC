@@ -260,7 +260,7 @@ export async function listLeads(filter: LeadListFilter = {}) {
   }
   return db.lead.findMany({
     where, orderBy: { createdAt: 'desc' },
-    include: { proposals: { select: { id: true, code: true, pricePaise: true } } },
+    include: { proposals: { select: { id: true, code: true, pricePaise: true, status: true } } },
     take: 200,
   });
 }
