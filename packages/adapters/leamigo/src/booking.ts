@@ -56,6 +56,7 @@ export interface LeamigoBookingRequest {
   flightNumber?: string;
   specialRequirements?: string;
   agentRef?: string;
+  selectedAddonIds?: string[];
 }
 
 export interface LeamigoBooking {
@@ -72,7 +73,7 @@ export async function createTransferBooking(req: LeamigoBookingRequest): Promise
     body: {
       prebooking_id: req.prebookingId, salutation: req.salutation,
       first_name: req.firstName, last_name: req.lastName, email: req.email, contact_number: req.phone,
-      selected_addon_ids: [],
+      selected_addon_ids: req.selectedAddonIds ?? [],
       ...(req.flightNumber ? { flight_number: req.flightNumber } : {}),
       ...(req.specialRequirements ? { special_requirements: req.specialRequirements.slice(0, 500) } : {}),
       ...(req.agentRef ? { agent_ref_id: req.agentRef.slice(0, 40) } : {}),

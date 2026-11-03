@@ -13,7 +13,7 @@ export function TransferSupplierPhoto({ info }: { info?: TransferSupplierInfo })
 }
 
 /** Everything the supplier says about a ride: who runs it, the car, what's included, the terms. */
-export function TransferSupplierDetails({ info }: { info?: TransferSupplierInfo }) {
+export function TransferSupplierDetails({ info, chosen, onToggleExtra }: { info?: TransferSupplierInfo; chosen?: string[]; onToggleExtra?: (name: string) => void }) {
   const money = useMoney();
   if (!info) return null;
   const facts = [
@@ -34,9 +34,21 @@ export function TransferSupplierDetails({ info }: { info?: TransferSupplierInfo 
       {info.models && info.models.length > 0 && <p className="text-xs text-[rgb(var(--text-secondary))]">Such as {info.models.join(', ')} (model not guaranteed)</p>}
       {info.features.length > 0 && <div className="flex flex-wrap gap-1">{info.features.map((f) => <Pill key={f} variant="neutral">{f}</Pill>)}</div>}
       {info.cancellation && <p className="text-xs text-[rgb(var(--text-secondary))]">Cancellation: {info.cancellation}</p>}
-      {info.extras && info.extras.length > 0 && (
-        <p className="text-xs text-[rgb(var(--text-secondary))]">Optional extras, not in this price: {info.extras.map((x) => `${x.name}${x.pricePaise !== null ? ` ${money(x.pricePaise)}` : ''}`).join(', ')}</p>
-      )}
+      {info.extras && info.extras.length > 0 && (onToggleExtra ? (
+        <fieldset>
+          <legend className="text-xs font-semibold text-ink">Optional extras</legend>
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+            {info.extras.map((x) => (
+              <label key={x.id} className={`inline-flex items-center gap-1.5 min-h-7 text-xs ${x.pricePaise === null ? 'text-[rgb(var(--text-tertiary))]' : 'text-ink cursor-pointer'}`}>
+                <input type="checkbox" disabled={x.pricePaise === null} checked={chosen?.includes(x.name) ?? false} onChange={() => onToggleExtra(x.name)} className="w-4 h-4 accent-crimson-700" />
+                {x.name} {x.pricePaise !== null ? <span className="tnum">+{money(x.pricePaise)}</span> : <span>(price not available)</span>}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
+        <p className="text-xs text-[rgb(var(--text-secondary))]">Optional extras: {info.extras.map((x) => x.name).join(', ')}</p>
+      ))}
       {info.policies && info.policies.length > 0 && (
         <p className="text-xs text-[rgb(var(--text-secondary))]">Policies: {info.policies.map((p) => (p.description && p.description !== p.title ? `${p.title}: ${p.description}` : p.title)).join(' · ')}</p>
       )}

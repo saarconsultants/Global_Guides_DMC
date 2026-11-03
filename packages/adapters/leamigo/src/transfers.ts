@@ -41,7 +41,7 @@ export interface LeamigoTransfer {
   vehicleCategory?: string;
   distanceKm?: number;
   taxesPaise?: number;
-  addons: Array<{ name: string; pricePaise: number | null }>;   // optional, not in the price
+  addons: Array<{ id: string; name: string; pricePaise: number | null }>;   // optional, not in the price
   policies: Array<{ title: string; description?: string }>;
   maxPax: number;
   maxLuggage: number;
@@ -94,7 +94,7 @@ interface RawRide {
   booking_token: string;
   breakdown?: { total?: { taxes?: number } };
   pricing_calculation?: { quoted_distance_km?: number };
-  addons?: Array<{ name: string; price: number }>;
+  addons?: Array<{ addonId: string | number; name: string; price: number }>;
   policies?: Array<{ title: string; description?: string | null }>;
   flags: {
     free_cancellation: boolean; instant_confirmation: boolean; meet_and_greet: boolean;
@@ -224,7 +224,7 @@ function normalize(r: RawRide, meta: RawSearchResponse['metadata'], rates: Recor
     vehicleCategory: r.vehicle?.category || undefined,
     distanceKm: Number(r.pricing_calculation?.quoted_distance_km) || undefined,
     taxesPaise: r.breakdown?.total?.taxes ? minorToInrPaise(rates, Number(r.breakdown.total.taxes), r.supplier_total.supplier_currency, r.supplier_total.precision) ?? undefined : undefined,
-    addons: (r.addons ?? []).map((a) => ({ name: a.name, pricePaise: minorToInrPaise(rates, Number(a.price), r.supplier_total.supplier_currency, r.supplier_total.precision) })),
+    addons: (r.addons ?? []).map((a) => ({ id: String(a.addonId), name: a.name, pricePaise: minorToInrPaise(rates, Number(a.price), r.supplier_total.supplier_currency, r.supplier_total.precision) })),
     policies: (r.policies ?? []).filter((p) => p.title).map((p) => ({ title: p.title, description: p.description ?? undefined })),
     maxPax: r.vehicle?.config?.maxPassengers ?? 0,
     maxLuggage: r.vehicle?.config?.maxLuggage ?? 0,

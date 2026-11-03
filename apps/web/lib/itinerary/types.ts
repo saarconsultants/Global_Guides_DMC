@@ -83,7 +83,7 @@ export interface TransferSupplierInfo {
   features: string[];          // "Instant confirmation", "Meet & greet"…
   cancellation?: string;
   category?: string; distanceKm?: number; taxesPaise?: number; hourlyPaise?: number;
-  extras?: Array<{ name: string; pricePaise: number | null }>;   // optional, not in the price
+  extras?: Array<{ id: string; name: string; pricePaise: number | null }>;   // optional, not in the base price
   policies?: Array<{ title: string; description?: string }>;
 }
 
@@ -107,6 +107,8 @@ export interface LeamigoLeg {
   vehicleName: string;
   shared: boolean;
   luxury: boolean;
+  /** Optional extras the agent added; their prices are included in the transfer's price. */
+  extras?: Array<{ name: string; pricePaise: number }>;
 }
 
 export interface Activity {

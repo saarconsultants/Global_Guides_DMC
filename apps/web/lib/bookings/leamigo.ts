@@ -39,6 +39,7 @@ export interface TransferQuote {
   freeCancellation: boolean;
   cancellationRules: Rules;
   cancellationText: string;
+  addonIds?: string[];         // transfer extras, sent with the booking
   activity?: { activityId: number; optionId: number; ticketId: string; quantity: number; openDated: boolean; startTime?: string; lines?: Array<{ ticketId: string; quantity: number }> };
 }
 
@@ -132,13 +133,20 @@ async function quoteTransfer(t: Transfer, key: string, dayNo: number): Promise<T
   if (!m) return 'No longer available for this date and time. Change the transfer in the builder.';
   const pre = await prebookTransfer(m.ride.searchId, m.ride.bookingToken);
   if (!pre.rideAvailable) return 'The supplier could not hold this ride. Try again or change the transfer.';
-  const net = pre.pricePaise ?? m.ride.pricePaise;
+  // Extras come from the fresh search: ids can change between searches, so match by name.
+  const addons: Array<{ id: string; paise: number }> = [];
+  for (const wanted of leg.extras ?? []) {
+    const found = m.ride.addons.find((a) => a.name === wanted.name);
+    if (!found || found.pricePaise === null) return `${wanted.name} is no longer offered on this ride. Change the transfer in the builder.`;
+    addons.push({ id: found.id, paise: found.pricePaise });
+  }
+  const net = (pre.pricePaise ?? m.ride.pricePaise) + addons.reduce((sum, a) => sum + a.paise, 0);
   const rules = m.ride.cancellation.rules;
   return {
     product: 'transfer', key, dayNo, kind: t.kind, fromName: t.fromName, toName: t.toName,
     pickupDate: pre.pickupDate || leg.pickupDate, pickupTime: (pre.pickupTime || leg.pickupTime).slice(0, 5), passengers: leg.passengers,
-    vehicleName: m.ride.vehicleName, provider: m.ride.provider,
-    prebookingId: pre.prebookingId, prebookExpiresAt: pre.expiresAt,
+    vehicleName: [m.ride.vehicleName, ...(leg.extras ?? []).map((x) => x.name)].join(' + '), provider: m.ride.provider,
+    prebookingId: pre.prebookingId, prebookExpiresAt: pre.expiresAt, addonIds: addons.map((a) => a.id),
     netPaise: net, quotedPaise: t.pricePaise, priceChangePct: pct(net, t.pricePaise), sameVehicle: m.same,
     freeCancellation: m.ride.flags.freeCancellation, cancellationRules: rules,
     cancellationText: rules.length ? describeRules(rules) : (m.ride.cancellation.description || 'Non-refundable.'),
@@ -239,7 +247,7 @@ export async function bookTransfers(args: { transfers: TransferQuote[]; contact:
       const b = await createTransferBooking({
         prebookingId: q.prebookingId, ...person,
         flightNumber: q.kind === 'arrival' || q.kind === 'departure' ? c.flightNumber?.trim() || undefined : undefined,
-        agentRef,
+        agentRef, selectedAddonIds: q.addonIds,
       });
       return { ...base, status: 'CONFIRMED', reference: b.reference, bookingId: b.bookingId, supplierContact: b.supplierContact };
     } catch (e: any) {

@@ -49,6 +49,7 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, from
   const [source, setSource] = useState<Source>('loading');
   const [warning, setWarning] = useState<string | undefined>();
   const [vehicleClass, setVehicleClass] = useState<VehicleClass>('ALL');
+  const [extrasByRide, setExtrasByRide] = useState<Record<string, string[]>>({});
   const requestId = useRef(0);
 
   useEffect(() => {
@@ -99,6 +100,23 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, from
   const live = alternatives.length > 0;
   const options = live ? alternatives : sampleTransferOptions(kind, fromName, toName);
   const shown = vehicleClass === 'ALL' ? options : options.filter((t) => t.vehicle === vehicleClass);
+  const toggleExtra = (rideId: string, name: string) => setExtrasByRide((prev) => {
+    const now = prev[rideId] ?? [];
+    return { ...prev, [rideId]: now.includes(name) ? now.filter((n) => n !== name) : [...now, name] };
+  });
+  const chosenExtras = (t: Transfer) => (t.supplierInfo?.extras ?? [])
+    .filter((x) => x.pricePaise !== null && extrasByRide[t.id]?.includes(x.name))
+    .map((x) => ({ name: x.name, pricePaise: x.pricePaise as number }));
+  const withExtras = (t: Transfer): Transfer => {
+    const extras = chosenExtras(t);
+    if (!extras.length || !t.leamigo) return t;
+    return {
+      ...t,
+      pricePaise: t.pricePaise + extras.reduce((sum, x) => sum + x.pricePaise, 0),
+      description: [t.description, `With ${extras.map((x) => x.name).join(', ')}`].filter(Boolean).join(' · '),
+      leamigo: { ...t.leamigo, extras },
+    };
+  };
   const isCurrent = (t: Transfer) => !!current && (t.id === current.id || (current.id.startsWith('tx_') && t.id.startsWith('tx_') && t.vehicle === current.vehicle));
 
   return (
@@ -146,12 +164,13 @@ export function AddTransferModal({ open, onClose, kind, cityCode, cityName, from
                       {vehicleLabel(t.vehicle)}
                       {t.id.startsWith('tx_') ? <Pill variant="warning">Sample</Pill> : <Pill variant="success">Live price</Pill>}
                     </p>
-                    {t.supplierInfo ? <TransferSupplierDetails info={t.supplierInfo} /> : t.description && <p className="text-xs text-ink mt-1">{t.description}</p>}
+                    {t.supplierInfo ? <TransferSupplierDetails info={t.supplierInfo} chosen={extrasByRide[t.id]} onToggleExtra={t.leamigo ? (name) => toggleExtra(t.id, name) : undefined} /> : t.description && <p className="text-xs text-ink mt-1">{t.description}</p>}
                     <p className="text-xs text-[rgb(var(--text-secondary))] mt-1">{t.supplierInfo ? '' : `Up to ${t.bagsAllowed} bag${t.bagsAllowed === 1 ? '' : 's'} · `}Pickup on {pickupDate}{pickupTime ? ` at ${pickupTime}` : ''}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-mono font-semibold text-ink">{money(t.pricePaise)}</p>
-                    <Button size="sm" className="mt-2" disabled={isCurrent(t)} onClick={() => { onPick(t); onClose(); }}>{isCurrent(t) ? 'Selected' : 'Select'}</Button>
+                    <p className="font-mono font-semibold text-ink">{money(withExtras(t).pricePaise)}</p>
+                    {chosenExtras(t).length > 0 && <p className="text-[11px] text-[rgb(var(--text-secondary))]">with extras</p>}
+                    <Button size="sm" className="mt-2" disabled={isCurrent(t)} onClick={() => { onPick(withExtras(t)); onClose(); }}>{isCurrent(t) ? 'Selected' : 'Select'}</Button>
                   </div>
                 </div>
               ))}

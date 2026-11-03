@@ -150,7 +150,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                     <span className="w-5 inline-flex justify-center shrink-0 text-[rgb(var(--text-tertiary))]"><Car className="w-4 h-4" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block font-bold text-ink text-[13.5px] truncate">{t.kind === 'rental' ? `Car with driver · ${t.leamigoRental?.hours ?? ''}h from ${t.fromName}` : <>{t.kind === 'arrival' ? 'Airport pickup' : t.kind === 'departure' ? 'Airport drop-off' : 'Inter-city transfer'} · {t.fromName} → {t.toName}</>}</span>
-                      <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{t.kind === 'rental' ? `${t.leamigoRental?.vehicleName ?? 'Car'} · starts ${t.leamigoRental?.pickupTime ?? ''}` : `${vehicleLabel(t.vehicle)} · ${t.bagsAllowed} bags`}</span>
+                      <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{t.kind === 'rental' ? `${t.leamigoRental?.vehicleName ?? 'Car'} · starts ${t.leamigoRental?.pickupTime ?? ''}` : `${vehicleLabel(t.vehicle)} · ${t.bagsAllowed} bags${t.leamigo?.extras?.length ? ` · With ${t.leamigo.extras.map((x) => x.name).join(', ')}` : ''}`}</span>
                     </span>
                     <span className="money text-[13.5px] text-ink">{money(t.pricePaise)}</span>
                     {t.kind !== 'rental' && onReplaceTransfer && (
