@@ -30,6 +30,19 @@ export interface HotelContent {
   allImages?: string[];      // All available images, ranked
 }
 
+/**
+ * Certification 5: Content API data must be stored on our side and refreshed about
+ * weekly. The app registers a database-backed store at startup (a global, because
+ * instrumentation and routes are bundled separately); without one, only the memory
+ * cache below applies.
+ */
+export interface HotelContentStore {
+  read(kind: 'images' | 'detail', codes: number[]): Promise<Map<number, unknown>>;
+  write(kind: 'images' | 'detail', rows: Array<{ code: number; data: unknown }>): Promise<void>;
+}
+const store = (): HotelContentStore | undefined => (globalThis as { __hbContentStore?: HotelContentStore }).__hbContentStore;
+export function registerHotelContentStore(s: HotelContentStore) { (globalThis as { __hbContentStore?: HotelContentStore }).__hbContentStore = s; }
+
 // Cache: hotel code → content, 24h TTL.
 const CACHE_MS = 24 * 60 * 60 * 1000;
 type CachedEntry = { at: number; data: HotelContent };
@@ -59,7 +72,7 @@ export async function fetchHotelImages(codes: number[]): Promise<Map<number, Hot
   if (!isLive() || codes.length === 0) return result;
 
   // Use cache where possible
-  const toFetch: number[] = [];
+  let toFetch: number[] = [];
   for (const code of codes) {
     const cached = cacheGet(code);
     if (cached) {
@@ -68,6 +81,14 @@ export async function fetchHotelImages(codes: number[]): Promise<Map<number, Hot
       toFetch.push(code);
     }
   }
+  if (toFetch.length === 0) return result;
+
+  const stored = await store()?.read('images', toFetch).catch(() => null);
+  for (const [code, data] of stored ?? []) {
+    cacheSet(code, data as HotelContent);
+    result.set(code, data as HotelContent);
+  }
+  toFetch = toFetch.filter((code) => !result.has(code));
   if (toFetch.length === 0) return result;
 
   // Batch in chunks of 200 (Hotelbeds limit)
@@ -97,6 +118,7 @@ export async function fetchHotelImages(codes: number[]): Promise<Map<number, Hot
             result.set(code, empty);
           }
         }
+        await store()?.write('images', chunk.map((code) => ({ code, data: result.get(code) ?? {} }))).catch(() => {});
       } catch (e) {
         // Content failures shouldn't break the availability search;
         // just leave those codes unphotographed.
@@ -134,7 +156,11 @@ export interface HotelDetail {
   latitude?: number;
   longitude?: number;
   images: string[];
-  facilities: string[];   // human-readable facility group: facility names
+  categoryName?: string;
+  /** Only what the hotel really has (indYesOrNo=false means it doesn't). */
+  facilities: Array<{ name: string; paid: boolean }>;
+  interestPoints: Array<{ name: string; distance?: string }>;
+  roomTypes: string[];
 }
 
 interface HbDetailResponse {
@@ -143,6 +169,9 @@ interface HbDetailResponse {
     name?: { content?: string };
     description?: { content?: string };
     categoryCode?: string;      // "4EST"
+    category?: { description?: { content?: string } };
+    interestPoints?: Array<{ poiName?: string; distance?: string }>;
+    rooms?: Array<{ roomCode?: string; description?: string; type?: { description?: { content?: string } } }>;
     address?: { content?: string };
     city?: { content?: string };
     countryCode?: string;
@@ -151,13 +180,15 @@ interface HbDetailResponse {
     web?: string;
     coordinates?: { latitude?: number; longitude?: number };
     images?: Array<{ path?: string; order?: number; visualOrder?: number; imageTypeCode?: string }>;
-    facilities?: Array<{ description?: { content?: string }; facilityGroupCode?: number }>;
+    facilities?: Array<{ description?: { content?: string }; facilityGroupCode?: number; indFee?: boolean; indYesOrNo?: boolean }>;
   };
 }
 
 export async function getHotelDetail(code: number): Promise<HotelDetail | null> {
   if (!isLive('hotels')) return null;
   try {
+    const saved = (await store()?.read('detail', [code]).catch(() => null))?.get(code);
+    if (saved) return saved as HotelDetail;
     const path = `/hotel-content-api/1.0/hotels/${code}/details?language=ENG&useSecondaryLanguage=false`;
     const res = await hbCall<HbDetailResponse>(path, undefined, { method: 'GET', timeoutMs: 8_000, product: 'hotels' });
     const h = res.hotel;
@@ -168,16 +199,15 @@ export async function getHotelDetail(code: number): Promise<HotelDetail | null> 
       .sort((a, b) => (a.visualOrder ?? a.order ?? 999) - (b.visualOrder ?? b.order ?? 999))
       .map((i) => `${PHOTO_CDN}/${i.path}`);
 
+    const seen = new Set<string>();
     const facilities = (h.facilities ?? [])
-      .map((f) => f.description?.content)
-      .filter((x): x is string => !!x)
-      // Dedupe + cap at 40 so the UI isn't overwhelming
-      .filter((v, i, arr) => arr.indexOf(v) === i)
-      .slice(0, 40);
+      .filter((f) => f.indYesOrNo !== false)   // 5.4: "false" means this hotel doesn't have it
+      .map((f) => ({ name: f.description?.content ?? '', paid: f.indFee === true }))
+      .filter((f) => f.name && !seen.has(f.name) && !!seen.add(f.name));
 
     const starsMatch = h.categoryCode?.match(/(\d)/);
 
-    return {
+    const detail: HotelDetail = {
       code: h.code ?? code,
       name: h.name?.content ?? `Hotel ${code}`,
       description: h.description?.content,
@@ -191,8 +221,13 @@ export async function getHotelDetail(code: number): Promise<HotelDetail | null> 
       latitude: h.coordinates?.latitude,
       longitude: h.coordinates?.longitude,
       images,
+      categoryName: h.category?.description?.content,
       facilities,
+      interestPoints: (h.interestPoints ?? []).filter((p) => p.poiName).map((p) => ({ name: p.poiName!, distance: p.distance })),
+      roomTypes: [...new Set((h.rooms ?? []).map((r) => r.type?.description?.content ?? r.description ?? '').filter(Boolean))],
     };
+    await store()?.write('detail', [{ code, data: detail }]).catch(() => {});
+    return detail;
   } catch (e) {
     console.error('[hotelbeds] getHotelDetail failed:', (e as Error)?.message ?? e);
     return null;

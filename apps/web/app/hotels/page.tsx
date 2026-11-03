@@ -60,11 +60,11 @@ export default async function HotelsPage({ searchParams }: PageProps) {
           id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
           thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
           pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages,
-          roomOptions: h.roomOptions, latitude: h.latitude, longitude: h.longitude,
+          roomOptions: h.roomOptions, rateKey: h.rateKey, latitude: h.latitude, longitude: h.longitude,
         }));
-        const liveNames = new Set(liveHotels.map((h) => h.name.toLowerCase()));
+        // Live or sample, never both: certification reviews only Hotelbeds product.
         hotels = source === 'live'
-          ? [...liveHotels, ...hotelsForCity(city).filter((h) => !liveNames.has(h.name.toLowerCase()))]
+          ? liveHotels
           : hotelsForCity(city);
       } catch (e: any) {
         source = 'mock';

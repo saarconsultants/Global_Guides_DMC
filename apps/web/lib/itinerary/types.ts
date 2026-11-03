@@ -43,6 +43,7 @@ export interface Hotel {
   pricePerNightPaise: number;
   room: { name: string; bedConfig: string };
   allImages?: string[];        // Full gallery (Hotelbeds Content API). thumb is allImages[0].
+  rateKey?: string;            // the exact rate chosen, from the agent's one availability search
   roomOptions?: Array<{
     roomName: string; board: string; refundable: boolean; pricePerNightPaise: number; totalPaise: number; rateKey?: string;
     /** Fee schedule from the supplier; `from` is destination-local time. */

@@ -287,3 +287,13 @@ model BugReport {
   @@index([status, createdAt])
   @@index([agencyId, createdAt])
 }
+
+// Hotelbeds Content API data, kept on our side (certification 5) and refreshed weekly.
+model HotelContent {
+  code      Int
+  kind      String   // images | detail
+  data      String   // JSON
+  fetchedAt DateTime @default(now())
+
+  @@id([code, kind])
+}

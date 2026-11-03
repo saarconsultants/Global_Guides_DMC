@@ -106,7 +106,7 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
                       <thead><tr><th>Room</th><th>Board</th><th>Cancellation</th><th className="text-right">Total</th></tr></thead>
                       <tbody>
                         {h.roomOptions.map((r, i) => (
-                          <tr key={i}><td>{r.roomName}</td><td>{r.board}</td><td>{r.refundable ? <span className="text-success-600 font-semibold">{freeUntil(r.cancellationPolicies) ? `Free until ${freeUntil(r.cancellationPolicies)}` : 'Refundable'}</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}{r.promotions?.[0]?.name && <span className="ml-2"><Pill variant="live">{r.promotions[0].name}</Pill></span>}</td><td className="text-right money">{money(r.totalPaise)}</td></tr>
+                          <tr key={i}><td>{r.roomName}{r.promotions?.length ? <span className="block text-[11.5px] text-crimson-700">{r.promotions.map((p) => p.name).filter(Boolean).join(' · ')}</span> : null}</td><td>{r.board}</td><td>{r.refundable ? <span className="text-success-600 font-semibold">{freeUntil(r.cancellationPolicies) ? `Free until ${freeUntil(r.cancellationPolicies)}` : 'Refundable'}</span> : <span className="text-[rgb(var(--text-tertiary))]">Non-refundable</span>}{r.promotions?.[0]?.name && <span className="ml-2"><Pill variant="live">{r.promotions[0].name}</Pill></span>}</td><td className="text-right money">{money(r.totalPaise)}</td></tr>
                         ))}
                       </tbody>
                     </table>

@@ -74,11 +74,8 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
   }, [open, cityCode, checkIn, checkOut, rooms]);
 
   const mock = hotelsForCity(cityCode);
-  // Merge: live first, then mock entries that aren't duplicated by name
-  const liveNames = new Set(liveHotels.map((h) => h.name.toLowerCase()));
-  const merged = source === 'live'
-    ? [...liveHotels, ...mock.filter((h) => !liveNames.has(h.name.toLowerCase()))]
-    : mock;
+  // Live or sample, never both.
+  const merged = source === 'live' ? liveHotels : mock;
   const filtered = starFilter ? merged.filter((h) => h.stars === starFilter) : merged;
 
   return (

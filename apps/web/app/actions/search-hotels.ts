@@ -57,5 +57,7 @@ function hbHotelToAppHotel(h: HotelbedsHotel): Hotel {
     allImages: h.allImages,
     latitude: h.latitude,
     longitude: h.longitude,
+    roomOptions: h.roomOptions,
+    rateKey: h.rateKey,
   };
 }

@@ -3,8 +3,8 @@ export { checkRates, getRateComments, createBooking, simulateCancellation, cance
 export type { CheckedRate, BookingPax, BookingRequest, HotelbedsBooking } from './booking';
 export { searchActivities } from './activities';
 export { searchTransfers } from './transfers';
-export { fetchHotelImages, getHotelDetail } from './content';
-export type { HotelDetail } from './content';
+export { fetchHotelImages, getHotelDetail, registerHotelContentStore } from './content';
+export type { HotelDetail, HotelContentStore } from './content';
 export { isLive, isEnabled, probeHotelbeds } from './client';
 export type { HotelbedsProbeResult } from './client';
 export { toHotelbedsDestination, IATA_TO_HOTELBEDS_DESTINATION } from './destinations';

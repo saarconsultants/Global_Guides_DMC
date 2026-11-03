@@ -20,9 +20,9 @@ export function ChangeRoomModal({ open, onClose, hotel, nights, onPick, onChange
   const choices = roomChoices(hotel);
   const byRoom = new Map<string, RoomChoice[]>();
   for (const c of choices) byRoom.set(c.roomName, [...(byRoom.get(c.roomName) ?? []), c]);
-  const isCurrent = (c: RoomChoice) => c.roomName === hotel.room.name && c.board === hotel.mealPlan;
+  const isCurrent = (c: RoomChoice) => (hotel.rateKey && c.rateKey ? c.rateKey === hotel.rateKey : c.roomName === hotel.room.name && c.board === hotel.mealPlan);
   const select = (c: RoomChoice) => {
-    onPick({ ...hotel, room: { ...hotel.room, name: c.roomName }, mealPlan: c.board, refundable: c.refundable, pricePerNightPaise: c.pricePerNightPaise });
+    onPick({ ...hotel, room: { ...hotel.room, name: c.roomName }, mealPlan: c.board, refundable: c.refundable, pricePerNightPaise: c.pricePerNightPaise, rateKey: c.rateKey });
     onClose();
   };
 
@@ -47,7 +47,8 @@ export function ChangeRoomModal({ open, onClose, hotel, nights, onPick, onChange
                   <li key={`${c.board}-${c.refundable}-${i}`} className={`px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 ${isCurrent(c) ? 'bg-crimson-50/40' : ''}`}>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-ink">{c.board}</p>
-                      <p className={`text-xs ${c.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`}>{c.refundable ? 'Refundable' : 'Non-refundable'}</p>
+                      <p className={`text-xs ${c.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`}>{c.refundable ? (c.cancellationFrom ? `Free cancellation until ${c.cancellationFrom.slice(0, 16).replace('T', ' ')} (hotel local time)` : 'Refundable') : 'Non-refundable'}</p>
+                      {c.promotions && c.promotions.length > 0 && <p className="text-xs text-crimson-700">{c.promotions.join(' · ')}</p>}
                     </div>
                     <div className="flex items-center gap-3 ml-auto">
                       <div className="text-right">

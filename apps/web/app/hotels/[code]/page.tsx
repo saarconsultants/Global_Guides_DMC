@@ -79,11 +79,30 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
                 <h2 className="text-lg font-semibold text-ink mb-3">Facilities &amp; amenities</h2>
                 <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
                   {hotel.facilities.map((f) => (
-                    <div key={f} className="flex items-center gap-2 text-sm text-[rgb(var(--text-primary))]">
-                      <Check className="w-4 h-4 text-success-500 flex-shrink-0" /> {f}
+                    <div key={f.name} className="flex items-center gap-2 text-sm text-[rgb(var(--text-primary))]">
+                      <Check className="w-4 h-4 text-success-500 flex-shrink-0" /> {f.name}
+                      {f.paid && <span className="text-xs text-[rgb(var(--text-secondary))]">(extra charge)</span>}
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {hotel.roomTypes.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="text-lg font-semibold text-ink mb-3">Room types</h2>
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">{hotel.roomTypes.map((r) => <li key={r}>{r}</li>)}</ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {hotel.interestPoints.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="text-lg font-semibold text-ink mb-3">Nearby</h2>
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">{hotel.interestPoints.map((p) => <li key={p.name}>{p.name}{p.distance ? <span className="text-[rgb(var(--text-secondary))]"> · {Math.round(Number(p.distance))} m</span> : null}</li>)}</ul>
               </CardContent>
             </Card>
           )}

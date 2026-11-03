@@ -28,7 +28,7 @@ interface Props {
 }
 
 interface Policy { from: string; amountPaise: number }
-interface Rate { roomName: string; board: string; rooms: number; adults: number; childAges: number[]; cancellationPolicies: Policy[]; rateComments?: string }
+interface Rate { roomName: string; board: string; promotions?: string[]; rooms: number; adults: number; childAges: number[]; cancellationPolicies: Policy[]; rateComments?: string }
 interface Hotel { hotelId: string; hotelName: string; cityName: string; address: string; checkIn: string; checkOut: string; rates: Rate[]; netPaise: number; quotedPaise: number; priceChangePct: number; sameRoomAndBoard: boolean }
 interface Issue { cityName: string; hotelName: string; reason: string }
 interface TQ { product?: 'transfer' | 'rental' | 'activity'; key: string; fromName: string; toName: string; pickupDate: string; pickupTime: string; vehicleName: string; provider: string; netPaise: number; quotedPaise: number; priceChangePct: number; sameVehicle: boolean; cancellationText: string; kind: string }
@@ -158,6 +158,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                   {h.rates.map((r, i) => (
                     <div key={i} className="border-t border-border-subtle pt-2 space-y-1">
                       <p className="text-ink">{r.rooms} × {r.roomName} · {r.board}</p>
+                      {r.promotions && r.promotions.length > 0 && <p className="text-xs text-crimson-700">{r.promotions.join(' · ')}</p>}
                       <p className="text-xs text-[rgb(var(--text-secondary))]">
                         {r.cancellationPolicies.length === 0 ? 'Non-refundable — no refund if cancelled.' :
                           r.cancellationPolicies.map((c, k) => <span key={k} className="block">From {fmtDate(c.from)} (hotel local time): cancellation fee {money(c.amountPaise)}</span>)}

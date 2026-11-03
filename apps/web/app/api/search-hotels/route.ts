@@ -36,5 +36,7 @@ function toApp(h: HotelbedsHotel): Hotel {
     id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
     thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
     pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages, latitude: h.latitude, longitude: h.longitude,
+    // Kept with the trip: booking uses these rates rather than searching again.
+    roomOptions: h.roomOptions, rateKey: h.rateKey,
   };
 }

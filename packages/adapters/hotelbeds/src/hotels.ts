@@ -22,12 +22,13 @@ import type {
 // In-memory cache so React strict-mode double-renders / quick refreshes
 // don't hammer Hotelbeds. 90s matches our Tripjack cache.
 const CACHE_MS = 90_000;
+const DEFAULT_SOURCE_MARKET = 'IN';   // the agencies we sell to are in India (declared at certification)
 type CachedEntry = { at: number; promise: Promise<AvailabilitySearchResult> };
 const cache = new Map<string, CachedEntry>();
 
 function cacheKey(input: AvailabilitySearchInput): string {
   const rooms = input.rooms.map((r) => `${r.adults}-${r.children ?? 0}-${(r.childAges ?? []).join('.')}`).join(',');
-  return `${input.sourceMarket ?? ''}|${input.hotelCodes?.join('.') ?? input.cityCode}|${input.checkIn}|${input.checkOut}|${rooms}|${input.minStars ?? ''}|${input.maxStars ?? ''}`;
+  return `${input.sourceMarket ?? DEFAULT_SOURCE_MARKET}|${input.hotelCodes?.join('.') ?? input.cityCode}|${input.checkIn}|${input.checkOut}|${rooms}|${input.minStars ?? ''}|${input.maxStars ?? ''}`;
 }
 
 export async function searchHotels(input: AvailabilitySearchInput): Promise<AvailabilitySearchResult> {
@@ -55,7 +56,8 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
       // Certification 2.4 / 3.3 / 3.4: every room of the booking in ONE call,
       // identical rooms grouped, and each child sent with its age.
       occupancies: buildOccupancies(input.rooms),
-      ...(input.sourceMarket ? { sourceMarket: input.sourceMarket } : {}),
+      // Certification 3.6: prices are only valid for the market they were requested for.
+      sourceMarket: input.sourceMarket ?? DEFAULT_SOURCE_MARKET,
       ...(input.hotelCodes?.length
         ? { hotels: { hotel: input.hotelCodes.slice(0, 2000) } }
         : { destination: { code: destinationCode } }),
@@ -66,7 +68,7 @@ export async function searchHotels(input: AvailabilitySearchInput): Promise<Avai
     };
 
     const [res, rates] = await Promise.all([
-      hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body, { retries: 1 }),
+      hbCall<HbAvailResponse>('/hotel-api/1.0/hotels', body),
       getRates(),
     ]);
     const nights = Math.max(1, Math.round((new Date(input.checkOut).getTime() - new Date(input.checkIn).getTime()) / 86_400_000));
@@ -214,7 +216,7 @@ function normalizeHotels(res: HbAvailResponse, cityCode: string, rates: { eurInr
       room: { name: cheapest?.roomName ?? firstRoom?.name ?? 'Standard Room', bedConfig: '1 Double' },
       rateKey: cheapest?.rateKey,
       currency,
-      roomOptions: roomOptions.slice(0, 20),
+      roomOptions,   // every rate: certification 3.1 checks the whole product is shown
       ...coords(h.latitude, h.longitude),
     };
   });
@@ -255,7 +257,7 @@ export function childAgesFor(r: { children?: number; childAges?: number[] }): nu
 }
 
 function sellableCategory(category?: string): boolean {
-  if (!category) return true;                      // unknown: keep (star count shown only if parsed)
+  if (!category) return false;                     // never guess a category (5.2)
   const m = category.match(/(\d)\s*STAR/i);
   return !!m && +m[1]! >= 3 && +m[1]! <= 5;
 }

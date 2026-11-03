@@ -16,7 +16,7 @@
 import type { TransferQuote } from './leamigo';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
-  searchHotels, checkRates, getRateComments, createBooking, buildOccupancies, childAgesFor,
+  getHotelDetail, checkRates, getRateComments, createBooking, buildOccupancies, childAgesFor,
   isLive, type HotelbedsBooking, type HotelbedsRoomOption,
 } from '@gg/hotelbeds';
 import type { Itinerary, Room } from '@/lib/itinerary/types';
@@ -41,6 +41,7 @@ export interface QuotedRate {
   netPaise: number;
   cancellationPolicies: QuotedPolicy[];
   rateComments?: string;
+  promotions?: string[];
 }
 
 export interface HotelQuote {
@@ -112,13 +113,15 @@ function groupRooms(rooms: Room[]): Array<{ adults: number; childAges: number[];
   return [...groups.values()];
 }
 
-function pickRate(options: HotelbedsRoomOption[], group: { adults: number; childAges: number[]; roomIndexes: number[] }, want: { roomName: string; board: string }) {
+function pickRate(options: HotelbedsRoomOption[], group: { adults: number; childAges: number[]; roomIndexes: number[] }, want: { rateKey?: string; roomName: string; board: string }) {
   const fits = options.filter((o) =>
     !!o.rateKey &&
     (o.adults === undefined || o.adults === group.adults) &&
     (o.children === undefined || o.children === group.childAges.length) &&
     (o.rooms === undefined || o.rooms === group.roomIndexes.length));
   const byPrice = (xs: HotelbedsRoomOption[]) => [...xs].sort((a, b) => a.totalPaise - b.totalPaise)[0];
+  const exact = fits.find((o) => want.rateKey && o.rateKey === want.rateKey);
+  if (exact) return { option: exact, same: true };
   const same = byPrice(fits.filter((o) => o.roomName === want.roomName && o.board === want.board));
   if (same) return { option: same, same: true };
   const sameBoard = byPrice(fits.filter((o) => o.board === want.board));
@@ -140,17 +143,17 @@ export async function prepareHotelBookings(it: Itinerary): Promise<Omit<PrepareR
     const hotelCode = parseInt(h.id.slice(3), 10);
     const checkIn = ymd(stay.checkIn), checkOut = ymd(stay.checkOut);
     try {
-      const res = await searchHotels({ cityCode: d.cityCode, checkIn, checkOut, rooms, hotelCodes: [hotelCode] });
-      const hotel = res.hotels.find((x) => x.id === h.id) ?? res.hotels[0];
-      const options = hotel?.roomOptions ?? [];
-      if (!hotel || options.length === 0) {
-        out.problems.push({ cityName: d.cityName, hotelName: h.name, reason: 'No longer available for these dates and rooms. Change the hotel in the builder.' });
+      // Certification 2.1 / 2.2: availability is never repeated to make a booking. We book
+      // from the rates the agent searched; an expired one sends them back to search again.
+      const options = (h.roomOptions ?? []) as HotelbedsRoomOption[];
+      if (!options.some((o) => o.rateKey)) {
+        out.problems.push({ cityName: d.cityName, hotelName: h.name, reason: 'This quote has no live rate saved. Choose the hotel again with Change hotel.' });
         return;
       }
 
       const picked: Array<{ group: (typeof groups)[number]; option: HotelbedsRoomOption; same: boolean }> = [];
       for (const g of groups) {
-        const p = pickRate(options, g, { roomName: h.room.name, board: h.mealPlan });
+        const p = pickRate(options, g, { rateKey: h.rateKey, roomName: h.room.name, board: h.mealPlan });
         if (!p) { out.problems.push({ cityName: d.cityName, hotelName: h.name, reason: `No room available for ${g.adults} adult${g.adults !== 1 ? 's' : ''}${g.childAges.length ? ` + ${g.childAges.length} child` : ''}.` }); return; }
         picked.push({ group: g, ...p });
       }
@@ -177,19 +180,21 @@ export async function prepareHotelBookings(it: Itinerary): Promise<Omit<PrepareR
           rateKey, rateType: o.rateType ?? 'BOOKABLE', roomName: o.roomName, board: o.board,
           rooms: p.group.roomIndexes.length, adults: p.group.adults, childAges: p.group.childAges, roomIndexes: p.group.roomIndexes,
           netAmount, currency, netPaise, cancellationPolicies: policies, rateComments,
+          promotions: (o.promotions ?? []).map((x) => x.name).filter((x): x is string => !!x),
         });
       }
 
       const netTotal = rates.reduce((s, r) => s + r.netPaise, 0);
       const quoted = h.pricePerNightPaise * d.nights;
       out.hotels.push({
-        cityCode: d.cityCode, cityName: d.cityName, hotelId: h.id, hotelCode, hotelName: hotel.name, address: h.address,
+        cityCode: d.cityCode, cityName: d.cityName, hotelId: h.id, hotelCode, hotelName: h.name, address: h.address,
         checkIn, checkOut, rates, netPaise: netTotal, quotedPaise: quoted,
         priceChangePct: quoted > 0 ? Math.round(((netTotal - quoted) / quoted) * 1000) / 10 : 0,
         sameRoomAndBoard: picked.every((p) => p.same),
       });
     } catch (e: any) {
-      out.problems.push({ cityName: d.cityName, hotelName: h.name, reason: e?.userMessage ?? e?.message ?? 'Hotelbeds price check failed.' });
+      // Certification best practice: a failed rate means restart from search, never resend it.
+      out.problems.push({ cityName: d.cityName, hotelName: h.name, reason: `${e?.userMessage ?? 'This rate is no longer available.'} Choose the hotel again with Change hotel.` });
     }
   }));
 
@@ -216,6 +221,8 @@ export interface SupplierHotelBooking {
   checkOut: string;
   netPaise: number;            // what we paid Hotelbeds, INR at booking time
   reference?: string;          // Hotelbeds booking reference
+  hotelPhone?: string;         // voucher, certification 4.2
+  rateComments?: string[];     // voucher, certification 4.4 (from the quote when the confirmation omits them)
   booking?: HotelbedsBooking;  // full confirmation (voucher source)
   error?: string;
   cancellation?: { at: string; feePaise: number; refundPaise: number; reference?: string };
@@ -256,7 +263,15 @@ export async function bookHotels(args: { hotels: HotelQuote[]; guests: GuestsInp
           }),
         })),
       });
-      return { ...base, status: 'CONFIRMED', reference: booking.reference, booking };
+      const detail = await Promise.race([
+        getHotelDetail(hq.hotelCode).catch(() => null),
+        new Promise<null>((r) => setTimeout(() => r(null), 3_000)),
+      ]);
+      return {
+        ...base, status: 'CONFIRMED', reference: booking.reference, booking,
+        hotelPhone: detail?.phone,
+        rateComments: hq.rates.map((r) => r.rateComments).filter((c): c is string => !!c),
+      };
     } catch (e: any) {
       return { ...base, status: 'FAILED', error: e?.message ?? 'Booking failed.' };
     }

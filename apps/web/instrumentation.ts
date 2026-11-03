@@ -5,6 +5,10 @@
 import { captureException, observabilityEnabled } from '@/lib/observability';
 
 export async function register() {
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    const [{ registerHotelContentStore }, { hotelContentStore }] = await Promise.all([import('@gg/hotelbeds'), import('@/lib/hotels/content-store')]);
+    registerHotelContentStore(hotelContentStore);
+  }
   if (observabilityEnabled()) {
     // eslint-disable-next-line no-console
     console.log('[observability] Sentry DSN detected — server errors will be forwarded.');

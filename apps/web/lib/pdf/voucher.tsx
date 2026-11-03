@@ -105,7 +105,7 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
                       <Text style={s.bold}>{b.hotel.name}{b.hotel.categoryName ? `  ·  ${b.hotel.categoryName.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}` : ''}</Text>
                       <Text style={[s.bold, { color: primary }]}>Ref {b.reference}</Text>
                     </View>
-                    <Text style={s.muted}>{h.address}{b.hotel.destinationName ? ` · ${b.hotel.destinationName}` : ''}</Text>
+                    <Text style={s.muted}>{h.address}{b.hotel.destinationName ? ` · ${b.hotel.destinationName}` : ''}{h.hotelPhone ? ` · Tel ${h.hotelPhone}` : ''}</Text>
                     <Text style={s.muted}>Check-in {fmtDate(b.hotel.checkIn)}  ·  Check-out {fmtDate(b.hotel.checkOut)}  ·  Agency ref {code}</Text>
                     <Text style={s.muted}>Lead guest: {b.holder.name} {b.holder.surname}</Text>
                     {b.hotel.rooms.map((r, i) => (
@@ -114,7 +114,7 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
                       </Text>
                     ))}
                     {children.length > 0 && <Text style={s.muted}>Children's ages: {children.map((c) => c.age).join(', ')}</Text>}
-                    {b.hotel.rooms.flatMap((r) => r.rates.map((x) => x.rateComments).filter(Boolean)).map((c, i) => (
+                    {[...new Set([...b.hotel.rooms.flatMap((r) => r.rates.map((x) => x.rateComments).filter(Boolean)), ...(h.rateComments ?? [])])].map((c, i) => (
                       <Text key={`c${i}`} style={[s.note, { color: '#334155' }]}>Hotel conditions: {c}</Text>
                     ))}
                     <Text style={[s.note, { color: '#334155' }]}>
