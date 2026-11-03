@@ -1,6 +1,6 @@
 // Leamigo activities (partner endpoints /v1/activities*).
 //
-// Search: city → activities → each activity's options. We pick, per activity,
+// Search: city (from the catalogue's own index) → every activity → each activity's options. We pick, per activity,
 // the cheapest option + ticket that fits the group, so the itinerary carries a
 // real price for this party size.
 // Booking: availability (date) → reserve (prebooking, ~30 min hold) → book.
@@ -47,7 +47,8 @@ async function cityId(name: string, countryCode?: string): Promise<number | null
   if (hit && Date.now() - hit.at < TTL) return hit.id;
   const res = await lmCall<any>('/v1/activities/cities', { query: { search: name, limit: '20' } });
   const rows: any[] = res?.data ?? [];
-  const named = rows.filter((r) => String(r.city).toLowerCase() === name.trim().toLowerCase());
+  const wanted = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const named = rows.filter((r) => String(r.city).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === wanted);
   // Same city name exists in several countries (Paris FR / CA / US) — prefer ours.
   const exact = (cc ? named.find((r) => String(r.country_code).toUpperCase() === cc) : undefined) ?? (cc ? null : named[0] ?? null);
   const id = exact ? Number(exact.id) : null;
@@ -91,14 +92,119 @@ function pickOption(options: any[], pax: number) {
   return best;
 }
 
-export async function searchLeamigoActivities(input: { cityName: string; countryCode?: string; pax: number; limit?: number }): Promise<{ activities: LeamigoActivity[]; warning?: string }> {
+// ── which cities actually sell activities ──────────────────────────────────
+// Leamigo's city directory has ~157k rows, with duplicates (two Florences, only
+// one holding the products) and local spellings (Zürich). The catalogue itself
+// says which city id each product sits under, so that is what we match against.
+export interface LeamigoActivityCity { id: number; name: string; country: string; count: number }
+
+const INDEX_TTL = 6 * 60 * 60_000;
+const INDEX_RETRY_TTL = 5 * 60_000;   // a partial build is retried sooner
+const INDEX_WAIT_MS = 4_000;          // a search never waits longer than this for the first build
+const SEARCH_BUDGET_MS = 10_000;      // the caller gives up at 12s; return what is priced by then
+const MAX_PAGES = 300;
+const PAGE_SIZE = 100;
+const CONCURRENCY = 8;
+
+let cityIndex: { at: number; ttl: number; cities: LeamigoActivityCity[] } | null = null;
+let cityIndexBuild: Promise<LeamigoActivityCity[]> | null = null;
+
+async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) await fn(items[next++]!);
+  }));
+}
+
+const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+// Names Leamigo files separately or spells differently from our city list.
+const ALIASES: Record<string, string[]> = { delhi: ['new delhi'], 'new delhi': ['delhi'], seville: ['sevilla'], sevilla: ['seville'] };
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+
+/** Leamigo's country is a long name ("Netherlands, Kingdom of the"); ours is a code. */
+function inCountry(country: string, code?: string): boolean {
+  if (!code) return true;
+  const ours = norm(regionNames.of(code.toUpperCase()) ?? '');
+  return !!ours && norm(country).startsWith(ours);
+}
+
+export function matchesCity(c: Pick<LeamigoActivityCity, 'name' | 'country'>, name: string, countryCode?: string): boolean {
+  const q = norm(name);
+  return [q, ...(ALIASES[q] ?? [])].includes(norm(c.name)) && inCountry(c.country, countryCode);
+}
+
+async function buildCityIndex(): Promise<LeamigoActivityCity[]> {
+  const byId = new Map<number, LeamigoActivityCity>();
+  let complete = true;
+  const add = (rows: any[]) => {
+    for (const a of rows) {
+      const id = Number(a?.city?.id);
+      if (!id) continue;
+      const row = byId.get(id) ?? { id, name: '', country: '', count: 0 };
+      row.count++;
+      if (!row.name && a.city.name) {
+        const raw = String(a.city.name);
+        row.name = raw === raw.toUpperCase() ? raw.charAt(0) + raw.slice(1).toLowerCase() : raw;
+      }
+      if (!row.country && a.city.country) row.country = String(a.city.country);
+      byId.set(id, row);
+    }
+  };
+  const first = await lmCall<any>('/v1/activities', { query: { limit: String(PAGE_SIZE), page: '1' }, timeoutMs: 15_000 });
+  add(first?.data ?? []);
+  const pages = Math.min(Number(first?.meta?.total_pages ?? 1), MAX_PAGES);
+  if (Number(first?.meta?.total_pages ?? 1) > MAX_PAGES) complete = false;
+  await mapLimit(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => i + 2), 5, async (page) => {
+    try {
+      const res = await lmCall<any>('/v1/activities', { query: { limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 15_000 });
+      add(res?.data ?? []);
+    } catch { complete = false; }
+  });
+  const cities = [...byId.values()].filter((c) => c.name).sort((x, y) => x.name.localeCompare(y.name));
+  cityIndex = { at: Date.now(), ttl: complete ? INDEX_TTL : INDEX_RETRY_TTL, cities };
+  return cities;
+}
+
+/** Every city with at least one Leamigo activity. */
+export async function leamigoActivityCities(): Promise<LeamigoActivityCity[]> {
+  if (!isLive()) return [];
+  if (cityIndex && Date.now() - cityIndex.at < cityIndex.ttl) return cityIndex.cities;
+  cityIndexBuild ??= buildCityIndex().finally(() => { cityIndexBuild = null; });
+  return cityIndexBuild;
+}
+
+async function cityIdsFor(name: string, countryCode?: string): Promise<number[]> {
+  const cities = await Promise.race([
+    leamigoActivityCities().catch(() => null),
+    new Promise<null>((r) => setTimeout(() => r(null), INDEX_WAIT_MS)),
+  ]);
+  const hits = (cities ?? []).filter((c) => matchesCity(c, name, countryCode)).map((c) => c.id);
+  if (hits.length) return hits;
+  const id = await cityId(name, countryCode);
+  return id ? [id] : [];
+}
+
+async function listCityActivities(cid: number): Promise<any[]> {
+  const rows: any[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const res = await lmCall<any>('/v1/activities', { query: { city_id: String(cid), limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 10_000 });
+    rows.push(...(res?.data ?? []));
+    if (!res?.meta?.has_next_page) break;
+  }
+  return rows;
+}
+
+export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; pax: number }): Promise<{ activities: LeamigoActivity[]; warning?: string; partial?: boolean }> {
   if (!isLive()) return { activities: [] };
-  const cid = await cityId(input.cityName, input.countryCode);
-  if (!cid) return { activities: [], warning: `Leamigo has no activities in ${input.cityName}.` };
-  const list = await lmCall<any>('/v1/activities', { query: { city_id: String(cid), limit: String(input.limit ?? 20), page: '1' }, timeoutMs: 10_000 });
+  const startedAt = Date.now();
+  const ids = input.cityId ? [input.cityId] : await cityIdsFor(input.cityName ?? '', input.countryCode);
+  if (!ids.length) return { activities: [], warning: `Leamigo has no activities in ${input.cityName}.` };
+  const lists = await Promise.all(ids.map(listCityActivities));
+  const list = [...new Map(lists.flat().map((a) => [a.id, a])).values()];
   const rates = await inrRates();
   const out: LeamigoActivity[] = [];
-  await Promise.all((list?.data ?? []).map(async (a: any) => {
+  let priced = 0;
+  const work = mapLimit(list, CONCURRENCY, async (a: any) => {
     try {
       const [opts, det] = await Promise.all([
         cached(optCache, a.id, `/v1/activities/${a.id}/options`),
@@ -113,7 +219,7 @@ export async function searchLeamigoActivities(input: { cityName: string; country
       out.push({
         id: `LMA-${a.id}:${p.opt.id}:${p.ticket.id}`,
         activityId: a.id, optionId: p.opt.id, ticketId: String(p.ticket.id),
-        title: a.title, optionName: p.opt.name, city: a.city?.name ?? input.cityName,
+        title: a.title, optionName: p.opt.name, city: a.city?.name ?? input.cityName ?? '',
         durationMin: durationMin(det?.duration), quantity: p.qty, pricePaise: paise,
         perPersonPaise: p.qty > 1 ? Math.round(paise / p.qty) : paise,
         priceBasis: ['per_vehicle', 'per_group'].includes(String(p.opt.pricing_type)) ? 'group' : 'person',
@@ -124,9 +230,12 @@ export async function searchLeamigoActivities(input: { cityName: string; country
         cancellationRules: (cp.rules ?? []).map((r: any) => ({ hoursBefore: Number(r.min_hours_before ?? r.minHoursBefore ?? 0), chargePct: Number(r.charge_percentage ?? r.chargePercent ?? 0) })),
       });
     } catch { /* skip one bad product, keep the rest */ }
-  }));
-  out.sort((x, y) => x.pricePaise - y.pricePaise);
-  return { activities: out };
+    finally { priced++; }
+  });
+  // Large cities can outrun the budget: keep what is priced rather than lose it all.
+  await Promise.race([work, new Promise((r) => setTimeout(r, Math.max(0, SEARCH_BUDGET_MS - (Date.now() - startedAt))))]);
+  const activities = [...out].sort((x, y) => x.pricePaise - y.pricePaise);
+  return { activities, partial: priced < list.length };
 }
 
 export interface ActivityTimeslot {

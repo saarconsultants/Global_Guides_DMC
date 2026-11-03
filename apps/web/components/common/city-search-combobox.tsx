@@ -9,20 +9,22 @@ interface Props {
   label: string;
   placeholder?: string;
   bare?: boolean;                // borderless input for use inside a HeroCell (label rendered by the cell)
+  cities?: SupportedCity[];      // search this list instead of the Hotelbeds destinations
 }
 
 // Autocomplete over the Hotelbeds-supported destinations (used by Hotels,
 // Activities, and Transfers search forms). Same UX as the flight airport
 // combobox; restricts to cities we have live coverage for.
-export function CitySearchCombobox({ value, onChange, label, placeholder = 'Search destination', bare }: Props) {
+export function CitySearchCombobox({ value, onChange, label, placeholder = 'Search destination', bare, cities }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  const selected = cityByCode(value);
-  const displayWhenClosed = selected ? `${selected.name}, ${selected.country}` : value;
-  const results = searchSupportedCities(query, 8);
+  const selected = cities?.find((c) => c.code === value.toUpperCase()) ?? cityByCode(value);
+  // A supplier-only code means nothing to read while its list is still loading.
+  const displayWhenClosed = selected ? `${selected.name}, ${selected.country}` : value.startsWith('LM-') ? '' : value;
+  const results = searchSupportedCities(query, 8, cities);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {

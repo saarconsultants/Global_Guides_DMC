@@ -25,7 +25,8 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   const to = sp.to ?? nextWeekIso(2);
   const adults = sp.adults ?? '2';
   const hasQuery = !!sp.city;
-  const cityName = CITY_BANK[city]?.name ?? city;
+  let cityName = CITY_BANK[city]?.name ?? city;
+  let partial = false;
 
   let activities: Activity[] = [];
   let source: 'live' | 'mock' | 'unsupported-city' = 'mock';
@@ -35,6 +36,8 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   if (hasQuery) {
     const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2 });
     ({ activities, source, warning, counts } = res);
+    cityName = res.cityName;
+    partial = !!res.partial;
   }
 
   const liveCount = counts.hotelbeds + counts.leamigo;
@@ -99,6 +102,7 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
             <p className="min-w-0">Activities in <span className="font-bold text-ink">{cityName}</span> · <span className="font-mono font-bold text-ink tnum whitespace-nowrap">{formatDateRange(from, to)}</span></p>
             <Pill variant={badge.variant} className="max-w-full whitespace-normal text-left leading-tight">{badge.label}</Pill>
           </div>
+          {partial && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">This city has more activities than could be loaded in time. Search again to see more.</p>}
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (

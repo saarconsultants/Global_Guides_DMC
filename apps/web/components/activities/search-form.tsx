@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CitySearchCombobox } from '@/components/common/city-search-combobox';
+import type { SupportedCity } from '@/lib/supported-cities';
 import { HeroBar, HeroCell, HeroSubmit, HeroDate, heroControl } from '@/components/ui/hero-search';
 
 interface Props {
@@ -14,6 +15,11 @@ export function ActivitySearchForm({ defaults }: Props) {
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
   const [adults, setAdults] = useState(defaults.adults);
+  const [cities, setCities] = useState<SupportedCity[] | undefined>();
+
+  useEffect(() => {
+    fetch('/api/activity-cities').then((r) => r.json()).then((d) => { if (d.ok) setCities(d.cities); }).catch(() => {});
+  }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,7 +29,7 @@ export function ActivitySearchForm({ defaults }: Props) {
   return (
     <form onSubmit={submit}>
       <HeroBar>
-        <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={setCity} placeholder="Search destination" /></HeroCell>
+        <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={setCity} cities={cities} placeholder="Search destination" /></HeroCell>
         <HeroCell eyebrow="From"><HeroDate value={from} onChange={setFrom} label="From date" sub="First tour" /></HeroCell>
         <HeroCell eyebrow="To"><HeroDate value={to} min={from} onChange={setTo} label="To date" sub="Last tour" /></HeroCell>
         <HeroCell eyebrow="Travellers">

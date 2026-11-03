@@ -4,7 +4,7 @@
 // supplier has live results — never mixed in with live ones.
 
 import { searchActivities, type HotelbedsActivity } from '@gg/hotelbeds';
-import { searchLeamigoActivities, isLive as leamigoLive, type LeamigoActivity } from '@gg/leamigo';
+import { searchLeamigoActivities, leamigoActivityCities, isLive as leamigoLive, type LeamigoActivity } from '@gg/leamigo';
 import { activitiesForCity, cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
 
@@ -25,10 +25,31 @@ export interface ActivitySearchResult {
   /** Shown to agents only when nothing live came back. Plain wording. */
   warning?: string;
   counts: { hotelbeds: number; leamigo: number };
+  /** Display name of the searched city. */
+  cityName: string;
+  /** The supplier had more than could be priced in time. */
+  partial?: boolean;
 }
 
 export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySearchResult> {
   const adults = Math.max(1, q.adults || 1), children = Math.max(0, q.children ?? 0);
+
+  // A Leamigo-only city, outside our own catalogue ("LM-<leamigo city id>").
+  const lmCity = /^LM-(\d+)$/i.exec(q.cityCode);
+  if (lmCity) {
+    const id = Number(lmCity[1]);
+    const [lm, cities] = await Promise.all([
+      within(searchLeamigoActivities({ cityId: id, pax: adults + children }), 12_000, { activities: [] as LeamigoActivity[] }),
+      leamigoActivityCities().catch(() => []),
+    ]);
+    return {
+      activities: lm.activities.map(lmToApp(q.cityCode)), source: 'live',
+      counts: { hotelbeds: 0, leamigo: lm.activities.length },
+      cityName: cities.find((c) => c.id === id)?.name ?? lm.activities[0]?.city ?? 'this city',
+      partial: lm.partial,
+    };
+  }
+
   const city = cityInfo(q.cityCode);
   const [hb, lm] = await Promise.all([
     searchActivities({ cityCode: q.cityCode, fromDate: q.fromDate, toDate: q.toDate, paxAdults: adults, paxChildren: children })
@@ -41,13 +62,14 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
 
   const live = [...hb.activities.map(hbToApp), ...lm.activities.map(lmToApp(q.cityCode))];
   const counts = { hotelbeds: hb.activities.length, leamigo: lm.activities.length };
-  if (live.length) return { activities: live, source: 'live', counts };
+  if (live.length) return { activities: live, source: 'live', counts, cityName: city.name, partial: (lm as { partial?: boolean }).partial };
 
   return {
     activities: activitiesForCity(q.cityCode),
     source: hb.source === 'unsupported-city' ? 'unsupported-city' : 'mock',
     warning: hb.warning === 'error' ? "Live prices couldn't load. Try again in a minute." : undefined,
     counts,
+    cityName: city.name,
   };
 }
 

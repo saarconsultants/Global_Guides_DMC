@@ -44,12 +44,12 @@ export function cityByCode(code: string): SupportedCity | undefined {
   return HOTEL_SEARCH_CITIES.find((c) => c.code === code.toUpperCase());
 }
 
-export function searchSupportedCities(query: string, limit = 8): SupportedCity[] {
+export function searchSupportedCities(query: string, limit = 8, list: SupportedCity[] = HOTEL_SEARCH_CITIES): SupportedCity[] {
   const q = query.trim().toLowerCase();
-  if (!q) return HOTEL_SEARCH_CITIES;
+  if (!q) return list;
   const starts: SupportedCity[] = [];
   const contains: SupportedCity[] = [];
-  for (const c of HOTEL_SEARCH_CITIES) {
+  for (const c of list) {
     const hay = `${c.code} ${c.name} ${c.country}`.toLowerCase();
     if (c.name.toLowerCase().startsWith(q) || c.code.toLowerCase().startsWith(q)) starts.push(c);
     else if (hay.includes(q)) contains.push(c);
