@@ -14,6 +14,5 @@ export const db: PrismaClient =
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.__prisma = db;
-}
+// One client per server instance, in production too: every extra client opens its own database connections.
+globalThis.__prisma = db;

@@ -3,7 +3,8 @@
 // With ?q=, also Leamigo's full directory (~157k), which is searched, never listed.
 
 import { NextResponse } from 'next/server';
-import { leamigoActivityCities, matchesCity, searchLeamigoCityDirectory } from '@gg/leamigo';
+import { matchesCity, searchLeamigoCityDirectory } from '@gg/leamigo';
+import { cachedCities } from '@/lib/activities/search';
 import { getActor } from '@/lib/auth/ctx';
 import { CITIES } from '@/lib/cities';
 
@@ -13,7 +14,7 @@ export const maxDuration = 60;
 
 export async function GET(req: Request) {
   if (!(await getActor())) return NextResponse.json({ ok: false, error: 'Please sign in.' }, { status: 401 });
-  const lm = await leamigoActivityCities().catch(() => []);
+  const lm = await cachedCities().catch(() => []);
   const q = new URL(req.url).searchParams.get('q');
   if (q) {
     const rows = await searchLeamigoCityDirectory(q).catch(() => []);

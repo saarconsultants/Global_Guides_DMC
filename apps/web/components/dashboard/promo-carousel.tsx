@@ -23,6 +23,11 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
   const [idx, setIdx] = useState(0);
   const hover = useRef(false);
   const n = banners.length;
+  // Slides off screen don't download until they're next up.
+  const [seen, setSeen] = useState<Set<number>>(() => new Set([0, 1]));
+  useEffect(() => {
+    setSeen((prev) => (prev.has(idx) && prev.has((idx + 1) % n) ? prev : new Set([...prev, idx, (idx + 1) % n])));
+  }, [idx, n]);
   // Auto-rotation can be paused by the viewer (WCAG 2.2.2) and never starts
   // for people who ask for reduced motion.
   const [paused, setPaused] = useState(false);
@@ -55,7 +60,7 @@ export function PromoCarousel({ banners }: { banners: PromoBanner[] }) {
               {b.img && (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.img} alt="" decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} className="absolute inset-0 w-full h-full object-cover" />
+                  {seen.has(i) && <img src={b.img} alt="" decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} className="absolute inset-0 w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,12,18,0.84)_0%,rgba(10,12,18,0.5)_45%,rgba(10,12,18,0.1)_85%)]" />
                   <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/55 to-transparent" />
                 </>

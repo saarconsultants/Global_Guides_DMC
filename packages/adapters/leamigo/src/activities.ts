@@ -196,7 +196,7 @@ const INDEX_TTL = 6 * 60 * 60_000;
 const INDEX_RETRY_TTL = 5 * 60_000;   // a partial build is retried sooner
 const SEARCH_BUDGET_MS = 50_000;      // the server stops a request at 60s; return what is priced by then
 const PAGE_SIZE = 100;
-const CONCURRENCY = 8;
+const CONCURRENCY = 12;
 
 let cityIndex: { at: number; ttl: number; cities: LeamigoActivityCity[] } | null = null;
 let cityIndexBuild: Promise<LeamigoActivityCity[]> | null = null;
@@ -289,11 +289,11 @@ async function listCityActivities(cid: number): Promise<any[]> {
   return rows;
 }
 
-export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number }): Promise<{ activities: LeamigoActivity[]; warning?: string; partial?: boolean }> {
+export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; cityIds?: number[]; adults: number; children?: number }): Promise<{ activities: LeamigoActivity[]; warning?: string; partial?: boolean }> {
   if (!isLive()) return { activities: [] };
   const startedAt = Date.now();
   const adults = Math.max(1, input.adults), children = Math.max(0, input.children ?? 0);
-  const ids = input.cityId ? [input.cityId] : await cityIdsFor(input.cityName ?? '', input.countryCode);
+  const ids = input.cityId ? [input.cityId] : input.cityIds?.length ? input.cityIds : await cityIdsFor(input.cityName ?? '', input.countryCode);
   if (!ids.length) return { activities: [], warning: `Leamigo has no activities in ${input.cityName}.` };
   const lists = await Promise.all(ids.map(listCityActivities));
   const list = [...new Map(lists.flat().map((a) => [a.id, a])).values()];

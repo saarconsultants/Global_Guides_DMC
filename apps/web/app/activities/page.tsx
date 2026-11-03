@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { CITY_BANK } from '@/lib/itinerary/mock-inventory';
 import { searchAllActivities } from '@/lib/activities/search';
 import { ActivitySearchForm } from '@/components/activities/search-form';
@@ -26,27 +27,6 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
   const to = sp.to ?? nextWeekIso(2);
   const adults = sp.adults ?? '2';
   const hasQuery = !!sp.city;
-  let cityName = CITY_BANK[city]?.name ?? city;
-  let partial = false;
-
-  let activities: Activity[] = [];
-  let source: 'live' | 'mock' | 'unsupported-city' = 'mock';
-  let warning: string | undefined;
-  let counts = { hotelbeds: 0, leamigo: 0 };
-
-  if (hasQuery) {
-    const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2 });
-    ({ activities, source, warning, counts } = res);
-    cityName = sp.name ?? res.cityName;
-    partial = !!res.partial;
-  }
-
-  const liveCount = counts.hotelbeds + counts.leamigo;
-  const badge =
-    source === 'live' ? { variant: 'live' as const, label: `${liveCount} with live prices` }
-    : source === 'unsupported-city' ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
-    : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
-
   return (
     <div className="pb-12">
       <HeroBand
@@ -93,11 +73,34 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
         </section>
       )}
 
+      {hasQuery && (
+        <Suspense key={`${city}|${from}|${to}|${adults}`} fallback={<ResultsLoading />}>
+          <ActivityResults city={city} from={from} to={to} adults={adults} name={sp.name} />
+        </Suspense>
+      )}
+      </div>
+    </div>
+  );
+}
+
+/** Supplier search, streamed in so the page and search bar appear straight away. */
+async function ActivityResults({ city, from, to, adults, name }: { city: string; from: string; to: string; adults: string; name?: string }) {
+  const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2 });
+  const { activities, source, warning, counts } = res;
+  const cityName = name ?? res.cityName;
+  const partial = !!res.partial;
+  const liveCount = counts.hotelbeds + counts.leamigo;
+  const badge =
+    source === 'live' ? { variant: 'live' as const, label: `${liveCount} with live prices` }
+    : source === 'unsupported-city' ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
+    : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
+
+  return (
+    <>
       {warning && source !== 'live' && (
         <div role="status" className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">{warning} Showing sample activities for now — they can&apos;t be booked.</div>
       )}
 
-      {hasQuery && (
         <>
           <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 text-sm text-[rgb(var(--text-secondary))]">
             <p className="min-w-0">Activities in <span className="font-bold text-ink">{cityName}</span> · <span className="font-mono font-bold text-ink tnum whitespace-nowrap">{formatDateRange(from, to)}</span></p>
@@ -111,7 +114,16 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
           )}
           <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-bold">Add activity</span> on any day.</p>
         </>
-      )}
+    </>
+  );
+}
+
+function ResultsLoading() {
+  return (
+    <div role="status" className="space-y-4">
+      <p className="text-sm text-[rgb(var(--text-secondary))]">Getting live prices…</p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
+        {Array.from({ length: 6 }, (_, i) => <div key={i} className="h-72 rounded-lg bg-surface border border-border-subtle animate-pulse" />)}
       </div>
     </div>
   );

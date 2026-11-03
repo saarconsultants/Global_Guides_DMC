@@ -4,9 +4,42 @@
 // supplier has live results — never mixed in with live ones.
 
 import { searchActivities, isLive as hotelbedsLive, type HotelbedsActivity } from '@gg/hotelbeds';
-import { searchLeamigoActivities, leamigoActivityCities, isLive as leamigoLive, type LeamigoActivity } from '@gg/leamigo';
+import { unstable_cache } from 'next/cache';
+import { searchLeamigoActivities, leamigoActivityCities, matchesCity, isLive as leamigoLive, type LeamigoActivity } from '@gg/leamigo';
 import { activitiesForCity, cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
+
+// Leamigo pricing means a call per activity, seconds in a big city. Vercel's data
+// cache is shared by every server instance, so one agent's search makes the next
+// instant. Prices and availability are rechecked at booking, so an hour is safe.
+const SEARCH_CACHE_S = 60 * 60;
+const CITY_LIST_CACHE_S = 6 * 60 * 60;
+
+type LeamigoResult = Awaited<ReturnType<typeof searchLeamigoActivities>>;
+class IncompleteSearch extends Error { constructor(readonly result: LeamigoResult) { super('incomplete'); } }
+
+export const cachedCities = unstable_cache(() => leamigoActivityCities(), ['leamigo-activity-cities'], { revalidate: CITY_LIST_CACHE_S });
+
+const cachedSearch = unstable_cache(async (input: { cityId?: number; cityIds?: number[]; cityName?: string; countryCode?: string; adults: number; children: number }) => {
+  const result = await searchLeamigoActivities(input);
+  if (result.partial) throw new IncompleteSearch(result);   // never keep half a city
+  return result;
+}, ['leamigo-activity-search'], { revalidate: SEARCH_CACHE_S });
+
+async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }): Promise<LeamigoResult> {
+  try {
+    let cityIds: number[] | undefined;
+    if (!input.cityId) {
+      const cities = await cachedCities().catch(() => []);
+      cityIds = cities.filter((c) => matchesCity(c, input.cityName ?? '', input.countryCode)).map((c) => c.id);
+    }
+    return await cachedSearch({ ...input, cityIds });
+  } catch (e) {
+    if (e instanceof IncompleteSearch) return e.result;
+    console.error('[activities] leamigo', (e as Error)?.message ?? e);
+    return { activities: [], partial: true };
+  }
+}
 
 export interface ActivitySearch {
   cityCode: string;
@@ -36,8 +69,8 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
   if (lmCity) {
     const id = Number(lmCity[1]);
     const [lm, cities] = await Promise.all([
-      searchLeamigoActivities({ cityId: id, adults, children }).catch((e) => { console.error('[activities] leamigo', e?.message ?? e); return { activities: [] as LeamigoActivity[], partial: true }; }),
-      leamigoActivityCities().catch(() => []),
+      leamigoSearch({ cityId: id, adults, children }),
+      cachedCities().catch(() => []),
     ]);
     return {
       activities: lm.activities.map(lmToApp(q.cityCode)), source: 'live',
@@ -54,8 +87,7 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
           .catch((e) => { console.error('[activities] hotelbeds', e?.message ?? e); return { activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: 'error' as string | undefined }; })
       : Promise.resolve({ activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: undefined as string | undefined }),
     leamigoLive()
-      ? searchLeamigoActivities({ cityName: city.name, countryCode: city.countryCode, adults, children })
-          .catch((e) => { console.error('[activities] leamigo', e?.message ?? e); return { activities: [] as LeamigoActivity[], partial: true }; })
+      ? leamigoSearch({ cityName: city.name, countryCode: city.countryCode, adults, children })
       : Promise.resolve({ activities: [] as LeamigoActivity[] }),
   ]);
   if (hb.warning && hb.source !== 'live') console.error('[activities] hotelbeds warning', hb.warning);
