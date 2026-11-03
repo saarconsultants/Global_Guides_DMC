@@ -32,7 +32,7 @@ function cardFacts(a: Activity): string[] {
   ].filter(Boolean) as string[];
 }
 
-export function ActivitiesBrowser({ activities, cityName, travellers }: { activities: Activity[]; cityName: string; travellers: number }) {
+export function ActivitiesBrowser({ activities, cityName, travellers, date }: { activities: Activity[]; cityName: string; travellers: number; date?: string }) {
   const money = useMoney();
   const [detail, setDetail] = useState<Activity | null>(null);
   const filters = useActivityFilters(activities);
@@ -78,11 +78,11 @@ export function ActivitiesBrowser({ activities, cityName, travellers }: { activi
               {fmtDuration(detail.durationMin) && <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{fmtDuration(detail.durationMin)}</span>}
               <span className="inline-flex items-center gap-1 capitalize"><Tag className="w-3.5 h-3.5" />{detail.supplierCategory ?? detail.category}</span>
               <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
-              {detail.supplierName && <span>Operator: {detail.supplierName}</span>}
+              {detail.supplierName && <span>Operator: {detail.supplierName}{detail.supplierVerified ? ' (verified)' : ''}</span>}
             </div>
             {detail.leamigo ? (
               <>
-                <ActivityOptions a={detail} />
+                <ActivityOptions a={detail} date={date} />
                 <ActivityInfo a={detail} />
               </>
             ) : detail.description ? (

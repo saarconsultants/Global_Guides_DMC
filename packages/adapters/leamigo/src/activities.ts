@@ -38,6 +38,7 @@ export interface LeamigoActivity {
   options: LeamigoActivityOption[];
   category?: string;
   supplierName?: string;
+  supplierVerified?: boolean;
 }
 
 export interface ActivityTicketLine { ticketId: string; quantity: number; name: string }
@@ -56,6 +57,9 @@ export interface LeamigoActivityOption {
   instantConfirmation: boolean;
   freeCancellation: boolean;
   cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
+  confirmationType?: string;
+  voucherType?: string;
+  capacity?: number;
   /** The supplier's price list: one guest, or one ticket for a whole group. */
   tickets: Array<{ id: string; name: string; unitPaise: number; rangeFrom: number | null; rangeTo: number | null }>;
 }
@@ -174,6 +178,7 @@ function priceOptions(options: any[], adults: number, children: number, fallback
       priceBasis: perGroup ? 'group' : 'person',
       bookingType: bookingTypeOf(o),
       instantConfirmation: !!o.is_instant_confirmation,
+      confirmationType: o.confirmation_type ?? undefined, voucherType: o.voucher_type ?? undefined, capacity: o.default_capacity ?? undefined,
       freeCancellation: !!cp.free_cancellation,
       cancellationRules: (cp.rules ?? []).map((r: any) => ({ hoursBefore: Number(r.min_hours_before ?? r.minHoursBefore ?? 0), chargePct: Number(r.charge_percentage ?? r.chargePercentage ?? 0) })),
       tickets: (o.tickets ?? []).filter((t: any) => t.status === 'active').map((t: any) => ({
@@ -329,7 +334,7 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
         bookingType: best.bookingType, instantConfirmation: best.instantConfirmation,
         freeCancellation: best.freeCancellation, cancellationRules: best.cancellationRules,
         lines: best.lines, options,
-        category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined,
+        category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined, supplierVerified: !!a.supplier?.is_verified,
       });
     } catch { failed++; }
     finally { finished++; }
@@ -345,7 +350,8 @@ export interface LeamigoActivityInfo {
   operatingHours: Array<{ day: number; start: string; end: string; closed: boolean }>;
   blackoutDates: string[]; validFrom?: string; validTo?: string; productCode?: string;
   address?: string; pickupIncluded?: boolean; latitude?: number; longitude?: number;
-  images: string[]; policies: string[];
+  images: string[]; policies: string[]; highlights: string[];
+  ticketUsage?: string; meetingPoint?: string; meetingInstructions?: string;
   options: Array<{ id: number; name: string; minTravellers?: number; maxTravellers?: number; terms?: string; howToUse?: string; included: string[]; excluded: string[]; eligibility: string[]; voucherType?: string }>;
 }
 
@@ -374,7 +380,12 @@ export async function leamigoActivityInfo(activityId: number): Promise<LeamigoAc
     pickupIncluded: d?.location?.pickup_included ?? undefined,
     latitude: Number(d?.location?.lat) || undefined, longitude: Number(d?.location?.lng) || undefined,
     images: [...new Set<string>(images)],
-    policies: strings(d?.policies),
+    // "General: free shuttle" — the title alone when the supplier repeated it as the text.
+    policies: [...new Set<string>((d?.policies ?? []).map((p: any) => (p?.description && p.description !== p.title ? `${p.title}: ${p.description}` : String(p?.title ?? p?.description ?? ''))).filter(Boolean))],
+    highlights: strings(d?.highlights),
+    ticketUsage: d?.ticket_usage_instructions ?? undefined,
+    meetingPoint: d?.location?.meeting_point ?? undefined,
+    meetingInstructions: d?.location?.meeting_instructions ?? undefined,
     options: (o?.options ?? []).map((x: any) => ({
       id: x.id, name: String(x.name ?? ''),
       minTravellers: Math.min(...(x.tickets ?? []).map((t: any) => Number(t.min_purchase_qty ?? 1)).filter((n: number) => n > 0)),

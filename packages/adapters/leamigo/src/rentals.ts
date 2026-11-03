@@ -25,6 +25,8 @@ export interface LeamigoRental {
   vehicleName: string;
   vehicleModels: string[];
   vehicleImg?: string;
+  vehicleCategory?: string;
+  hourlyPaise?: number;
   maxPax: number;
   maxLuggage: number;
   minimumHours: number;
@@ -40,8 +42,8 @@ export interface LeamigoRental {
 
 interface RawRental {
   provider: { id: string; name: string };
-  vehicle: { id: string; name: string; img?: string; config?: { maxPassengers?: number; maxLuggage?: number; vehicleModels?: string[] } };
-  hourly_pricing: { charged_hours?: number; booked_hours?: number; kms_included?: number; minimum_hours?: number };
+  vehicle: { id: string; name: string; img?: string; category?: string; config?: { maxPassengers?: number; maxLuggage?: number; vehicleModels?: string[] } };
+  hourly_pricing: { charged_hours?: number; booked_hours?: number; kms_included?: number; minimum_hours?: number; price_per_hour_cents?: number };
   supplier_total: { payable_to_supplier: number; supplier_currency: string; precision: number };
   platform_fee?: { amount: number; currency: string; precision: number };
   flags?: { free_cancellation?: boolean; instant_confirmation?: boolean; valid_in_city_radius_only?: boolean; includes_tolls_and_parking?: boolean };
@@ -81,6 +83,8 @@ export async function searchRentals(input: LeamigoRentalSearchInput): Promise<{ 
       provider: r.provider?.name ?? 'Leamigo', providerId: String(r.provider?.id ?? ''),
       vehicleName: r.vehicle?.name ?? 'Car', vehicleModels: r.vehicle?.config?.vehicleModels ?? [],
       maxPax: r.vehicle?.config?.maxPassengers ?? 0, maxLuggage: r.vehicle?.config?.maxLuggage ?? 0,
+      vehicleCategory: r.vehicle?.category || undefined,
+      hourlyPaise: r.hourly_pricing?.price_per_hour_cents ? minorToInrPaise(rates, Number(r.hourly_pricing.price_per_hour_cents), r.supplier_total?.supplier_currency, r.supplier_total?.precision) ?? undefined : undefined,
       vehicleImg: r.vehicle?.img || undefined, minimumHours: r.hourly_pricing?.minimum_hours ?? 0, instantConfirmation: !!r.flags?.instant_confirmation,
       hours: r.hourly_pricing?.charged_hours ?? r.hourly_pricing?.booked_hours ?? input.hours,
       kmsIncluded: r.hourly_pricing?.kms_included ?? 0,

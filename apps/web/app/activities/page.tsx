@@ -110,7 +110,7 @@ async function ActivityResults({ city, from, to, adults, name }: { city: string;
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (
-            <ActivitiesBrowser activities={activities} cityName={cityName} travellers={parseInt(adults, 10) || 2} />
+            <ActivitiesBrowser activities={activities} cityName={cityName} travellers={parseInt(adults, 10) || 2} date={from} />
           )}
           <p className="text-xs text-[rgb(var(--text-tertiary))] text-center pt-2">To add an activity to a customer trip, open the itinerary builder and use <span className="font-bold">Add activity</span> on any day.</p>
         </>

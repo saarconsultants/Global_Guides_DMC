@@ -38,6 +38,11 @@ export interface LeamigoTransfer {
   vehicleName: string;           // "Sedan", "SUV", "Van"…
   vehicleModels: string[];       // indicative only, not guaranteed
   vehicleImg?: string;
+  vehicleCategory?: string;
+  distanceKm?: number;
+  taxesPaise?: number;
+  addons: Array<{ name: string; pricePaise: number | null }>;   // optional, not in the price
+  policies: Array<{ title: string; description?: string }>;
   maxPax: number;
   maxLuggage: number;
   freeWaitMin: number;
@@ -80,13 +85,17 @@ export interface LeamigoOperator {
 interface RawRide {
   provider: { id: string; name: string };
   vehicle: {
-    id: string; name: string; img?: string;
+    id: string; name: string; img?: string; category?: string;
     config: { vehicleModels?: string[]; maxPassengers: number; maxLuggage: number; free_waiting_time: number };
   };
   supplier_total: { payable_to_supplier: number; supplier_currency: string; precision: number };
   platform_fee: { amount: number; currency: string; precision: number };
   priority: number;
   booking_token: string;
+  breakdown?: { total?: { taxes?: number } };
+  pricing_calculation?: { quoted_distance_km?: number };
+  addons?: Array<{ name: string; price: number }>;
+  policies?: Array<{ title: string; description?: string | null }>;
   flags: {
     free_cancellation: boolean; instant_confirmation: boolean; meet_and_greet: boolean;
     driver_details_available: boolean; luxury_transfer: boolean; amendment_available: boolean;
@@ -212,6 +221,11 @@ function normalize(r: RawRide, meta: RawSearchResponse['metadata'], rates: Recor
     vehicleName: r.vehicle?.name ?? 'Car',
     vehicleModels: r.vehicle?.config?.vehicleModels ?? [],
     vehicleImg: r.vehicle?.img || undefined,
+    vehicleCategory: r.vehicle?.category || undefined,
+    distanceKm: Number(r.pricing_calculation?.quoted_distance_km) || undefined,
+    taxesPaise: r.breakdown?.total?.taxes ? minorToInrPaise(rates, Number(r.breakdown.total.taxes), r.supplier_total.supplier_currency, r.supplier_total.precision) ?? undefined : undefined,
+    addons: (r.addons ?? []).map((a) => ({ name: a.name, pricePaise: minorToInrPaise(rates, Number(a.price), r.supplier_total.supplier_currency, r.supplier_total.precision) })),
+    policies: (r.policies ?? []).filter((p) => p.title).map((p) => ({ title: p.title, description: p.description ?? undefined })),
     maxPax: r.vehicle?.config?.maxPassengers ?? 0,
     maxLuggage: r.vehicle?.config?.maxLuggage ?? 0,
     freeWaitMin: r.vehicle?.config?.free_waiting_time ?? 0,

@@ -96,6 +96,8 @@ interface Live {
   driver?: { name?: string; phone?: string; vehicle?: string; color?: string; plate?: string };
   supplier?: { name?: string; phone?: string; email?: string; emergency?: string; contact247?: string; reservations?: string };
   meetingPoints: string[]; voucherUrl?: string; voucherCodes: string[]; flightNumber?: string; addons: string[];
+  from?: string; to?: string; travelDate?: string; travelTime?: string; passengers?: number; vehicle?: string; hours?: number; kmsIncluded?: number;
+  tickets: Array<{ name: string; quantity: number }>; policies: string[];
 }
 
 const nice = (s?: string) => (s ? s.replace(/_/g, ' ') : '');
@@ -141,6 +143,10 @@ function LeamigoLivePanel({ bookingId, reference, ourStatus, open }: { bookingId
     <div className="pt-2 mt-1 border-t border-border-subtle space-y-1 text-xs text-[rgb(var(--text-secondary))]">
       <p>Leamigo status: <span className="font-semibold text-ink capitalize">{nice(live.status)}{live.serviceStatus ? ` · ${nice(live.serviceStatus)}` : ''}</span></p>
       {ourStatus === 'CONFIRMED' && cancelledThere && <p role="alert" className="rounded bg-amber-50 text-amber-800 px-2 py-1">Leamigo shows this as cancelled, but it is still confirmed here. Contact Leamigo before the trip.</p>}
+      {(live.from || live.to) && <p>Route: <span className="text-ink">{[live.from, live.to].filter(Boolean).join(' → ')}</span></p>}
+      {live.travelDate && <p>When: <span className="text-ink tnum">{[live.travelDate, live.travelTime].filter(Boolean).join(' at ')}</span></p>}
+      {(live.passengers || live.vehicle || live.hours) && <p>Booked: <span className="text-ink">{[live.passengers ? `${live.passengers} guest${live.passengers !== 1 ? 's' : ''}` : null, live.vehicle, live.hours ? `${live.hours} hours` : null, live.kmsIncluded ? `${live.kmsIncluded} km included` : null].filter(Boolean).join(' · ')}</span></p>}
+      {live.tickets.length > 0 && <p>Tickets: <span className="text-ink">{live.tickets.map((t) => `${t.quantity} × ${t.name}`).join(', ')}</span></p>}
       {live.supplierReference && <p>Supplier reference: <span className="font-mono text-ink">{live.supplierReference}</span></p>}
       {live.confirmationDeadline && <p>Confirm by: <span className="text-ink">{live.confirmationDeadline}</span></p>}
       {live.driver && <p>Driver: <span className="text-ink">{[live.driver.name, live.driver.phone, live.driver.vehicle, live.driver.color, live.driver.plate].filter(Boolean).join(' · ')}</span></p>}
@@ -149,6 +155,7 @@ function LeamigoLivePanel({ bookingId, reference, ourStatus, open }: { bookingId
       {live.flightNumber && <p>Flight: <span className="font-mono text-ink">{live.flightNumber}</span></p>}
       {live.meetingPoints.length > 0 && <p>Meeting point: <span className="text-ink">{live.meetingPoints.join(' · ')}</span></p>}
       {live.addons.length > 0 && <p>Add-ons: <span className="text-ink">{live.addons.join(', ')}</span></p>}
+      {live.policies.length > 0 && <p>Policies: <span className="text-ink">{live.policies.join(' · ')}</span></p>}
       {live.voucherCodes.length > 0 && <p>Voucher codes: <span className="font-mono text-ink">{live.voucherCodes.join(', ')}</span></p>}
       {live.voucherUrl && (live.voucherUrl.startsWith('data:image/')
         // eslint-disable-next-line @next/next/no-img-element

@@ -5,6 +5,7 @@
 
 import { searchTransfers, isLive, leamigoCityPoint, type LeamigoTransfer } from '@gg/leamigo';
 import { cityInfo } from '@/lib/itinerary/mock-inventory';
+import { cancellationRulesText } from '@/lib/activities/format';
 import type { Transfer, TransferVehicle, LeamigoLeg } from '@/lib/itinerary/types';
 
 export { isLive as leamigoIsLive };
@@ -28,16 +29,17 @@ export async function cityPoint(cityCode?: string): Promise<PlacePoint | null> {
 /** Default pickup times when no flight time is known. */
 export const DEFAULT_PICKUP = { arrival: '12:00', departure: '10:00', 'inter-city': '10:00', rental: '09:00' } as const;
 
-/** The supplier's own wording, or its fee rules spelled out when it sent no wording. */
+/** The supplier's own wording, followed by its fee rules in words. */
 export function cancellationText(c: { description?: string; rules: Array<{ hoursBefore: number; chargePct: number }> }): string | undefined {
-  if (c.description?.trim()) return c.description.trim();
-  if (!c.rules.length) return undefined;
-  return [...c.rules].sort((a, b) => b.hoursBefore - a.hoursBefore).map((r) => `${r.chargePct}% charge from ${r.hoursBefore} hours before pickup`).join('; ');
+  return [c.description?.trim(), cancellationRulesText(c.rules)].filter(Boolean).join('. ') || undefined;
 }
+
+const PREMIUM_VEHICLE = /premium|luxury|executive|business|vip|limo/i;
 
 function vehicleOf(t: LeamigoTransfer): TransferVehicle {
   if (t.shared) return 'SHARED';
-  if (t.luxury) return 'PRIVATE_PREMIUM';
+  // The flag alone misses vehicles Leamigo only names as premium ("Premium Car").
+  if (t.luxury || PREMIUM_VEHICLE.test(`${t.vehicleName} ${t.vehicleCategory ?? ''}`)) return 'PRIVATE_PREMIUM';
   return 'PRIVATE';
 }
 
@@ -61,6 +63,7 @@ export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kin
         t.flags.childSeat && 'Child seat available', t.flags.amendable && 'Can be amended',
       ].filter(Boolean) as string[],
       cancellation: cancellationText(t.cancellation),
+      category: t.vehicleCategory, distanceKm: t.distanceKm, taxesPaise: t.taxesPaise, extras: t.addons, policies: t.policies,
     },
     ...(ctx.leg ? { leamigo: { ...ctx.leg, providerId: t.providerId, vehicleName: t.vehicleName, shared: t.shared, luxury: t.luxury } } : {}),
   };

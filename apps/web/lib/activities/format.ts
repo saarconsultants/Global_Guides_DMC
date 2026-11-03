@@ -46,3 +46,12 @@ export function forTrip(a: Activity): Activity {
   const { options: _options, ...rest } = a;
   return rest;
 }
+
+/** A supplier's cancellation rules in words. */
+export function cancellationRulesText(rules: Array<{ hoursBefore: number; chargePct: number }>): string | undefined {
+  if (!rules.length) return undefined;
+  if (rules.every((r) => r.chargePct >= 100)) return 'Non-refundable';
+  return [...rules].sort((a, b) => b.hoursBefore - a.hoursBefore)
+    .map((r) => (r.hoursBefore > 0 ? `${r.chargePct}% charge if cancelled ${r.hoursBefore}+ hours before` : `${r.chargePct}% charge after that`))
+    .join('; ');
+}

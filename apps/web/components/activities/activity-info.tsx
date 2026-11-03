@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useMoney } from '@/components/providers/currency-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { cancellationRulesText } from '@/lib/activities/format';
 import type { Activity, ActivityOptionChoice } from '@/lib/itinerary/types';
 
 interface Info {
@@ -9,6 +10,7 @@ interface Info {
   operatingHours: Array<{ day: number; start: string; end: string; closed: boolean }>;
   blackoutDates: string[]; validFrom?: string; validTo?: string; productCode?: string;
   address?: string; pickupIncluded?: boolean; images: string[]; policies: string[];
+  highlights: string[]; ticketUsage?: string; meetingPoint?: string; meetingInstructions?: string;
   options: Array<{ id: number; name: string; minTravellers?: number; maxTravellers?: number; terms?: string; howToUse?: string; included: string[]; excluded: string[]; eligibility: string[]; voucherType?: string }>;
 }
 
@@ -25,8 +27,35 @@ function ticketLabel(t: ActivityOptionChoice['tickets'][number]) {
   return `${t.name}${range}`;
 }
 
+const nice = (v: string) => { const t = v.replace(/_/g, ' ').replace(/\bqr\b/i, 'QR'); return t.charAt(0).toUpperCase() + t.slice(1); };
+
+interface Availability { available: boolean; capacity?: number | null; questions?: string[]; times: Array<{ start: string; available: boolean; seatsLeft: number | null }> }
+
+/** Places and start times for one option on the searched date. */
+function OptionAvailability({ activityId, option, date }: { activityId: number; option: ActivityOptionChoice; date: string }) {
+  const [av, setAv] = useState<Availability | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch('/api/activity-times', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activityId, optionId: option.optionId, ticketId: option.ticketId, quantity: option.quantity, lines: option.lines, date }) })
+      .then((r) => r.json()).then((r) => { if (live && r.ok) setAv({ available: !!r.available, capacity: r.capacity, questions: r.questions, times: r.times ?? [] }); }).catch(() => {});
+    return () => { live = false; };
+  }, [activityId, option.optionId, option.ticketId, option.quantity, option.lines, date]);
+  if (!av) return null;
+  const day = new Date(`${date}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const open = av.times.filter((t) => t.available);
+  return (
+    <div className="mt-1 text-xs">
+      {!av.available ? <p className="font-semibold text-danger-500">Sold out on {day}</p>
+        : av.times.length > 0 ? <p className="text-ink">{day}: {open.length ? open.slice(0, 10).map((t) => `${t.start}${t.seatsLeft !== null ? ` (${t.seatsLeft} left)` : ''}`).join(', ') : 'no start times left'}{open.length > 10 ? ` and ${open.length - 10} more` : ''}</p>
+        : <p className="text-ink">Available on {day}{av.capacity ? ` · ${av.capacity} places left` : ''}</p>}
+      {av.questions && av.questions.length > 0 && <p className="text-[rgb(var(--text-secondary))]">Supplier asks for: {av.questions.join(', ')}</p>}
+    </div>
+  );
+}
+
 /** The option list. With `onChoose` an agent can switch option; without it, it reads as a price list. */
-export function ActivityOptions({ a, chosenOptionId, onChoose }: { a: Activity; chosenOptionId?: number; onChoose?: (o: ActivityOptionChoice) => void }) {
+export function ActivityOptions({ a, chosenOptionId, onChoose, date }: { a: Activity; chosenOptionId?: number; onChoose?: (o: ActivityOptionChoice) => void; date?: string }) {
   const money = useMoney();
   const options = a.options ?? [];
   if (options.length === 0) return null;
@@ -45,8 +74,10 @@ export function ActivityOptions({ a, chosenOptionId, onChoose }: { a: Activity; 
                   {o.tickets.map((t) => `${ticketLabel(t)}: ${money(t.unitPaise)}`).join(' · ')}
                 </p>
                 <p className="mt-1 text-xs text-[rgb(var(--text-secondary))]">
-                  {[o.instantConfirmation ? 'Instant confirmation' : 'Confirmed by supplier', o.freeCancellation ? 'Free cancellation' : 'Non-refundable', o.bookingType === 'date_time_required' ? 'Pick a start time' : o.bookingType === 'open_dated' ? 'Open date' : null].filter(Boolean).join(' · ')}
+                  {[o.instantConfirmation ? 'Instant confirmation' : 'Confirmed by supplier', o.voucherType && `${nice(o.voucherType)} voucher`, o.capacity ? `Up to ${o.capacity} guests` : null, o.freeCancellation ? 'Free cancellation' : 'Non-refundable', o.bookingType === 'date_time_required' ? 'Pick a start time' : o.bookingType === 'open_dated' ? 'Open date' : null].filter(Boolean).join(' · ')}
                 </p>
+                {!o.freeCancellation && cancellationRulesText(o.cancellationRules) && cancellationRulesText(o.cancellationRules) !== 'Non-refundable' && <p className="mt-1 text-xs text-[rgb(var(--text-secondary))]">Cancellation: {cancellationRulesText(o.cancellationRules)}</p>}
+                {date && o.bookingType !== 'open_dated' && a.leamigo && <OptionAvailability activityId={a.leamigo.activityId} option={o} date={date} />}
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="money text-[15px] text-ink">{money(o.pricePaise)}</p>
@@ -101,10 +132,12 @@ export function ActivityInfo({ a, chosenOptionId }: { a: Activity; chosenOptionI
         </Section>
       )}
       {info.description && <Section title="About this experience"><Paragraphs text={info.description} /></Section>}
+      {info.highlights.length > 0 && <Section title="Highlights"><List items={info.highlights} /></Section>}
       {included.length > 0 && <Section title="Included"><List items={included} /></Section>}
       {excluded.length > 0 && <Section title="Not included"><List items={excluded} /></Section>}
       {opt?.eligibility.length ? <Section title="Who can join"><List items={opt.eligibility} /></Section> : null}
       {opt?.howToUse && <Section title="How to use"><Paragraphs text={opt.howToUse} /></Section>}
+      {info.ticketUsage && <Section title="Using the ticket"><Paragraphs text={info.ticketUsage} /></Section>}
       {info.knowBeforeYouGo && <Section title="Know before you go"><Paragraphs text={info.knowBeforeYouGo} /></Section>}
       {open.length > 0 && (
         <Section title="Opening hours">
@@ -115,6 +148,9 @@ export function ActivityInfo({ a, chosenOptionId }: { a: Activity; chosenOptionI
         <Section title="Where">
           {info.address}{info.pickupIncluded !== undefined && <span className="block text-xs text-[rgb(var(--text-secondary))] mt-0.5">{info.pickupIncluded ? 'Pickup included' : 'Pickup not included'}</span>}
         </Section>
+      )}
+      {(info.meetingPoint || info.meetingInstructions) && (
+        <Section title="Meeting point">{info.meetingPoint}{info.meetingInstructions && <span className="block text-xs text-[rgb(var(--text-secondary))] mt-0.5">{info.meetingInstructions}</span>}</Section>
       )}
       {info.blackoutDates.length > 0 && <Section title="Not available on"><p className="font-mono text-xs">{info.blackoutDates.join(', ')}</p></Section>}
       {opt?.terms && <Section title="Terms and conditions"><Paragraphs text={opt.terms} /></Section>}

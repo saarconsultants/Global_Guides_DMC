@@ -82,6 +82,9 @@ export interface TransferSupplierInfo {
   kmsIncluded?: number; minimumHours?: number;
   features: string[];          // "Instant confirmation", "Meet & greet"…
   cancellation?: string;
+  category?: string; distanceKm?: number; taxesPaise?: number; hourlyPaise?: number;
+  extras?: Array<{ name: string; pricePaise: number | null }>;   // optional, not in the price
+  policies?: Array<{ title: string; description?: string }>;
 }
 
 export interface LeamigoRentalLeg {
@@ -132,6 +135,7 @@ export interface Activity {
   options?: ActivityOptionChoice[];
   supplierCategory?: string;
   supplierName?: string;
+  supplierVerified?: boolean;
 }
 
 export interface ActivityOptionChoice {
@@ -140,6 +144,7 @@ export interface ActivityOptionChoice {
   pricePaise: number; perPersonPaise: number; priceBasis: 'person' | 'group';
   bookingType: 'date_required' | 'date_time_required' | 'open_dated';
   instantConfirmation: boolean; freeCancellation: boolean;
+  confirmationType?: string; voucherType?: string; capacity?: number;
   cancellationRules: Array<{ hoursBefore: number; chargePct: number }>;
   tickets: Array<{ id: string; name: string; unitPaise: number; rangeFrom: number | null; rangeTo: number | null }>;
 }

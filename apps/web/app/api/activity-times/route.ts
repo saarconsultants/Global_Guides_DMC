@@ -38,7 +38,9 @@ export async function POST(req: Request) {
         pricePaise,
       };
     });
-    return NextResponse.json({ ok: true, available: true, times, anyTime: times.length === 0 });
+    // Name, email and phone are answered at booking; anything else the agent should know about.
+    const questions = av.requiredFields.filter((f) => f.required && !/name|e-?mail|phone|mobile/i.test(`${f.id} ${f.name}`)).map((f) => f.name);
+    return NextResponse.json({ ok: true, available: true, times, anyTime: times.length === 0, capacity: av.capacity, questions });
   } catch (e: any) {
     console.error('[activity-times]', e?.message);
     return NextResponse.json({ ok: false, error: "Start times couldn't load. Try again in a minute." });

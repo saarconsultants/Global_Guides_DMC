@@ -100,6 +100,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       ) : detail ? (
         <ActivityDetail
           a={detail}
+          date={date}
           isCurrent={detail.id === currentId}
           onBack={() => setDetail(null)}
           onOption={(o) => setDetail(withOption(detail, o))}
@@ -179,7 +180,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   );
 }
 
-function ActivityDetail({ a, isCurrent, onBack, onAdd, onOption }: { a: Activity; isCurrent: boolean; onBack: () => void; onAdd: () => void; onOption: (o: NonNullable<Activity['options']>[number]) => void }) {
+function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Activity; date?: string; isCurrent: boolean; onBack: () => void; onAdd: () => void; onOption: (o: NonNullable<Activity['options']>[number]) => void }) {
   const money = useMoney();
   return (
     <div className="space-y-4">
@@ -205,7 +206,7 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd, onOption }: { a: Activity
 
       {a.leamigo ? (
         <>
-          <ActivityOptions a={a} chosenOptionId={a.leamigo.optionId} onChoose={onOption} />
+          <ActivityOptions a={a} chosenOptionId={a.leamigo.optionId} onChoose={onOption} date={date} />
           <ActivityInfo a={a} chosenOptionId={a.leamigo.optionId} />
         </>
       ) : a.description ? (

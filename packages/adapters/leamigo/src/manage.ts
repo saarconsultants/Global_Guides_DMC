@@ -49,6 +49,10 @@ export interface LeamigoBookingLive {
   meetingPoints: string[];
   voucherUrl?: string; voucherCodes: string[];
   flightNumber?: string; addons: string[];
+  from?: string; to?: string; travelDate?: string; travelTime?: string; passengers?: number;
+  vehicle?: string; hours?: number; kmsIncluded?: number;
+  tickets: Array<{ name: string; quantity: number }>;
+  policies: string[];
 }
 
 const text = (v: any): string => (typeof v === 'string' ? v : v?.instructions ?? v?.description ?? v?.address ?? v?.name ?? v?.title ?? '');
@@ -66,6 +70,16 @@ export async function leamigoBookingLive(product: LeamigoProduct, reference: str
     voucherCodes: (d?.voucher_codes ?? []).map((v: any) => (typeof v === 'string' ? v : v?.code ?? '')).filter(Boolean),
     flightNumber: d?.flight_number ?? undefined,
     addons: (d?.addons ?? []).map(text).filter(Boolean),
+    from: d?.route?.pickup_address ?? d?.pickup?.address ?? undefined,
+    to: d?.route?.drop_address ?? undefined,
+    travelDate: d?.pickup_date ?? d?.pickup?.date ?? d?.visit_date ?? undefined,
+    travelTime: String(d?.pickup_time ?? d?.pickup?.time ?? d?.timeslot ?? '').slice(0, 5) || undefined,
+    passengers: d?.passengers ?? d?.rental?.passengers ?? d?.total_quantity ?? undefined,
+    vehicle: d?.vehicle?.category ?? undefined,
+    hours: d?.rental?.charged_hours ?? undefined,
+    kmsIncluded: d?.rental?.kms_included ?? undefined,
+    tickets: (d?.items ?? []).map((i: any) => ({ name: String(i.ticket_name ?? ''), quantity: Number(i.quantity ?? 0) })),
+    policies: [...new Set<string>((Array.isArray(d?.policies) ? d.policies : d?.policies?.policies ?? []).map((p: any) => (p?.description && p.description !== p.title ? `${p.title}: ${p.description}` : String(p?.title ?? ''))).filter(Boolean))],
   };
 }
 

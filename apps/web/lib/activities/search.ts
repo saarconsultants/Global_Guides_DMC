@@ -24,7 +24,7 @@ const cachedSearch = unstable_cache(async (input: { cityId?: number; cityIds?: n
   const result = await searchLeamigoActivities(input);
   if (result.partial) throw new IncompleteSearch(result);   // never keep half a city
   return result;
-}, ['leamigo-activity-search'], { revalidate: SEARCH_CACHE_S });
+}, ['leamigo-activity-search-v2'], { revalidate: SEARCH_CACHE_S });
 
 async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }): Promise<LeamigoResult> {
   try {
@@ -134,4 +134,5 @@ const lmToApp = (cityCode: string) => (a: LeamigoActivity): Activity => ({
   options: a.options,
   supplierCategory: a.category,
   supplierName: a.supplierName,
+  supplierVerified: a.supplierVerified,
 });

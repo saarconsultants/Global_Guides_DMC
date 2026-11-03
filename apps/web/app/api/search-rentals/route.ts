@@ -44,6 +44,7 @@ export async function POST(req: Request) {
             r.tollsAndParkingIncluded && 'Tolls and parking included', r.cityRadiusOnly && 'Within the city only',
           ].filter(Boolean) as string[],
           cancellation: cancellationText(r.cancellation),
+          category: r.vehicleCategory, hourlyPaise: r.hourlyPaise,
         },
         leamigoRental: { pickup, pickupDate: b.pickupDate, pickupTime: b.pickupTime, hours, passengers, providerId: r.providerId, vehicleName: r.vehicleName },
       });
