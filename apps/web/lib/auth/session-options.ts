@@ -1,5 +1,5 @@
 // Session cookie config + payload type. Kept free of `next/headers` so the edge
-// middleware can import it without pulling in server-only modules.
+// the proxy can import it without pulling in server-only modules.
 
 import type { SessionOptions } from 'iron-session';
 

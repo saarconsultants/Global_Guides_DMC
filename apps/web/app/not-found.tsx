@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Page not found — Global Guides DMC
 
 /**
  * App-wide 404. Signed-in people get "Back to dashboard"; signed-out visitors
- * (middleware lets unknown URLs through to here) get "Go to sign in".
+ * (the proxy lets unknown URLs through to here) get "Go to sign in".
  */
 export default async function NotFound() {
   const actor = await getActor().catch(() => null);

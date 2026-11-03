@@ -26,7 +26,7 @@ function isAppRoute(pathname: string): boolean {
   return APP_SECTIONS.has(first);
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
@@ -59,7 +59,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   // Run on everything except internal Next routes & static assets
   // Public routes (login, the customer proposal page, invites, widget, public API)
-  // are excluded here as well, so they skip the middleware invocation entirely.
+  // are excluded here as well, so they skip the proxy invocation entirely.
   // PUBLIC_PREFIXES above stays as the in-function guard.
   matcher: ['/((?!_next/static|_next/image|favicon.ico|login|signup|logout|p/|invite/|api/public|widget/|brand/|.*\\..*).*)'],
 };

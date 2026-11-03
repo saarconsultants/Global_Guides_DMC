@@ -15,14 +15,6 @@ const nextConfig = {
     ];
   },
   typedRoutes: true,
-  // Keeps saves from waiting ~4 s to show on screen; see the loader for details.
-  webpack(config) {
-    config.module.rules.push({
-      test: /next[\\/]dist[\\/]compiled[\\/]react-dom(-experimental)?[\\/]cjs[\\/]react-dom-client\.(production|development)\.js$/,
-      use: [join(process.cwd(), 'scripts/react-ping-fix-loader.cjs')],
-    });
-    return config;
-  },
   // Trace from the monorepo root so Vercel's file tracer picks up workspace deps
   outputFileTracingRoot: join(process.cwd(), '../..'),
   // Force-include Next.js internal modules that nft sometimes misses on Vercel.

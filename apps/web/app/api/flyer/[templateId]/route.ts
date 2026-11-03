@@ -1,5 +1,5 @@
 // GET /api/flyer/[templateId] → returns a branded PDF using the logged-in
-// agency's brand + the given template's content. Auth required (middleware).
+// agency's brand + the given template's content. Auth required (proxy).
 
 import { NextResponse } from 'next/server';
 import { renderToStream } from '@react-pdf/renderer';
