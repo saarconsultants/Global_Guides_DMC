@@ -10,49 +10,73 @@ import { NextResponse } from 'next/server';
 import { searchTransfers, isLive as hotelbedsIsLive, type HotelbedsTransfer } from '@gg/hotelbeds';
 import type { Transfer, TransferVehicle } from '@/lib/itinerary/types';
 import { airportPlace } from '@/lib/airport-coords';
-import { quoteLeamigoLeg, hotelPoint, pickDefault, leamigoIsLive } from '@/lib/transfers/leamigo';
+import { quoteLeamigoLeg, hotelPoint, cityPoint, pickDefault, leamigoIsLive } from '@/lib/transfers/leamigo';
+import { cityInfo } from '@/lib/itinerary/mock-inventory';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 interface Body {
-  kind: 'arrival' | 'departure';
-  airportCode: string;
+  kind: 'arrival' | 'departure' | 'inter-city';
+  airportCode?: string;
   airportName?: string;
+  cityCode?: string;                       // the day's city: its centre stands in for a hotel with no coordinates
+  fromCityCode?: string;                   // inter-city only
   hotelAtlasCode?: string;                 // Hotelbeds hotel code (without HB-)
-  hotel: { name: string; address?: string; latitude?: number; longitude?: number };
+  hotel?: { name: string; address?: string; latitude?: number; longitude?: number };
   pickupDate: string;                      // YYYY-MM-DD
   pickupTime?: string;                     // HH:mm, from the attached flight when known
   adults: number;
   children?: number;
 }
 
+const respond = (all: Transfer[], live: boolean, warnings: Array<string | undefined>) => NextResponse.json({
+  ok: true,
+  transfer: pickDefault(all),
+  alternatives: all,
+  source: live ? 'live' : 'mock',
+  warning: warnings.filter(Boolean).join(' ') || (!hotelbedsIsLive('transfers') && !leamigoIsLive() ? 'No transfer supplier keys are set.' : undefined),
+});
+
 export async function POST(req: Request) {
   let input: Body;
   try { input = await req.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 }); }
-  if (!input?.airportCode || !input?.hotel?.name || !/^\d{4}-\d{2}-\d{2}$/.test(input.pickupDate ?? '') || (input.kind !== 'arrival' && input.kind !== 'departure')) {
-    return NextResponse.json({ ok: false, error: 'Missing airport, hotel, date or transfer kind.' }, { status: 400 });
+  const interCity = input?.kind === 'inter-city';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input?.pickupDate ?? '') || !['arrival', 'departure', 'inter-city'].includes(input?.kind)
+    || (interCity ? !input.fromCityCode || !input.cityCode : !input.airportCode)) {
+    return NextResponse.json({ ok: false, error: 'Missing route, date or transfer kind.' }, { status: 400 });
+  }
+  const pax = (input.adults || 1) + (input.children ?? 0);
+
+  if (interCity) {
+    const [from, to] = await Promise.all([cityPoint(input.fromCityCode), cityPoint(input.cityCode)]);
+    if (!from || !to) return respond([], false, []);
+    const res = await quoteLeamigoLeg({
+      kind: 'inter-city', from, to, fromName: `${cityInfo(input.fromCityCode!).name} (City)`, toName: `${cityInfo(input.cityCode!).name} (City)`,
+      pickupDate: input.pickupDate, pickupTime: input.pickupTime, passengers: pax,
+    });
+    return respond([...res.transfers].sort((a, b) => a.pricePaise - b.pricePaise), res.live, [res.warning]);
   }
 
+  const hotelName = input.hotel?.name || `${input.cityCode ? cityInfo(input.cityCode).name : 'City'} centre`;
   const arrival = input.kind === 'arrival';
-  const airportName = input.airportName ?? input.airportCode;
-  const fromName = arrival ? airportName : input.hotel.name;
-  const toName = arrival ? input.hotel.name : airportName;
-  const pax = (input.adults || 1) + (input.children ?? 0);
+  const airportName = input.airportName ?? input.airportCode!;
+  const fromName = arrival ? airportName : hotelName;
+  const toName = arrival ? hotelName : airportName;
 
   const hbTask = (async (): Promise<{ transfers: Transfer[]; live: boolean; warning?: string }> => {
     if (!input.hotelAtlasCode) return { transfers: [], live: false };
     const res = await searchTransfers({
-      fromType: arrival ? 'IATA' : 'ATLAS', fromCode: arrival ? input.airportCode : input.hotelAtlasCode,
-      toType: arrival ? 'ATLAS' : 'IATA', toCode: arrival ? input.hotelAtlasCode : input.airportCode,
+      fromType: arrival ? 'IATA' : 'ATLAS', fromCode: arrival ? input.airportCode! : input.hotelAtlasCode,
+      toType: arrival ? 'ATLAS' : 'IATA', toCode: arrival ? input.hotelAtlasCode : input.airportCode!,
       pickupDate: input.pickupDate, adults: input.adults || 1, children: input.children ?? 0, infants: 0,
     });
     return { transfers: res.transfers.map((t) => hbToApp(t, input.kind, fromName, toName)), live: res.source === 'live', warning: res.source === 'live' ? res.warning : undefined };
   })();
 
   const lmTask = (async () => {
-    const airport = airportPlace(input.airportCode);
-    const hotel = hotelPoint(input.hotel);
+    const airport = airportPlace(input.airportCode!);
+    const hotel = (input.hotel ? hotelPoint({ ...input.hotel, name: hotelName }) : null) ?? await cityPoint(input.cityCode);
     if (!airport || !hotel) return { transfers: [] as Transfer[], live: false, warning: leamigoIsLive() && !hotel ? 'Leamigo skipped: this hotel has no coordinates from its supplier.' : undefined };
     return quoteLeamigoLeg({
       kind: input.kind, from: arrival ? airport : hotel, to: arrival ? hotel : airport,
@@ -63,15 +87,7 @@ export async function POST(req: Request) {
   const [hb, lm] = await Promise.allSettled([hbTask, lmTask]);
   const parts = [hb, lm].map((r) => (r.status === 'fulfilled' ? r.value : { transfers: [] as Transfer[], live: false, warning: String((r as PromiseRejectedResult).reason?.message ?? r.reason) }));
   const all = parts.flatMap((p) => p.transfers).sort((a, b) => a.pricePaise - b.pricePaise);
-  const warnings = parts.map((p) => p.warning).filter(Boolean) as string[];
-
-  return NextResponse.json({
-    ok: true,
-    transfer: pickDefault(all),
-    alternatives: all,
-    source: parts.some((p) => p.live) ? 'live' : 'mock',
-    warning: warnings.join(' ') || (!hotelbedsIsLive('transfers') && !leamigoIsLive() ? 'No transfer supplier keys are set.' : undefined),
-  });
+  return respond(all, parts.some((p) => p.live), parts.map((p) => p.warning));
 }
 
 function hbToApp(t: HotelbedsTransfer, kind: Transfer['kind'], fromName: string, toName: string): Transfer {

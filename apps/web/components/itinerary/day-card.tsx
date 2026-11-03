@@ -25,6 +25,7 @@ interface Props {
   onSetActivity: (slot: 'morning'|'afternoon'|'evening', a: Activity | undefined) => void;
   onRemoveTransfer: (transferId: string) => void;
   onAddTransfer?: (transfer: Transfer) => void;
+  onReplaceTransfer?: (oldId: string, transfer: Transfer) => void;
   onSetArrivalDetails?:   (details: { flightNumber: string; arrivalTime: string }) => void;
   onSetDepartureDetails?: (details: { flightNumber: string; departureTime: string }) => void;
   // Auto-fill values derived from the flight attached via Flights search.
@@ -39,26 +40,28 @@ const heading = (d: Day) => {
   return `Stay in ${d.cityName}`;
 };
 
-export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoords, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onSetArrivalDetails, onSetDepartureDetails, arrivalPrefill, departurePrefill }: Props) {
+export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoords, airportCode, airportName, paxAdults, paxChildren, onSetActivity, onRemoveTransfer, onAddTransfer, onReplaceTransfer, onSetArrivalDetails, onSetDepartureDetails, arrivalPrefill, departurePrefill }: Props) {
   const money = useMoney();
   const [slotOpen, setSlotOpen] = useState<'morning'|'afternoon'|'evening' | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [flightOpen, setFlightOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [changing, setChanging] = useState<Transfer | undefined>();   // the transfer being swapped, if any
   const [rentalOpen, setRentalOpen] = useState(false);
 
   // Does this day already have a transfer matching its type? Arrival/departure days
   // expect an airport transfer; if it was removed, surface a re-add button.
-  const expectsTransfer = day.type === 'arrival' || day.type === 'departure';
+  const legKind = day.type === 'transit' ? 'inter-city' : day.type;
+  const expectsTransfer = day.type === 'arrival' || day.type === 'departure' || day.type === 'transit';
   const hasAirportTransfer = day.inclusions.some(
-    (inc) => inc.kind === 'transfer' && inc.transfer.kind === day.type,
+    (inc) => inc.kind === 'transfer' && inc.transfer.kind === legKind,
   );
-  const showAddTransfer = expectsTransfer && !hasAirportTransfer && !!onAddTransfer && !!airportCode && (!!hotelAtlasCode || !!hotelCoords);
+  const showAddTransfer = expectsTransfer && !hasAirportTransfer && !!onAddTransfer && (day.type === 'transit' ? !!day.fromCityCode : !!airportCode);
 
   // "Add activity" shows on every day that still has a free slot (arrival
   // days included); it opens the first empty slot. Transit days have no slots.
   const firstFreeSlot = day.type === 'transit' ? null : (['morning', 'afternoon', 'evening'] as const).find((s) => !day[s]) ?? null;
-  const showRental = day.type === 'stay' && !!hotelCoords && !!onAddTransfer;
+  const showRental = day.type === 'stay' && !!onAddTransfer;
 
   const missing = day.type === 'arrival' && !day.arrivalDetails ? 'Arrival information is missing'
                 : day.type === 'departure' && !day.departureDetails ? 'Departure information is missing'
@@ -150,6 +153,9 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
                       <span className="block text-[12px] text-[rgb(var(--text-secondary))] tnum">{t.kind === 'rental' ? `${t.leamigoRental?.vehicleName ?? 'Car'} · starts ${t.leamigoRental?.pickupTime ?? ''}` : `${vehicleLabel(t.vehicle)} · ${t.bagsAllowed} bags`}</span>
                     </span>
                     <span className="money text-[13.5px] text-ink">{money(t.pricePaise)}</span>
+                    {t.kind !== 'rental' && onReplaceTransfer && (
+                      <button type="button" onClick={() => { setChanging(t); setTransferOpen(true); }} className="min-h-7 hit-area px-1.5 text-[12.5px] font-bold text-crimson-700 hover:underline">Change</button>
+                    )}
                     <button onClick={() => onRemoveTransfer(t.id)} className="w-7 h-7 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-tertiary))] hover:text-danger-500 hover:bg-danger-100" aria-label="Remove transfer"><X className="w-4 h-4" /></button>
                   </li>
                 );
@@ -173,7 +179,7 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
               <Button size="sm" variant="secondary" onClick={() => setRentalOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Car with driver</Button>
             )}
             {showAddTransfer && (
-              <Button size="sm" variant="secondary" onClick={() => setTransferOpen(true)} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
+              <Button size="sm" variant="secondary" onClick={() => { setChanging(undefined); setTransferOpen(true); }} className="gap-1.5"><Car className="w-3.5 h-3.5" />Add {day.type === 'transit' ? 'inter-city' : day.type === 'arrival' ? 'arrival' : 'departure'} transfer</Button>
             )}
           </footer>
         )}
@@ -195,35 +201,42 @@ export function DayCard({ day, hotelNameForOvernight, hotelAtlasCode, hotelCoord
         />
       )}
 
-      {transferOpen && (day.type === 'arrival' || day.type === 'departure') && airportCode && (hotelAtlasCode || hotelCoords) && onAddTransfer && (
+      {transferOpen && (day.type === 'arrival' || day.type === 'departure' || day.type === 'transit') && onAddTransfer && (
         <AddTransferModal
           open={transferOpen}
           onClose={() => setTransferOpen(false)}
-          kind={day.type}
+          kind={day.type === 'transit' ? 'inter-city' : day.type}
           cityCode={day.cityCode}
           cityName={day.cityName}
+          fromCityCode={day.fromCityCode}
+          fromCityName={day.fromCityName}
           airportCode={airportCode}
           airportName={airportName}
           hotelAtlasCode={hotelAtlasCode}
-          hotelName={hotelNameForOvernight ?? 'Hotel'}
+          hotelName={hotelNameForOvernight}
           hotel={hotelCoords}
           pickupTime={day.type === 'arrival'
             ? (day.arrivalDetails?.arrivalTime ?? arrivalPrefill?.time)
-            : pickupBeforeFlight(day.departureDetails?.departureTime ?? departurePrefill?.time)}
+            : day.type === 'departure' ? pickupBeforeFlight(day.departureDetails?.departureTime ?? departurePrefill?.time) : undefined}
           pickupDate={day.date}
           adults={paxAdults ?? 2}
           children={paxChildren ?? 0}
-          onPick={(t) => { onAddTransfer(t); toast.success('Transfer added', `${vehicleLabel(t.vehicle)} pickup confirmed.`); }}
+          current={changing}
+          onPick={(t) => {
+            if (changing && onReplaceTransfer) onReplaceTransfer(changing.id, t); else onAddTransfer(t);
+            toast.success(changing ? 'Transfer changed' : 'Transfer added', `${vehicleLabel(t.vehicle)} selected.`);
+          }}
         />
       )}
 
-      {rentalOpen && hotelCoords && onAddTransfer && (
+      {rentalOpen && onAddTransfer && (
         <AddRentalModal
           open={rentalOpen}
           onClose={() => setRentalOpen(false)}
           cityName={day.cityName}
           hotelName={hotelNameForOvernight ?? 'Hotel'}
           hotel={hotelCoords}
+          cityCode={day.cityCode}
           date={day.date}
           passengers={(paxAdults ?? 2) + (paxChildren ?? 0)}
           onPick={(t) => { onAddTransfer(t); toast.success('Car with driver added', `${t.leamigoRental?.hours}h from ${t.leamigoRental?.pickupTime}.`); }}

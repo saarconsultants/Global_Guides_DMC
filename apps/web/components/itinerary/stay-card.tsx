@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Pill } from '@/components/ui/pill';
 import { Pass, PassMain, PassStub, Perforation } from '@/components/ui/pass';
 import { ChangeHotelModal } from './change-hotel-modal';
+import { ChangeRoomModal } from './change-room-modal';
 import type { Hotel, Stay, Room } from '@/lib/itinerary/types';
 import { useMoney } from '@/components/providers/currency-provider';
 import { Star, Hotel as HotelIcon, Bed } from 'lucide-react';
@@ -18,11 +19,13 @@ interface Props {
   rooms?: Room[];
   onChange: (h: Hotel) => void;
   onRemove?: () => void;
+  onRoomChange?: (h: Hotel) => void;
 }
 
-export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange, onRemove }: Props) {
+export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange, onRemove, onRoomChange }: Props) {
   const money = useMoney();
   const [open, setOpen] = useState(false);
+  const [roomOpen, setRoomOpen] = useState(false);
   const h = stay.hotel;
   return (
     <>
@@ -60,10 +63,11 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange, on
           <div className="money text-[24px] text-ink leading-none">{money(h.pricePerNightPaise * nights)}</div>
           <div className="text-[12px] text-[rgb(var(--text-secondary))] mb-1">for the stay</div>
           <Button size="sm" variant="secondary" onClick={() => setOpen(true)} className="w-full">Change hotel</Button>
-          <Button size="sm" variant="ghost" className="w-full" onClick={() => setOpen(true)}>Change room</Button>
+          <Button size="sm" variant="ghost" className="w-full" onClick={() => setRoomOpen(true)}>Change room</Button>
           {onRemove && <Button size="sm" variant="ghost" className="w-full" onClick={onRemove}>Remove hotel</Button>}
         </PassStub>
       </Pass>
+      <ChangeRoomModal open={roomOpen} onClose={() => setRoomOpen(false)} hotel={h} nights={nights} onPick={onRoomChange ?? onChange} onChangeHotel={() => setOpen(true)} />
       <ChangeHotelModal
         open={open}
         onClose={() => setOpen(false)}

@@ -72,6 +72,16 @@ export interface Transfer {
   leamigo?: LeamigoLeg;
   /** Live Leamigo hourly rental (kind 'rental'). */
   leamigoRental?: LeamigoRentalLeg;
+  /** What the supplier says about this ride, shown when choosing it. */
+  supplierInfo?: TransferSupplierInfo;
+}
+
+export interface TransferSupplierInfo {
+  operator?: string; vehicleName?: string; models?: string[]; photo?: string;
+  maxPassengers?: number; maxLuggage?: number; freeWaitMin?: number;
+  kmsIncluded?: number; minimumHours?: number;
+  features: string[];          // "Instant confirmation", "Meet & greet"…
+  cancellation?: string;
 }
 
 export interface LeamigoRentalLeg {

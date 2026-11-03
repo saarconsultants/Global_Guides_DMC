@@ -213,6 +213,22 @@ export function hotelToAirportTransfer(cityCode: string, hotelName: string): Tra
   };
 }
 
+/** Sample prices per vehicle class, so a route with no live rides can still be quoted. */
+export function sampleTransferOptions(kind: Transfer['kind'], fromName: string, toName: string): Transfer[] {
+  const minutes = kind === 'inter-city' ? 180 : 45;
+  const classes: Array<{ vehicle: TransferVehicle; bags: number; label: string }> = [
+    { vehicle: 'SHARED', bags: 1, label: 'Shared shuttle' },
+    { vehicle: 'PRIVATE', bags: 2, label: 'Private car' },
+    { vehicle: 'PRIVATE_PREMIUM', bags: 3, label: 'Private premium car' },
+  ];
+  return classes.map((c) => ({
+    id: `tx_sample_${kind}_${c.vehicle}`,
+    kind, fromName, toName, vehicle: c.vehicle, bagsAllowed: c.bags,
+    pricePaise: transferPrice(c.vehicle, minutes),
+    description: `${c.label} from ${fromName} to ${toName}.`,
+  }));
+}
+
 export function interCityTransfer(fromCityCode: string, toCityCode: string): Transfer {
   const a = cityInfo(fromCityCode); const b = cityInfo(toCityCode);
   return {

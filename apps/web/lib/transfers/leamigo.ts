@@ -3,7 +3,8 @@
 // quotable only when BOTH ends have verified coordinates: airports from
 // lib/airport-coords (OurAirports), hotels from the supplier's own lat/lng.
 
-import { searchTransfers, isLive, type LeamigoTransfer } from '@gg/leamigo';
+import { searchTransfers, isLive, leamigoCityPoint, type LeamigoTransfer } from '@gg/leamigo';
+import { cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Transfer, TransferVehicle, LeamigoLeg } from '@/lib/itinerary/types';
 
 export { isLive as leamigoIsLive };
@@ -17,8 +18,22 @@ export function hotelPoint(h?: { name: string; address?: string; latitude?: numb
   return { address: h.address ? `${h.name}, ${h.address}` : h.name, latitude: h.latitude, longitude: h.longitude };
 }
 
+/** The city centre as a pickup/drop-off point — used when there's no hotel to go by. */
+export async function cityPoint(cityCode?: string): Promise<PlacePoint | null> {
+  if (!cityCode) return null;
+  const c = cityInfo(cityCode);
+  return leamigoCityPoint(c.name, c.countryCode).catch(() => null);
+}
+
 /** Default pickup times when no flight time is known. */
 export const DEFAULT_PICKUP = { arrival: '12:00', departure: '10:00', 'inter-city': '10:00', rental: '09:00' } as const;
+
+/** The supplier's own wording, or its fee rules spelled out when it sent no wording. */
+export function cancellationText(c: { description?: string; rules: Array<{ hoursBefore: number; chargePct: number }> }): string | undefined {
+  if (c.description?.trim()) return c.description.trim();
+  if (!c.rules.length) return undefined;
+  return [...c.rules].sort((a, b) => b.hoursBefore - a.hoursBefore).map((r) => `${r.chargePct}% charge from ${r.hoursBefore} hours before pickup`).join('; ');
+}
 
 function vehicleOf(t: LeamigoTransfer): TransferVehicle {
   if (t.shared) return 'SHARED';
@@ -37,6 +52,16 @@ export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kin
     bagsAllowed: t.maxLuggage,
     pricePaise: t.pricePaise,
     description: [`Leamigo · ${t.vehicleName}`, `up to ${t.maxPax} passengers`, ...extras].join(' · '),
+    supplierInfo: {
+      operator: t.provider, vehicleName: t.vehicleName, models: t.vehicleModels, photo: t.vehicleImg,
+      maxPassengers: t.maxPax, maxLuggage: t.maxLuggage, freeWaitMin: t.freeWaitMin,
+      features: [
+        t.flags.instantConfirmation && 'Instant confirmation', t.flags.freeCancellation && 'Free cancellation',
+        t.flags.meetAndGreet && 'Meet & greet', t.flags.driverDetails && 'Driver details provided',
+        t.flags.childSeat && 'Child seat available', t.flags.amendable && 'Can be amended',
+      ].filter(Boolean) as string[],
+      cancellation: cancellationText(t.cancellation),
+    },
     ...(ctx.leg ? { leamigo: { ...ctx.leg, providerId: t.providerId, vehicleName: t.vehicleName, shared: t.shared, luxury: t.luxury } } : {}),
   };
 }

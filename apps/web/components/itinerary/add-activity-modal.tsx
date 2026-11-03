@@ -148,7 +148,8 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
                   {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{fmtDuration(a.durationMin)}</span>}
-                  <Pill variant="neutral">{a.category}</Pill>
+                  <Pill variant="neutral">{a.supplierCategory ?? a.category}</Pill>
+                  {a.supplierName && <span>{a.supplierName}</span>}
                 </div>
                 {a.description && (
                   <p className="mt-1.5 text-xs text-[rgb(var(--text-secondary))] line-clamp-2">{a.description}</p>
@@ -197,7 +198,8 @@ function ActivityDetail({ a, isCurrent, onBack, onAdd, onOption }: { a: Activity
         </h3>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
           {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{fmtDuration(a.durationMin)}</span>}
-          <span className="inline-flex items-center gap-1"><Tag className="w-3.5 h-3.5" />{a.category}</span>
+          <span className="inline-flex items-center gap-1"><Tag className="w-3.5 h-3.5" />{a.supplierCategory ?? a.category}</span>
+          {a.supplierName && <span>Operator: {a.supplierName}</span>}
         </div>
       </div>
 

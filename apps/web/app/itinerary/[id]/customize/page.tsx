@@ -226,6 +226,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     rooms={itinerary.intake.rooms}
                     onChange={(h) => { changeHotel(itinerary.id, d.cityCode, h); toast.success('Hotel changed', `Now staying at ${h.name} in ${d.cityName}.`); }}
                     onRemove={() => removeHotel(itinerary.id, d.cityCode)}
+                    onRoomChange={(h) => { changeHotel(itinerary.id, d.cityCode, h); toast.success('Room changed', `${h.room.name}, ${h.mealPlan}.`); }}
                   />
                 </div>
               ) : d.removedStay ? (
@@ -256,6 +257,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
                     paxAdults={itinerary.intake.rooms.reduce((s, r) => s + r.adults, 0)}
                     paxChildren={itinerary.intake.rooms.reduce((s, r) => s + (r.children ?? 0), 0)}
                     onAddTransfer={(t) => { addTransfer(itinerary.id, d.dayNo, t); }}
+                    onReplaceTransfer={(oldId, t) => { removeInclusion(itinerary.id, d.dayNo, oldId); addTransfer(itinerary.id, d.dayNo, t); }}
                     onSetActivity={(slot, a) => {
                       setActivity(itinerary.id, d.dayNo, slot, a);
                       if (a) toast.success(`Added "${a.name}" to Day ${d.dayNo} ${slot}`);

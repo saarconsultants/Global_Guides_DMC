@@ -271,6 +271,16 @@ export async function searchLeamigoCityDirectory(query: string): Promise<Array<{
   return (res?.data ?? []).map((r: any) => ({ id: Number(r.id), name: String(r.city), country: String(r.country_name ?? '') }));
 }
 
+/** A city's centre, for quoting a transfer when the hotel has no coordinates. */
+export async function leamigoCityPoint(name: string, countryCode?: string): Promise<{ address: string; latitude: number; longitude: number } | null> {
+  if (!isLive() || !name.trim()) return null;
+  const res = await lmCall<any>('/v1/activities/cities', { query: { search: name.trim(), country_code: countryCode?.toUpperCase(), limit: '100' } });
+  const row = (res?.data ?? []).find((r: any) => norm(String(r.city)) === norm(name));
+  const latitude = Number(row?.lat), longitude = Number(row?.lng);
+  if (!row || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return { address: [row.city, row.country_name].filter(Boolean).join(', '), latitude, longitude };
+}
+
 async function cityIdsFor(name: string, countryCode?: string): Promise<number[]> {
   const cities = await leamigoActivityCities().catch(() => null);
   const hits = (cities ?? []).filter((c) => matchesCity(c, name, countryCode)).map((c) => c.id);

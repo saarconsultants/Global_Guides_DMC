@@ -3,7 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { searchRentals, isLive } from '@gg/leamigo';
-import { hotelPoint } from '@/lib/transfers/leamigo';
+import { hotelPoint, cityPoint, cancellationText } from '@/lib/transfers/leamigo';
 import type { Transfer } from '@/lib/itinerary/types';
 
 export const runtime = 'nodejs';
@@ -11,10 +11,10 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   const b = await req.json().catch(() => null);
-  const pickup = hotelPoint(b?.hotel);
+  const pickup = hotelPoint(b?.hotel) ?? await cityPoint(b?.cityCode);
   const hours = Math.round(Number(b?.hours));
   if (!pickup || !/^\d{4}-\d{2}-\d{2}$/.test(b?.pickupDate ?? '') || !/^\d{2}:\d{2}$/.test(b?.pickupTime ?? '') || !(hours >= 1 && hours <= 24)) {
-    return NextResponse.json({ ok: false, error: 'Missing hotel location, date, time or hours.' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: 'Missing pickup location, date, time or hours.' }, { status: 400 });
   }
   if (!isLive()) return NextResponse.json({ ok: true, rentals: [], warning: 'Car-with-driver rentals need the Leamigo connection.' });
   const passengers = Math.max(1, Number(b.passengers) || 1);
@@ -36,6 +36,15 @@ export async function POST(req: Request) {
         bagsAllowed: r.maxLuggage,
         pricePaise: r.pricePaise,
         description: [`Leamigo · ${r.vehicleName}`, `${r.hours}h`, r.kmsIncluded ? `${r.kmsIncluded} km included` : '', r.minimumHours ? `${r.minimumHours}h minimum` : '', r.instantConfirmation ? 'instant confirmation' : '', r.cityRadiusOnly ? 'within city' : '', r.tollsAndParkingIncluded ? 'tolls & parking included' : 'tolls & parking extra', r.freeCancellation ? 'free cancellation' : ''].filter(Boolean).join(' · '),
+        supplierInfo: {
+          operator: r.provider, vehicleName: r.vehicleName, models: r.vehicleModels, photo: r.vehicleImg,
+          maxPassengers: r.maxPax, maxLuggage: r.maxLuggage, kmsIncluded: r.kmsIncluded, minimumHours: r.minimumHours,
+          features: [
+            r.instantConfirmation && 'Instant confirmation', r.freeCancellation && 'Free cancellation',
+            r.tollsAndParkingIncluded && 'Tolls and parking included', r.cityRadiusOnly && 'Within the city only',
+          ].filter(Boolean) as string[],
+          cancellation: cancellationText(r.cancellation),
+        },
         leamigoRental: { pickup, pickupDate: b.pickupDate, pickupTime: b.pickupTime, hours, passengers, providerId: r.providerId, vehicleName: r.vehicleName },
       });
     }

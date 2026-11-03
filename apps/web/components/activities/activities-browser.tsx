@@ -22,6 +22,16 @@ const ImgFallback = (
   </div>
 );
 
+/** The promises worth seeing before opening the details. */
+function cardFacts(a: Activity): string[] {
+  const options = a.options ?? [];
+  return [
+    a.supplierName,
+    options.some((o) => o.instantConfirmation) && 'Instant confirmation',
+    options.some((o) => o.freeCancellation) && 'Free cancellation',
+  ].filter(Boolean) as string[];
+}
+
 export function ActivitiesBrowser({ activities, cityName, travellers }: { activities: Activity[]; cityName: string; travellers: number }) {
   const money = useMoney();
   const [detail, setDetail] = useState<Activity | null>(null);
@@ -41,10 +51,12 @@ export function ActivitiesBrowser({ activities, cityName, travellers }: { activi
               </div>
               <div className="px-4 pt-3.5 pb-3 flex-1">
                 <h3 className="font-bold text-ink text-[15px] leading-snug group-hover:text-crimson-700 transition-colors">{a.name}</h3>
-                <div className="mt-2 flex items-center gap-3 text-[12px] font-medium text-[rgb(var(--text-secondary))]">
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-medium text-[rgb(var(--text-secondary))]">
                   {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{fmtDuration(a.durationMin)}</span>}
                   <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
+                  {a.supplierCategory && <span className="inline-flex items-center gap-1"><Tag className="w-3.5 h-3.5" />{a.supplierCategory}</span>}
                 </div>
+                {cardFacts(a).length > 0 && <p className="mt-1.5 text-[12px] text-[rgb(var(--text-secondary))]">{cardFacts(a).join(' · ')}</p>}
               </div>
               <div className="mt-auto border-t-2 border-dashed border-border-subtle px-4 py-3 flex items-end justify-between">
                 <div><div className="label">{unitPrice(a).basis === 'group' ? 'Private, per group' : 'From, per person'}</div><div className="money text-[17px] text-ink mt-0.5">{money(unitPrice(a).paise)}</div></div>
@@ -64,8 +76,9 @@ export function ActivitiesBrowser({ activities, cityName, travellers }: { activi
             <div className="flex flex-wrap items-center gap-3 text-[13px] font-medium text-[rgb(var(--text-secondary))]">
               {supplierOf(detail) ? <Pill variant="live">Live · {supplierOf(detail)}</Pill> : <Pill variant="warning">Sample · not bookable</Pill>}
               {fmtDuration(detail.durationMin) && <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{fmtDuration(detail.durationMin)}</span>}
-              <span className="inline-flex items-center gap-1 capitalize"><Tag className="w-3.5 h-3.5" />{detail.category}</span>
+              <span className="inline-flex items-center gap-1 capitalize"><Tag className="w-3.5 h-3.5" />{detail.supplierCategory ?? detail.category}</span>
               <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
+              {detail.supplierName && <span>Operator: {detail.supplierName}</span>}
             </div>
             {detail.leamigo ? (
               <>
