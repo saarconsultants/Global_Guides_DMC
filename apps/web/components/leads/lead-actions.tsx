@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,6 @@ const STATUSES = ['NEW', 'QUOTED', 'FOLLOWUP', 'BOOKED', 'LOST'];
 export function LeadActions({ lead, latestProposalId, quoteCount = 0, deleteLocked = false }: { lead: Lead; latestProposalId?: string | null; quoteCount?: number; deleteLocked?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
   const [pending, start] = useTransition();
-  const rootRef = useRef<HTMLDivElement>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -47,8 +46,6 @@ export function LeadActions({ lead, latestProposalId, quoteCount = 0, deleteLock
       const res = await deleteLeadAction(lead.id);
       if (!res.ok) { setDeleteError(res.error); return; }
       setDeleteOpen(false);
-      // The row goes at once; the page's refreshed list and counts can land a few seconds later.
-      rootRef.current?.closest('tr, li')?.setAttribute('hidden', '');
       toast.success('Lead deleted', `${lead.customerName} was removed.`);
     } catch {
       setDeleteError('Could not delete this lead. Try again.');
@@ -58,7 +55,7 @@ export function LeadActions({ lead, latestProposalId, quoteCount = 0, deleteLock
   }
 
   return (
-    <div ref={rootRef} className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-end gap-1">
       <Link href={`/leads/${lead.id}` as any} title="View lead" className="w-11 h-11 lg:w-10 lg:h-10 inline-flex items-center justify-center rounded-md text-[rgb(var(--text-secondary))] hover:bg-surface-2 hover:text-ink">
         <Eye className="w-4 h-4" />
       </Link>
