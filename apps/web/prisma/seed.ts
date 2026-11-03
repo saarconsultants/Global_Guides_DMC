@@ -1,12 +1,27 @@
 // Seed script — creates a super-admin + a default agency + sample templates + default commission rules.
-// Run: `npx tsx prisma/seed.ts` (after `npm install tsx` or via npm script).
+// LOCAL DEVELOPMENT ONLY: the accounts below have fixed passwords, so it refuses to
+// run against anything but a database on this machine. Never add it to the build.
+// Run: `npm run db:seed`.
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const db = new PrismaClient();
 
+function assertLocalDatabase() {
+  // Same file Prisma reads. An already-set DATABASE_URL still wins, so that's what gets checked.
+  try { process.loadEnvFile('.env'); } catch { /* no .env: DATABASE_URL must come from the environment */ }
+  const url = process.env.DATABASE_URL ?? '';
+  let host = '';
+  try { host = new URL(url).hostname; } catch { /* unreadable URL: treated as not local */ }
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(host);
+  if (!local || process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    throw new Error('Refusing to seed: this script only runs on a local development database.');
+  }
+}
+
 async function main() {
+  assertLocalDatabase();
   console.log('🌱  Seeding Global Guides…');
 
   // 1. Super-Admin (Bipin in his platform-owner hat)
@@ -19,14 +34,12 @@ async function main() {
     update: {},
     create: { email: superAdminEmail, name: 'Bipin (Super-Admin)', passwordHash: adminHash, role: 'SUPER_ADMIN', agencyId: null },
   });
-  console.log(`   • super-admin   ${superAdminEmail} / ${superAdminPwd}`);
+  console.log(`   • super-admin   ${superAdminEmail}`);
 
   // 2. Default agency for Bipin's own travel ops
   const agency = await db.agency.upsert({
     where: { code: 'GGN000001' },
-    // NEVER overwrite branding on re-seed. The seed runs on every deploy, and the
-    // agency edits logo/colors/tagline in Settings (saved to the DB). An update block
-    // here would clobber those edits back to defaults on each deploy. Create-only.
+    // Create-only: re-seeding must not overwrite logo/colors/tagline edited in Settings.
     update: {},
     create: {
       code: 'GGN000001',
@@ -53,10 +66,10 @@ async function main() {
   const ownerHash = await bcrypt.hash(ownerPwd, 10);
   await db.user.upsert({
     where: { email: ownerEmail },
-    update: { agencyId: agency.id, role: 'AGENCY_OWNER' },
+    update: {},
     create: { email: ownerEmail, name: 'Bipin (Global Guides)', passwordHash: ownerHash, role: 'AGENCY_OWNER', agencyId: agency.id },
   });
-  console.log(`   • agency owner  ${ownerEmail} / ${ownerPwd}`);
+  console.log(`   • agency owner  ${ownerEmail}`);
 
   // 4. A second demo agency so multi-tenancy is visible
   const demoAgency = await db.agency.upsert({
@@ -75,7 +88,7 @@ async function main() {
   });
   await db.user.upsert({
     where: { email: 'demo@wandermark.in' },
-    update: { agencyId: demoAgency.id, role: 'AGENCY_OWNER' },
+    update: {},
     create: { email: 'demo@wandermark.in', name: 'Wandermark Owner', passwordHash: ownerHash, role: 'AGENCY_OWNER', agencyId: demoAgency.id },
   });
   console.log(`   • demo agency   ${demoAgency.name} [${demoAgency.code}]`);
@@ -141,10 +154,7 @@ async function main() {
   }
   console.log(`   • templates     ${templates.length} starter itineraries`);
 
-  console.log('\n✓ Seed done. Login at /login with:');
-  console.log(`    Super-Admin:   admin@globalguides.com         / admin123`);
-  console.log(`    Agency Owner:  travel@globalguidesdmc.com     / agent123`);
-  console.log(`    Demo Agency:   demo@wandermark.in             / agent123`);
+  console.log('\n✓ Seed done. Local sign-in passwords are in prisma/seed.ts.');
 }
 
 main()

@@ -51,7 +51,7 @@ export async function removeTeamMemberAction(userId: string) {
 export async function resetMemberPasswordAction(userId: string, formData: FormData): Promise<{ ok: boolean; error?: string }> {
   const actor = await requireAgency();
   if (actor.role !== 'AGENCY_OWNER') return { ok: false, error: 'Only the agency owner can reset passwords.' };
-  if (userId === actor.userId) return { ok: false, error: 'To change your own password, please contact Global Guides support.' };
+  if (userId === actor.userId) return { ok: false, error: 'To change your own password, use Change password in your account menu.' };
 
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm') ?? '');

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown, Plus, Sparkles, Users, Megaphone, Wallet, Settings, ShieldCheck, LogOut } from 'lucide-react';
+import { KeyRound, Menu, X, ChevronDown, Plus, Sparkles, Users, Megaphone, Wallet, Settings, ShieldCheck, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from './notification-bell';
 import { NavAccount, type Actor } from './nav-account';
@@ -149,6 +149,7 @@ export function TopNav({ walletLabel: walletLabelProp, actor, notif }: Props) {
           <div className="px-3 py-3 border-t border-border-subtle flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             <Link href="/statement" className="inline-flex items-center gap-1.5 text-navy-700"><Wallet className="w-4 h-4" /> Wallet <span className="money">{walletLabel}</span></Link>
             <Link href="/settings" className="inline-flex items-center gap-1.5 text-navy-700"><Settings className="w-4 h-4" /> Settings</Link>
+            <Link href="/settings/password" className="inline-flex items-center gap-1.5 text-navy-700"><KeyRound className="w-4 h-4" /> Change password</Link>
             {actor.role === 'SUPER_ADMIN' && <Link href="/admin" className="inline-flex items-center gap-1.5 text-crimson-700 font-semibold"><ShieldCheck className="w-4 h-4" /> Admin</Link>}
             <a href="/logout" className="inline-flex items-center gap-1.5 text-navy-700 ml-auto"><LogOut className="w-4 h-4" /> Sign out</a>
           </div>

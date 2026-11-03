@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Headphones, Wallet, ChevronDown, LogOut, ShieldCheck, Settings, Users, MessageCircle, Mail, Phone, Pencil, AlertTriangle } from 'lucide-react';
+import { Headphones, Wallet, ChevronDown, LogOut, ShieldCheck, Settings, Users, KeyRound, MessageCircle, Mail, Phone, Pencil, AlertTriangle } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -129,6 +129,7 @@ export function NavAccount({ actor, walletLabel, compact }: { actor: Actor; wall
             <Link href="/settings" onClick={() => setProfileOpen(false)} className={item}><Settings className="w-4 h-4 text-navy-500" /> Agency settings</Link>
             <Link href="/settings/team" onClick={() => setProfileOpen(false)} className={item}><Users className="w-4 h-4 text-navy-500" /> Team</Link>
             <Link href="/statement" onClick={() => setProfileOpen(false)} className={item}><Wallet className="w-4 h-4 text-navy-500" /> Wallet &amp; statement</Link>
+            <Link href="/settings/password" onClick={() => setProfileOpen(false)} className={item}><KeyRound className="w-4 h-4 text-navy-500" /> Change password</Link>
             {actor.role === 'SUPER_ADMIN' && (
               <Link href="/admin" onClick={() => setProfileOpen(false)} className={item}><ShieldCheck className="w-4 h-4 text-crimson-700" /> Platform admin</Link>
             )}

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Building2, Sparkles, Percent, Coins, LogOut, ArrowLeftRight, Menu, X, Bug, Plug, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Building2, Sparkles, Percent, Coins, LogOut, ArrowLeftRight, Menu, X, Bug, Plug, BarChart3, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -71,6 +71,7 @@ export function AdminSidebar() {
         </nav>
         <div className="p-4 border-t border-white/10 space-y-1">
           <Link href="/admin/agencies" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/80 hover:bg-white/10 hover:text-white"><ArrowLeftRight className="w-4 h-4" /> View as agency</Link>
+          <Link href="/settings/password" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/80 hover:bg-white/10 hover:text-white"><KeyRound className="w-4 h-4" /> Change password</Link>
           <a href="/logout" className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-white/80 hover:bg-white/10 hover:text-white"><LogOut className="w-4 h-4" /> Sign out</a>
         </div>
       </aside>

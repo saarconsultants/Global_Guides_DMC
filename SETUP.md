@@ -380,20 +380,20 @@ The platform is now a real multi-tenant SaaS. Three personas:
 - **AGENCY_OWNER / COUNSELLOR / OPS** — the agency-side staff. Sees only their agency's data. URL: `/dashboard`.
 - **End customer** — opens `/p/<shareToken>`, no login. Sees the agency's brand, not yours.
 
-### Seed test users (run after every DB reset)
+### Seed test users (local database only; run after every DB reset)
 
 ```bash
 cd "/Users/bipin/Global Guides/nexus-clone/apps/web"
 npm run db:seed
 ```
 
-This creates:
+This creates the accounts below. Their local passwords are in `apps/web/prisma/seed.ts`. The script refuses to run against any non-local database.
 
-| Role | Email | Password |
-|---|---|---|
-| **Super-Admin** | `admin@globalguides.com` | `admin123` |
-| **Agency Owner** (Global Guides) | `travel@globalguidesdmc.com` | `agent123` |
-| **Demo Agency Owner** (Wandermark Travels) | `demo@wandermark.in` | `agent123` |
+| Role | Email |
+|---|---|
+| **Super-Admin** | `admin@globalguides.com` |
+| **Agency Owner** (Global Guides) | `travel@globalguidesdmc.com` |
+| **Demo Agency Owner** (Wandermark Travels) | `demo@wandermark.in` |
 
 Plus seeds: **3 starter templates** + **6 platform commission rules** (3% flight, 8% hotel, 10% transfer, 12% activity, 5% visa, 20% insurance).
 
@@ -410,9 +410,9 @@ npm run db:push       # Apply schema changes without resetting data
 
 1. `npm run dev`
 2. <http://localhost:3000> → redirects to `/login`
-3. Sign in as `admin@globalguides.com / admin123` → lands on `/admin` (platform overview)
+3. Sign in as `admin@globalguides.com` → lands on `/admin` (platform overview)
 4. From admin → click **"Switch to agency view"** in the bottom-left → see your own agency's `/dashboard`
-5. Or sign in as `travel@globalguidesdmc.com / agent123` to go directly to the agency view
+5. Or sign in as `travel@globalguidesdmc.com` to go directly to the agency view
 
 ### Where to do what
 

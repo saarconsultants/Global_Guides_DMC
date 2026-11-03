@@ -2,6 +2,7 @@
 import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db/client';
 import { getSession, destroySession } from '@/lib/auth/session';
+import { requireActor } from '@/lib/auth/ctx';
 import { redirect } from 'next/navigation';
 
 function slugify(s: string) {
@@ -32,6 +33,24 @@ export async function loginAction(args: { email: string; password: string }): Pr
   await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
   return { ok: true, redirectTo: user.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard' };
+}
+
+/** Any signed-in user changes their own password; the current one must be right. */
+// Returns a result instead of throwing: thrown messages are hidden from the browser in production.
+export async function changeOwnPasswordAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
+  const actor = await requireActor();
+  const current = String(formData.get('current') ?? '');
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm') ?? '');
+  if (password.length < 8) return { ok: false, error: 'The new password must be at least 8 characters.' };
+  if (password !== confirm) return { ok: false, error: "The two new passwords don't match." };
+  if (password === current) return { ok: false, error: 'The new password must be different from the current one.' };
+  const user = await db.user.findUnique({ where: { id: actor.userId }, select: { passwordHash: true } });
+  if (!user?.passwordHash || !(await bcrypt.compare(current, user.passwordHash))) {
+    return { ok: false, error: 'Your current password is not right.' };
+  }
+  await db.user.update({ where: { id: actor.userId }, data: { passwordHash: await bcrypt.hash(password, 10) } });
+  return { ok: true };
 }
 
 export async function signupAgencyAction(args: { agencyName: string; contact?: string; name: string; email: string; password: string }): Promise<{ ok: true } | { ok: false; error: string }> {
