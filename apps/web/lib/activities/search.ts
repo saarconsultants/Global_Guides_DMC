@@ -18,6 +18,13 @@ const CITY_LIST_CACHE_S = 6 * 60 * 60;
 type LeamigoResult = Awaited<ReturnType<typeof searchLeamigoActivities>>;
 class IncompleteSearch extends Error { constructor(readonly result: LeamigoResult) { super('incomplete'); } }
 
+const CITY_INDEX_WAIT_MS = 6_000;
+/** The cached city index, without waiting long on a cold build when Leamigo is slow. Empty means look the city up by name. */
+const citiesSoon = () => Promise.race([
+  cachedCities().catch(() => []),
+  new Promise<Awaited<ReturnType<typeof leamigoActivityCities>>>((r) => setTimeout(() => r([]), CITY_INDEX_WAIT_MS)),
+]);
+
 export const cachedCities = unstable_cache(() => leamigoActivityCities(), ['leamigo-activity-cities'], { revalidate: CITY_LIST_CACHE_S });
 
 const cachedSearch = unstable_cache(async (input: { cityId?: number; cityIds?: number[]; cityName?: string; countryCode?: string; adults: number; children: number }) => {
@@ -30,7 +37,7 @@ async function leamigoSearch(input: { cityId?: number; cityName?: string; countr
   try {
     let cityIds: number[] | undefined;
     if (!input.cityId) {
-      const cities = await cachedCities().catch(() => []);
+      const cities = await citiesSoon();
       cityIds = cities.filter((c) => matchesCity(c, input.cityName ?? '', input.countryCode)).map((c) => c.id);
     }
     return await cachedSearch({ ...input, cityIds });
@@ -73,7 +80,7 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
     const id = Number(lmCity[1]);
     const [lm, cities] = await Promise.all([
       leamigoSearch({ cityId: id, adults, children }),
-      cachedCities().catch(() => []),
+      citiesSoon(),
     ]);
     const listed = q.includeListOnly ? lm.listOnly.map(listingToApp(q.cityCode)) : [];
     return {

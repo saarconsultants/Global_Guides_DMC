@@ -219,6 +219,7 @@ const INDEX_TTL = 6 * 60 * 60_000;
 const INDEX_RETRY_TTL = 5 * 60_000;   // a partial build is retried sooner
 const SEARCH_BUDGET_MS = 50_000;      // the server stops a request at 60s; return what is priced by then
 const LISTING_DETAIL_BUDGET_MS = 10_000; // duration and summary for unbookable rows are nice to have; never wait long
+const CITY_INDEX_WAIT_MS = 6_000;
 const PAGE_SIZE = 100;
 const CONCURRENCY = 12;
 
@@ -306,7 +307,11 @@ export async function leamigoCityPoint(name: string, countryCode?: string): Prom
 }
 
 async function cityIdsFor(name: string, countryCode?: string): Promise<number[]> {
-  const cities = await leamigoActivityCities().catch(() => null);
+  // The index crawls the whole catalogue; never let a slow Leamigo hold up the search. The directory is the fallback.
+  const cities = await Promise.race([
+    leamigoActivityCities().catch(() => null),
+    new Promise<null>((r) => setTimeout(() => r(null), CITY_INDEX_WAIT_MS)),
+  ]);
   const hits = (cities ?? []).filter((c) => matchesCity(c, name, countryCode)).map((c) => c.id);
   if (hits.length) return hits;
   const id = await cityId(name, countryCode);
