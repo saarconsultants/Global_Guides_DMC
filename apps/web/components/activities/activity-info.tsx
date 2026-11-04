@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useMoney } from '@/components/providers/currency-provider';
 import { Spinner } from '@/components/ui/spinner';
-import { cancellationRulesText } from '@/lib/activities/format';
+import { bookableFrom, cancellationRulesText } from '@/lib/activities/format';
 import type { Activity, ActivityOptionChoice } from '@/lib/itinerary/types';
 
 interface Info {
@@ -94,6 +94,38 @@ export function ActivityOptions({ a, chosenOptionId, onChoose, date }: { a: Acti
         })}
       </div>
     </div>
+  );
+}
+
+/**
+ * A listing's options, asked for when it's opened. Calls back with the bookable activity if
+ * there are any; otherwise says what happened.
+ */
+export function ListingCheck({ a, adults, childCount = 0, onBookable }: { a: Activity; adults: number; childCount?: number; onBookable: (next: Activity) => void }) {
+  const id = a.listOnly?.activityId;
+  const [state, setState] = useState<'checking' | 'none' | 'failed'>('checking');
+  useEffect(() => {
+    if (!id) return;
+    let live = true;
+    setState('checking');
+    fetch('/api/activity-options', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ activityId: id, adults, children: childCount }) })
+      .then((r) => r.json())
+      .then((r) => {
+        if (!live) return;
+        if (!r.ok) { setState('failed'); return; }
+        if (r.options?.length) onBookable(bookableFrom(a, r.options)); else setState('none');
+      })
+      .catch(() => { if (live) setState('failed'); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, adults, childCount]);
+  if (!id) return null;
+  return (
+    <p role="status" className="text-sm text-[rgb(var(--text-secondary))]">
+      {state === 'checking' ? <><Spinner size="sm" className="inline mr-2" />Checking bookable options with the supplier…</>
+        : state === 'none' ? 'The supplier has no bookable option for this group right now, so it can\u2019t be added to a trip.'
+        : 'The supplier didn\u2019t answer just now, so this isn\u2019t confirmed. Reopen it in a minute to check again.'}
+    </p>
   );
 }
 

@@ -6,8 +6,8 @@ import { Pill } from '@/components/ui/pill';
 import { Spinner } from '@/components/ui/spinner';
 import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
-import { supplierOf, fmtDuration, withOption, forTrip } from '@/lib/activities/format';
-import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
+import { supplierOf, fmtDuration, withOption, forTrip, listOnlyLabel } from '@/lib/activities/format';
+import { ActivityInfo, ActivityOptions, ListingCheck } from '@/components/activities/activity-info';
 import { ActivityFilterBar, useActivityFilters, LoadMore, useLoadMore } from '@/components/activities/activity-filters';
 import { ExpandableText } from '@/components/common/expandable-text';
 import type { Activity } from '@/lib/itinerary/types';
@@ -106,6 +106,9 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
           isCurrent={detail.id === currentId}
           onBack={() => setDetail(null)}
           onOption={(o) => setDetail(withOption(detail, o))}
+          onBookable={setDetail}
+          adults={paxAdults}
+          childCount={paxChildren}
           onAdd={() => choose(detail)}
         />
       ) : (
@@ -147,7 +150,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-ink text-sm inline-flex items-center gap-2">
                   {a.name}
-                  {a.listOnly ? <Pill variant="warning">Not bookable yet</Pill> : supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
+                  {a.listOnly ? <Pill variant="warning">{listOnlyLabel(a)}</Pill> : supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
                   {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{fmtDuration(a.durationMin)}</span>}
@@ -192,7 +195,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
   );
 }
 
-function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Activity; date?: string; isCurrent: boolean; onBack: () => void; onAdd: () => void; onOption: (o: NonNullable<Activity['options']>[number]) => void }) {
+function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption, onBookable, adults, childCount }: { a: Activity; date?: string; isCurrent: boolean; onBack: () => void; onAdd: () => void; onOption: (o: NonNullable<Activity['options']>[number]) => void; onBookable: (next: Activity) => void; adults: number; childCount: number }) {
   const money = useMoney();
   return (
     <div className="space-y-4">
@@ -207,7 +210,7 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
       <div>
         <h3 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
           {a.name}
-          {a.listOnly ? <Pill variant="warning">Not bookable yet</Pill> : supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
+          {a.listOnly ? <Pill variant="warning">{listOnlyLabel(a)}</Pill> : supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
         </h3>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
           {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{fmtDuration(a.durationMin)}</span>}
@@ -217,7 +220,10 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
       </div>
 
       {a.listOnly ? (
-        <ActivityInfo a={a} />
+        <>
+          <ListingCheck a={a} adults={adults} childCount={childCount} onBookable={onBookable} />
+          <ActivityInfo a={a} />
+        </>
       ) : a.leamigo ? (
         <>
           <ActivityOptions a={a} chosenOptionId={a.leamigo.optionId} onChoose={onOption} date={date} />
@@ -239,10 +245,7 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
               <p className="text-[11px] text-[rgb(var(--text-secondary))]">Listed from</p>
               <p className="money text-xl text-ink">{a.pricePaise > 0 ? money(a.pricePaise) : 'Price on request'}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <p className="text-xs text-[rgb(var(--text-secondary))] max-w-[240px] text-right">The supplier hasn&apos;t released a bookable option for this yet.</p>
-              <Button variant="ghost" onClick={onBack}>Back</Button>
-            </div>
+            <Button variant="ghost" onClick={onBack}>Back</Button>
           </>
         ) : (<>
         <div>

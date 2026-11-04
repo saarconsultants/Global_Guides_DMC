@@ -90,6 +90,7 @@ async function ActivityResults({ city, from, to, adults, name }: { city: string;
   const cityName = name ?? res.cityName;
   const partial = !!res.partial;
   const liveCount = counts.hotelbeds + counts.leamigo;
+  const unconfirmed = activities.filter((a) => a.listOnly && !a.listOnly.checked).length;
   const liveLabel = counts.listOnly > 0
     ? `${activities.length} activities · ${liveCount ? `${liveCount} bookable now` : 'none bookable yet'}`
     : `${liveCount} with live prices`;
@@ -109,8 +110,14 @@ async function ActivityResults({ city, from, to, adults, name }: { city: string;
             <p className="min-w-0">Activities in <span className="font-bold text-ink">{cityName}</span> · <span className="font-mono font-bold text-ink tnum whitespace-nowrap">{formatDateRange(from, to)}</span></p>
             <Pill variant={badge.variant} className="max-w-full whitespace-normal text-left leading-tight">{badge.label}</Pill>
           </div>
-          {partial && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">Some prices couldn&apos;t be loaded just now, so more may become bookable. Search again in a minute.</p>}
-          {counts.listOnly > 0 && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">{counts.listOnly} of these are listed by the supplier without a bookable option yet. They show the listed starting price and can&apos;t be added to a trip.</p>}
+          {counts.listOnly > 0 && (
+            <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">
+              {unconfirmed > 0 && <>{unconfirmed} {unconfirmed === 1 ? 'isn\u2019t' : 'aren\u2019t'} confirmed yet: open one to check it with the supplier. </>}
+              {counts.listOnly - unconfirmed > 0 && <>{counts.listOnly - unconfirmed} {counts.listOnly - unconfirmed === 1 ? 'has' : 'have'} no bookable option right now. </>}
+              These show the listed starting price.
+            </p>
+          )}
+          {partial && counts.listOnly === 0 && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">Some activities couldn&apos;t be loaded just now. Search again in a minute.</p>}
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (

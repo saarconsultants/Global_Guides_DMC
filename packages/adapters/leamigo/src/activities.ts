@@ -42,14 +42,16 @@ export interface LeamigoActivity {
 }
 
 /**
- * A product Leamigo lists with no option we can sell to this party: its options
- * call came back empty or failed. Shown so agents see the whole catalogue, with
+ * A product Leamigo lists with no option we can sell to this party (yet): its
+ * options call came back empty, failed, or wasn't made in time. Shown so agents see the whole catalogue, with
  * Leamigo's listed starting price, but it can't be booked or added to a trip.
  */
 export interface LeamigoListing {
   activityId: number;
   title: string;
   city: string;
+  /** True when Leamigo answered with nothing to sell. False when we didn't get an answer yet. */
+  checked: boolean;
   fromPaise: number | null;
   durationMin: number;
   thumb?: string;
@@ -84,25 +86,8 @@ export interface LeamigoActivityOption {
 
 // ── small caches (catalogue data changes slowly) ────────────────────────────
 const TTL = 10 * 60_000;
-const cityCache = new Map<string, { at: number; id: number | null }>();
 const optCache = new Map<number, { at: number; v: any }>();
 const detCache = new Map<number, { at: number; v: any }>();
-
-async function cityId(name: string, countryCode?: string): Promise<number | null> {
-  const cc = countryCode?.toUpperCase();
-  const k = name.trim().toLowerCase() + (cc ? `|${cc}` : '');
-  const hit = cityCache.get(k);
-  if (hit && Date.now() - hit.at < TTL) return hit.id;
-  const res = await lmCall<any>('/v1/activities/cities', { query: { search: name, limit: '100' } });
-  const rows: any[] = res?.data ?? [];
-  const wanted = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  const named = rows.filter((r) => String(r.city).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === wanted);
-  // Same city name exists in several countries (Paris FR / CA / US) — prefer ours.
-  const exact = (cc ? named.find((r) => String(r.country_code).toUpperCase() === cc) : undefined) ?? (cc ? null : named[0] ?? null);
-  const id = exact ? Number(exact.id) : null;
-  cityCache.set(k, { at: Date.now(), id });
-  return id;
-}
 
 async function cached(cache: Map<number, { at: number; v: any }>, id: number, path: string) {
   const hit = cache.get(id);
@@ -210,21 +195,16 @@ function priceOptions(options: any[], adults: number, children: number, fallback
 }
 
 // ── which cities actually sell activities ──────────────────────────────────
-// Leamigo's city directory has ~157k rows, with duplicates (two Florences, only
-// one holding the products) and local spellings (Zürich). The catalogue itself
-// says which city id each product sits under, so that is what we match against.
-export interface LeamigoActivityCity { id: number; name: string; country: string; count: number }
+// Never list the whole catalogue (244+ pages at once): it knocked Leamigo's activity listing over for everyone.
+// Cities are found with Leamigo's own name filter or its city directory instead.
+export interface LeamigoActivityCity { id: number; name: string; country: string }
 
-const INDEX_TTL = 6 * 60 * 60_000;
-const INDEX_RETRY_TTL = 5 * 60_000;   // a partial build is retried sooner
-const SEARCH_BUDGET_MS = 50_000;      // the server stops a request at 60s; return what is priced by then
-const LISTING_DETAIL_BUDGET_MS = 10_000; // duration and summary for unbookable rows are nice to have; never wait long
-const CITY_INDEX_WAIT_MS = 6_000;
+const OPTIONS_BUDGET_MS = 30_000;     // from the start of the search; the rest is checked when opened
+const LISTING_DETAIL_BUDGET_MS = 5_000; // duration and summary for unbookable rows are nice to have; never wait long
+const SLOW_CALL_MS = 5_000;
+const SUPPLIER_STRIKES = 4;
 const PAGE_SIZE = 100;
-const CONCURRENCY = 12;
-
-let cityIndex: { at: number; ttl: number; cities: LeamigoActivityCity[] } | null = null;
-let cityIndexBuild: Promise<LeamigoActivityCity[]> | null = null;
+const CONCURRENCY = 6;
 
 async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
   let next = 0;
@@ -245,48 +225,11 @@ function inCountry(country: string, code?: string): boolean {
   return !!ours && norm(country).startsWith(ours);
 }
 
+const namesFor = (name: string) => { const q = norm(name); return [name.trim(), ...(ALIASES[q] ?? [])]; };
+
 export function matchesCity(c: Pick<LeamigoActivityCity, 'name' | 'country'>, name: string, countryCode?: string): boolean {
   const q = norm(name);
   return [q, ...(ALIASES[q] ?? [])].includes(norm(c.name)) && inCountry(c.country, countryCode);
-}
-
-async function buildCityIndex(): Promise<LeamigoActivityCity[]> {
-  const byId = new Map<number, LeamigoActivityCity>();
-  let complete = true;
-  const add = (rows: any[]) => {
-    for (const a of rows) {
-      const id = Number(a?.city?.id);
-      if (!id) continue;
-      const row = byId.get(id) ?? { id, name: '', country: '', count: 0 };
-      row.count++;
-      if (!row.name && a.city.name) {
-        const raw = String(a.city.name);
-        row.name = raw === raw.toUpperCase() ? raw.charAt(0) + raw.slice(1).toLowerCase() : raw;
-      }
-      if (!row.country && a.city.country) row.country = String(a.city.country);
-      byId.set(id, row);
-    }
-  };
-  const first = await lmCall<any>('/v1/activities', { query: { limit: String(PAGE_SIZE), page: '1' }, timeoutMs: 15_000 });
-  add(first?.data ?? []);
-  const pages = Number(first?.meta?.total_pages ?? 1);
-  await mapLimit(Array.from({ length: Math.max(0, pages - 1) }, (_, i) => i + 2), 5, async (page) => {
-    try {
-      const res = await lmCall<any>('/v1/activities', { query: { limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 15_000 });
-      add(res?.data ?? []);
-    } catch { complete = false; }
-  });
-  const cities = [...byId.values()].filter((c) => c.name).sort((x, y) => x.name.localeCompare(y.name));
-  cityIndex = { at: Date.now(), ttl: complete ? INDEX_TTL : INDEX_RETRY_TTL, cities };
-  return cities;
-}
-
-/** Every city with at least one Leamigo activity. */
-export async function leamigoActivityCities(): Promise<LeamigoActivityCity[]> {
-  if (!isLive()) return [];
-  if (cityIndex && Date.now() - cityIndex.at < cityIndex.ttl) return cityIndex.cities;
-  cityIndexBuild ??= buildCityIndex().finally(() => { cityIndexBuild = null; });
-  return cityIndexBuild;
 }
 
 /** Leamigo's full city directory (~157k), searched by name. Most have no activities yet. */
@@ -306,22 +249,10 @@ export async function leamigoCityPoint(name: string, countryCode?: string): Prom
   return { address: [row.city, row.country_name].filter(Boolean).join(', '), latitude, longitude };
 }
 
-async function cityIdsFor(name: string, countryCode?: string): Promise<number[]> {
-  // The index crawls the whole catalogue; never let a slow Leamigo hold up the search. The directory is the fallback.
-  const cities = await Promise.race([
-    leamigoActivityCities().catch(() => null),
-    new Promise<null>((r) => setTimeout(() => r(null), CITY_INDEX_WAIT_MS)),
-  ]);
-  const hits = (cities ?? []).filter((c) => matchesCity(c, name, countryCode)).map((c) => c.id);
-  if (hits.length) return hits;
-  const id = await cityId(name, countryCode);
-  return id ? [id] : [];
-}
-
-/** Every listed product in a city. One bad page is retried; if it still fails, keep what came back. */
-async function listCityActivities(cid: number): Promise<{ rows: any[]; complete: boolean }> {
+/** Every listed product for a filter. One bad page is retried; if it still fails, keep what came back. */
+async function listActivities(filter: Record<string, string>): Promise<{ rows: any[]; complete: boolean }> {
   const rows: any[] = [];
-  const fetchPage = (page: number) => lmCall<any>('/v1/activities', { query: { city_id: String(cid), limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 12_000 });
+  const fetchPage = (page: number) => lmCall<any>('/v1/activities', { query: { ...filter, limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 12_000 });
   for (let page = 1; ; page++) {
     let res: any;
     try {
@@ -335,23 +266,41 @@ async function listCityActivities(cid: number): Promise<{ rows: any[]; complete:
   }
 }
 
-export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; cityIds?: number[]; adults: number; children?: number }): Promise<{ activities: LeamigoActivity[]; listOnly: LeamigoListing[]; warning?: string; partial?: boolean }> {
+export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number }): Promise<{ activities: LeamigoActivity[]; listOnly: LeamigoListing[]; warning?: string; partial?: boolean }> {
   if (!isLive()) return { activities: [], listOnly: [] };
   const startedAt = Date.now();
   const adults = Math.max(1, input.adults), children = Math.max(0, input.children ?? 0);
-  const ids = input.cityId ? [input.cityId] : input.cityIds?.length ? input.cityIds : await cityIdsFor(input.cityName ?? '', input.countryCode);
-  if (!ids.length) return { activities: [], listOnly: [], warning: `Leamigo has no activities in ${input.cityName}.` };
-  const lists = await Promise.all(ids.map(listCityActivities));
-  const list = [...new Map(lists.flatMap((l) => l.rows).map((a) => [a.id, a])).values()];
+  // By name: one city can sit under several ids (two Florences, only one holding the products).
+  const names = input.cityId ? [] : namesFor(input.cityName ?? '');
+  const lists = input.cityId
+    ? [await listActivities({ city_id: String(input.cityId) })]
+    : await Promise.all(names.map((city) => listActivities({ city })));
+  let rows = lists.flatMap((l) => l.rows);
+  if (!input.cityId) {
+    // The filter also finds other cities with the same name; prefer the searched country.
+    const named = rows.filter((a) => a.city && matchesCity({ name: String(a.city.name ?? ''), country: '' }, input.cityName ?? ''));
+    const here = named.filter((a) => matchesCity({ name: String(a.city.name ?? ''), country: String(a.city.country ?? '') }, input.cityName ?? '', input.countryCode));
+    rows = here.length ? here : named;
+  }
+  if (!rows.length) return { activities: [], listOnly: [], warning: `Leamigo has no activities in ${input.cityName}.`, partial: lists.some((l) => !l.complete) };
+  const list = [...new Map(rows.map((a) => [a.id, a])).values()];
   const rates = await inrRates();
   const out: LeamigoActivity[] = [];
   const sellable = new Set<number>();
-  let finished = 0, failed = 0;
+  const checked = new Set<number>();
+  // Some suppliers answer options calls live and slowly. Leave them alone once they struggle:
+  // those calls have knocked Leamigo's whole API over. What isn't checked here is checked when an agent opens it.
+  const strikes = new Map<string, number>();
+  const strike = (supplier: string) => strikes.set(supplier, (strikes.get(supplier) ?? 0) + 1);
+  const optionsUntil = startedAt + OPTIONS_BUDGET_MS;
   const work = mapLimit(list, CONCURRENCY, async (a: any) => {
+    const supplier = String(a.supplier?.name ?? '');
+    if (Date.now() > optionsUntil || (strikes.get(supplier) ?? 0) >= SUPPLIER_STRIKES) return;
+    const t0 = Date.now();
     try {
-      // One retry: a blip on one product shouldn't hide it from the agent.
-      const opts = await cached(optCache, a.id, `/v1/activities/${a.id}/options`)
-        .catch(() => cached(optCache, a.id, `/v1/activities/${a.id}/options`));
+      const opts = await cached(optCache, a.id, `/v1/activities/${a.id}/options`);
+      if (Date.now() - t0 > SLOW_CALL_MS) strike(supplier);
+      checked.add(a.id);
       const options = priceOptions(opts?.options ?? [], adults, children, String(opts?.currency ?? a.pricing?.currency ?? 'USD'), rates);
       const best = options[0];
       if (!best) return;
@@ -369,20 +318,17 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
         lines: best.lines, options,
         category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined, supplierVerified: !!a.supplier?.is_verified,
       });
-    } catch { failed++; }
-    finally { finished++; }
+    } catch { strike(supplier); }
   });
-  // Keep what is priced if a huge city would outlast the server's own time limit.
-  await Promise.race([work, new Promise((r) => setTimeout(r, Math.max(0, SEARCH_BUDGET_MS - (Date.now() - startedAt))))]);
+  await Promise.race([work, new Promise((r) => setTimeout(r, OPTIONS_BUDGET_MS - Math.min(OPTIONS_BUDGET_MS, Date.now() - startedAt)))]);
   const activities = [...out].sort((x, y) => x.pricePaise - y.pricePaise);
-  const partial = finished < list.length || failed > 0 || lists.some((l) => !l.complete);
 
   // Everything else stays visible, as a listing. Its details are best effort.
   const rest = list.filter((a: any) => !sellable.has(a.id));
   const details = new Map<number, any>();
   const detailsUntil = Date.now() + LISTING_DETAIL_BUDGET_MS;
   await Promise.race([
-    mapLimit(rest, CONCURRENCY, async (a: any) => {
+    mapLimit(rest.filter((a: any) => (strikes.get(String(a.supplier?.name ?? '')) ?? 0) < SUPPLIER_STRIKES), CONCURRENCY, async (a: any) => {
       if (Date.now() > detailsUntil) return;
       const det = await cached(detCache, a.id, `/v1/activities/${a.id}`).catch(() => null);
       if (det) details.set(a.id, det);
@@ -395,6 +341,7 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
     const cur = String(a.pricing?.currency ?? 'USD');
     return {
       activityId: a.id, title: a.title, city: a.city?.name ?? input.cityName ?? '',
+      checked: checked.has(a.id),
       fromPaise: from > 0 ? minorToInrPaise(rates, from, cur, precisionOf(cur)) : null,
       durationMin: durationMin(det?.duration),
       thumb: a.media?.cover_image_url,
@@ -402,7 +349,14 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
       category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined, supplierVerified: !!a.supplier?.is_verified,
     };
   });
-  return { activities, listOnly, partial };
+  return { activities, listOnly, partial: list.length > checked.size || lists.some((l) => !l.complete) };
+}
+
+/** One activity's options for this party, checked live when an agent opens a listing. */
+export async function leamigoActivityOptions(activityId: number, adults: number, children = 0): Promise<LeamigoActivityOption[]> {
+  if (!isLive()) return [];
+  const opts = await cached(optCache, activityId, `/v1/activities/${activityId}/options`);
+  return priceOptions(opts?.options ?? [], Math.max(1, adults), Math.max(0, children), String(opts?.currency ?? 'USD'), await inrRates());
 }
 
 export interface LeamigoActivityInfo {
@@ -423,7 +377,8 @@ const strings = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : [])
 export async function leamigoActivityInfo(activityId: number): Promise<LeamigoActivityInfo> {
   const [d, o] = await Promise.all([
     cached(detCache, activityId, `/v1/activities/${activityId}`),
-    cached(optCache, activityId, `/v1/activities/${activityId}/options`),
+    // A supplier that can't answer on options still has a description worth showing.
+    cached(optCache, activityId, `/v1/activities/${activityId}/options`).catch(() => null),
   ]);
   const media = d?.media ?? [];
   const images = (Array.isArray(media) ? media : [media.cover_image_url, ...(media.images ?? []), ...(media.gallery ?? [])])

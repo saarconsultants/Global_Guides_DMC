@@ -41,6 +41,21 @@ export function withOption(a: Activity, o: ActivityOptionChoice): Activity {
   };
 }
 
+export const listOnlyLabel = (a: Activity) => (a.listOnly?.checked ? 'Not bookable yet' : 'Not confirmed yet');
+
+/** A listing that turned out to have options when it was opened: now a normal, bookable activity. */
+export function bookableFrom(a: Activity, options: ActivityOptionChoice[]): Activity {
+  const best = options[0];
+  if (!a.listOnly || !best) return a;
+  const { listOnly, ...rest } = a;
+  return withOption({
+    ...rest, options,
+    // withOption treats the first segment as the option name.
+    description: ['', a.description].filter((p) => p !== undefined).join(' · '),
+    leamigo: { activityId: listOnly.activityId, optionId: best.optionId, ticketId: best.ticketId, quantity: best.quantity, openDated: false, freeCancellation: best.freeCancellation, cancellationRules: best.cancellationRules },
+  }, best);
+}
+
 /** What gets saved on a trip: the chosen option only, not the whole price list. */
 export function forTrip(a: Activity): Activity {
   const { options: _options, ...rest } = a;

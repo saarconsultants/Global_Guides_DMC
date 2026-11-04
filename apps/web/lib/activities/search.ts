@@ -5,42 +5,29 @@
 
 import { searchActivities, isLive as hotelbedsLive, type HotelbedsActivity } from '@gg/hotelbeds';
 import { unstable_cache } from 'next/cache';
-import { searchLeamigoActivities, leamigoActivityCities, matchesCity, isLive as leamigoLive, type LeamigoActivity, type LeamigoListing } from '@gg/leamigo';
+import { searchLeamigoActivities, isLive as leamigoLive, type LeamigoActivity, type LeamigoListing } from '@gg/leamigo';
 import { activitiesForCity, cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
 
 // Leamigo pricing means a call per activity, seconds in a big city. Vercel's data
 // cache is shared by every server instance, so one agent's search makes the next
-// instant. Prices and availability are rechecked at booking, so an hour is safe.
-const SEARCH_CACHE_S = 60 * 60;
-const CITY_LIST_CACHE_S = 6 * 60 * 60;
+// instant. Prices and availability are rechecked at booking.
+const SEARCH_CACHE_S = 15 * 60;
 
 type LeamigoResult = Awaited<ReturnType<typeof searchLeamigoActivities>>;
 class IncompleteSearch extends Error { constructor(readonly result: LeamigoResult) { super('incomplete'); } }
 
-const CITY_INDEX_WAIT_MS = 6_000;
-/** The cached city index, without waiting long on a cold build when Leamigo is slow. Empty means look the city up by name. */
-const citiesSoon = () => Promise.race([
-  cachedCities().catch(() => []),
-  new Promise<Awaited<ReturnType<typeof leamigoActivityCities>>>((r) => setTimeout(() => r([]), CITY_INDEX_WAIT_MS)),
-]);
-
-export const cachedCities = unstable_cache(() => leamigoActivityCities(), ['leamigo-activity-cities'], { revalidate: CITY_LIST_CACHE_S });
-
-const cachedSearch = unstable_cache(async (input: { cityId?: number; cityIds?: number[]; cityName?: string; countryCode?: string; adults: number; children: number }) => {
+const cachedSearch = unstable_cache(async (input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }) => {
   const result = await searchLeamigoActivities(input);
-  if (result.partial) throw new IncompleteSearch(result);   // never keep half a city
+  // A big city can't all be checked in one go, and that's kept: unchecked rows are checked when opened.
+  // Only a search that found nothing because Leamigo failed isn't kept.
+  if (result.partial && !result.activities.length && !result.listOnly.length) throw new IncompleteSearch(result);
   return result;
-}, ['leamigo-activity-search-v3'], { revalidate: SEARCH_CACHE_S });
+}, ['leamigo-activity-search-v5'], { revalidate: SEARCH_CACHE_S });
 
 async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }): Promise<LeamigoResult> {
   try {
-    let cityIds: number[] | undefined;
-    if (!input.cityId) {
-      const cities = await citiesSoon();
-      cityIds = cities.filter((c) => matchesCity(c, input.cityName ?? '', input.countryCode)).map((c) => c.id);
-    }
-    return await cachedSearch({ ...input, cityIds });
+    return await cachedSearch(input);
   } catch (e) {
     if (e instanceof IncompleteSearch) return e.result;
     console.error('[activities] leamigo', (e as Error)?.message ?? e);
@@ -78,15 +65,12 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
   const lmCity = /^LM-(\d+)$/i.exec(q.cityCode);
   if (lmCity) {
     const id = Number(lmCity[1]);
-    const [lm, cities] = await Promise.all([
-      leamigoSearch({ cityId: id, adults, children }),
-      citiesSoon(),
-    ]);
+    const lm = await leamigoSearch({ cityId: id, adults, children });
     const listed = q.includeListOnly ? lm.listOnly.map(listingToApp(q.cityCode)) : [];
     return {
       activities: [...lm.activities.map(lmToApp(q.cityCode)), ...listed], source: 'live',
       counts: { hotelbeds: 0, leamigo: lm.activities.length, listOnly: listed.length },
-      cityName: cities.find((c) => c.id === id)?.name ?? lm.activities[0]?.city ?? lm.listOnly[0]?.city ?? 'this city',
+      cityName: lm.activities[0]?.city ?? lm.listOnly[0]?.city ?? 'this city',
       partial: lm.partial,
     };
   }
@@ -134,7 +118,7 @@ const listingToApp = (cityCode: string) => (a: LeamigoListing): Activity => ({
   cityCode,
   thumb: a.thumb,
   description: a.description,
-  listOnly: { activityId: a.activityId },
+  listOnly: { activityId: a.activityId, checked: a.checked },
   supplierCategory: a.category,
   supplierName: a.supplierName,
   supplierVerified: a.supplierVerified,

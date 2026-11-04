@@ -7,8 +7,8 @@ import { ExpandableText } from '@/components/common/expandable-text';
 import { useMoney } from '@/components/providers/currency-provider';
 import { Clock, MapPin, Tag, Ticket } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
-import { supplierOf, fmtDuration, unitPrice } from '@/lib/activities/format';
-import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
+import { supplierOf, fmtDuration, unitPrice, listOnlyLabel } from '@/lib/activities/format';
+import { ActivityInfo, ActivityOptions, ListingCheck } from '@/components/activities/activity-info';
 import { ActivityFilterBar, LoadMore, useActivityFilters, useLoadMore } from '@/components/activities/activity-filters';
 
 /**
@@ -49,7 +49,7 @@ export function ActivitiesBrowser({ activities, cityName, travellers, date }: { 
             <article className="group h-full flex flex-col rounded-lg bg-surface border border-border-subtle shadow-sm overflow-hidden lift">
               <div className="w-full h-40 bg-navy-50 relative">
                 <ImageWithFallback src={a.thumb} alt={a.name} className="w-full h-40 object-cover" fallback={ImgFallback} />
-                <span className="absolute top-2.5 left-2.5">{a.listOnly ? <Pill variant="warning">Not bookable yet</Pill> : supplierOf(a) ? <Pill variant="live">Live</Pill> : <Pill variant="warning">Sample</Pill>}</span>
+                <span className="absolute top-2.5 left-2.5">{a.listOnly ? <Pill variant="warning">{listOnlyLabel(a)}</Pill> : supplierOf(a) ? <Pill variant="live">Live</Pill> : <Pill variant="warning">Sample</Pill>}</span>
               </div>
               <div className="px-4 pt-3.5 pb-3 flex-1">
                 <h3 className="font-bold text-ink text-[15px] leading-snug group-hover:text-crimson-700 transition-colors">{a.name}</h3>
@@ -79,14 +79,17 @@ export function ActivitiesBrowser({ activities, cityName, travellers, date }: { 
               <ImageWithFallback src={detail.thumb} alt={detail.name} className="w-full h-60 object-cover" fallback={ImgFallback} />
             </div>
             <div className="flex flex-wrap items-center gap-3 text-[13px] font-medium text-[rgb(var(--text-secondary))]">
-              {detail.listOnly ? <Pill variant="warning">Not bookable yet</Pill> : supplierOf(detail) ? <Pill variant="live">Live · {supplierOf(detail)}</Pill> : <Pill variant="warning">Sample · not bookable</Pill>}
+              {detail.listOnly ? <Pill variant="warning">{listOnlyLabel(detail)}</Pill> : supplierOf(detail) ? <Pill variant="live">Live · {supplierOf(detail)}</Pill> : <Pill variant="warning">Sample · not bookable</Pill>}
               {fmtDuration(detail.durationMin) && <span className="inline-flex items-center gap-1 tnum"><Clock className="w-3.5 h-3.5" />{fmtDuration(detail.durationMin)}</span>}
               <span className="inline-flex items-center gap-1 capitalize"><Tag className="w-3.5 h-3.5" />{detail.supplierCategory ?? detail.category}</span>
               <span className="inline-flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{cityName}</span>
               {detail.supplierName && <span>Operator: {detail.supplierName}{detail.supplierVerified ? ' (verified)' : ''}</span>}
             </div>
             {detail.listOnly ? (
-              <ActivityInfo a={detail} />
+              <>
+                <ListingCheck a={detail} adults={travellers} onBookable={setDetail} />
+                <ActivityInfo a={detail} />
+              </>
             ) : detail.leamigo ? (
               <>
                 <ActivityOptions a={detail} date={date} />
@@ -107,7 +110,6 @@ export function ActivitiesBrowser({ activities, cityName, travellers, date }: { 
                     <p className="label">Listed from</p>
                     <p className="money text-[22px] text-ink mt-0.5">{fromPrice(detail)}</p>
                   </div>
-                  <p className="text-xs text-[rgb(var(--text-secondary))] max-w-[260px] text-right">The supplier hasn&apos;t released a bookable option for this yet, so it can&apos;t be added to a trip.</p>
                 </>
               ) : (
                 <>

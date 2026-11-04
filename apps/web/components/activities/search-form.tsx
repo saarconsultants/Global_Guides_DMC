@@ -35,7 +35,7 @@ export function ActivitySearchForm({ defaults }: Props) {
   return (
     <form onSubmit={submit}>
       <HeroBar>
-        <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={(code, c) => { setCity(code); setPicked(c); }} cities={picked && !cities?.some((c) => c.code === picked.code) ? [...(cities ?? []), picked] : cities} searchMore={searchDirectory} placeholder="Search destination" /></HeroCell>
+        <HeroCell eyebrow="Destination" grow><CitySearchCombobox bare label="Destination" value={city} onChange={(code, c) => { setCity(code); setPicked(c); }} cities={picked && !cities?.some((c) => c.code === picked.code) ? [...(cities ?? []), picked] : cities} searchMore={searchDirectory} placeholder="Search by city" /></HeroCell>
         <HeroCell eyebrow="From"><HeroDate value={from} onChange={setFrom} label="From date" sub="First tour" /></HeroCell>
         <HeroCell eyebrow="To"><HeroDate value={to} min={from} onChange={setTo} label="To date" sub="Last tour" /></HeroCell>
         <HeroCell eyebrow="Travellers">
