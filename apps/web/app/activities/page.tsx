@@ -85,13 +85,16 @@ export default async function ActivitiesPage({ searchParams }: PageProps) {
 
 /** Supplier search, streamed in so the page and search bar appear straight away. */
 async function ActivityResults({ city, from, to, adults, name }: { city: string; from: string; to: string; adults: string; name?: string }) {
-  const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2 });
+  const res = await searchAllActivities({ cityCode: city, fromDate: from, toDate: to, adults: parseInt(adults, 10) || 2, includeListOnly: true });
   const { activities, source, warning, counts } = res;
   const cityName = name ?? res.cityName;
   const partial = !!res.partial;
   const liveCount = counts.hotelbeds + counts.leamigo;
+  const liveLabel = counts.listOnly > 0
+    ? `${activities.length} activities · ${liveCount ? `${liveCount} bookable now` : 'none bookable yet'}`
+    : `${liveCount} with live prices`;
   const badge =
-    source === 'live' ? { variant: 'live' as const, label: `${liveCount} with live prices` }
+    source === 'live' ? { variant: 'live' as const, label: liveLabel }
     : source === 'unsupported-city' ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
     : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
 
@@ -106,7 +109,8 @@ async function ActivityResults({ city, from, to, adults, name }: { city: string;
             <p className="min-w-0">Activities in <span className="font-bold text-ink">{cityName}</span> · <span className="font-mono font-bold text-ink tnum whitespace-nowrap">{formatDateRange(from, to)}</span></p>
             <Pill variant={badge.variant} className="max-w-full whitespace-normal text-left leading-tight">{badge.label}</Pill>
           </div>
-          {partial && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">This city has more activities than could be loaded in time. Search again to see more.</p>}
+          {partial && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">Some prices couldn&apos;t be loaded just now, so more may become bookable. Search again in a minute.</p>}
+          {counts.listOnly > 0 && <p role="status" className="text-xs text-[rgb(var(--text-secondary))]">{counts.listOnly} of these are listed by the supplier without a bookable option yet. They show the listed starting price and can&apos;t be added to a trip.</p>}
           {activities.length === 0 ? (
             <Card><CardContent className="py-12"><EmptyState dense icon={<Sparkles className="w-7 h-7" />} title="No activities found" body="Try a different city or wider date range." /></CardContent></Card>
           ) : (

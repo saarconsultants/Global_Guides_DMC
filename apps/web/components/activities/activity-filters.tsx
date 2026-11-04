@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { Activity } from '@/lib/itinerary/types';
 
@@ -16,6 +16,7 @@ export function useActivityFilters(activities: Activity[]) {
   const [instant, setInstant] = useState(false);
   const [freeCancel, setFreeCancel] = useState(false);
   const [openDate, setOpenDate] = useState(false);
+  const [bookable, setBookable] = useState(false);
   const [sort, setSort] = useState<Sort>('price_low');
 
   const categories = useMemo(() => {
@@ -35,12 +36,46 @@ export function useActivityFilters(activities: Activity[]) {
       if (instant && !best(a)?.instantConfirmation) return false;
       if (freeCancel && !(a.options?.some((o) => o.freeCancellation) ?? a.leamigo?.freeCancellation)) return false;
       if (openDate && !a.options?.some((o) => o.bookingType === 'open_dated')) return false;
+      if (bookable && a.listOnly) return false;
       return true;
     });
-    return [...rows].sort((x, y) => sort === 'name' ? x.name.localeCompare(y.name) : sort === 'price_high' ? y.pricePaise - x.pricePaise : x.pricePaise - y.pricePaise);
-  }, [activities, query, category, length, instant, freeCancel, openDate, sort]);
+    // What can be booked comes first; within each group, the chosen order. No listed price sorts last.
+    const low = (a: Activity) => a.pricePaise || Number.MAX_SAFE_INTEGER;
+    return [...rows].sort((x, y) => Number(!!x.listOnly) - Number(!!y.listOnly)
+      || (sort === 'name' ? x.name.localeCompare(y.name) : sort === 'price_high' ? y.pricePaise - x.pricePaise : low(x) - low(y)));
+  }, [activities, query, category, length, instant, freeCancel, openDate, bookable, sort]);
 
-  return { filtered, categories, query, setQuery, category, setCategory, length, setLength, instant, setInstant, freeCancel, setFreeCancel, openDate, setOpenDate, sort, setSort };
+  const hasListOnly = useMemo(() => activities.some((a) => a.listOnly), [activities]);
+
+  return { filtered, categories, hasListOnly, bookable, setBookable, query, setQuery, category, setCategory, length, setLength, instant, setInstant, freeCancel, setFreeCancel, openDate, setOpenDate, sort, setSort };
+}
+
+const STEP = 60;
+
+/** Big cities have hundreds of results: all are searchable and filterable, drawn in batches as the agent scrolls. */
+export function useLoadMore<T>(rows: T[]) {
+  const [count, setCount] = useState(STEP);
+  const sentinel = useRef<HTMLDivElement | null>(null);
+  useEffect(() => { setCount(STEP); }, [rows]);
+  const more = rows.length > count;
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !more) return;
+    const io = new IntersectionObserver((seen) => { if (seen.some((s) => s.isIntersecting)) setCount((c) => c + STEP); }, { rootMargin: '400px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [more, count]);
+  return { visible: rows.slice(0, count), more, shown: Math.min(count, rows.length), total: rows.length, sentinel, showMore: () => setCount((c) => c + STEP) };
+}
+
+export function LoadMore({ m }: { m: Pick<ReturnType<typeof useLoadMore>, 'more' | 'shown' | 'total' | 'sentinel' | 'showMore'> }) {
+  if (!m.more) return null;
+  return (
+    <div ref={m.sentinel} className="flex items-center justify-center gap-3 py-4">
+      <span className="text-xs text-[rgb(var(--text-secondary))] tnum">Showing {m.shown} of {m.total}</span>
+      <button type="button" onClick={m.showMore} className="h-10 px-4 rounded-sm border border-border bg-surface text-sm font-bold text-ink hover:border-border-strong transition-colors">Show more</button>
+    </div>
+  );
 }
 
 const selectCls = 'h-10 rounded-sm border border-border bg-surface px-2 text-sm';
@@ -76,6 +111,7 @@ export function ActivityFilterBar({ f, total }: { f: ReturnType<typeof useActivi
         {toggle('Instant confirmation', f.instant, f.setInstant)}
         {toggle('Free cancellation', f.freeCancel, f.setFreeCancel)}
         {toggle('Open date', f.openDate, f.setOpenDate)}
+        {f.hasListOnly && toggle('Bookable now', f.bookable, f.setBookable)}
         <span className="ml-auto text-xs text-[rgb(var(--text-secondary))] tnum">{f.filtered.length} of {total}</span>
       </div>
     </div>

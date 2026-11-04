@@ -8,7 +8,7 @@ import { useMoney } from '@/components/providers/currency-provider';
 import { activitiesForCity } from '@/lib/itinerary/mock-inventory';
 import { supplierOf, fmtDuration, withOption, forTrip } from '@/lib/activities/format';
 import { ActivityInfo, ActivityOptions } from '@/components/activities/activity-info';
-import { ActivityFilterBar, useActivityFilters } from '@/components/activities/activity-filters';
+import { ActivityFilterBar, useActivityFilters, LoadMore, useLoadMore } from '@/components/activities/activity-filters';
 import { ExpandableText } from '@/components/common/expandable-text';
 import type { Activity } from '@/lib/itinerary/types';
 import { Clock, Search, ArrowLeft, Tag, ChevronRight } from 'lucide-react';
@@ -80,6 +80,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
 
   // Activities that need a start time go through the time picker first.
   const choose = (a: Activity) => {
+    if (a.listOnly) return;
     if (a.leamigo?.timed && date) { setTiming(a); return; }
     onPick(forTrip(a)); onClose();
   };
@@ -92,6 +93,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
 
   const filters = useActivityFilters(merged);
   const filtered = filters.filtered;
+  const page = useLoadMore(filtered);
 
   return (
     <Dialog open={open} onClose={onClose} title={timing ? 'Choose a start time' : detail ? 'Activity details' : `Add activity — ${slot} in ${cityName}`} size="lg">
@@ -110,7 +112,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
       <>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs text-[rgb(var(--text-secondary))]">{merged.length === 0 ? 'No options' : `${merged.length} options`}</p>
-        <SourceBadge source={source} liveCount={liveActivities.length} />
+        <SourceBadge source={source} liveCount={liveActivities.filter((a) => !a.listOnly).length} />
       </div>
 
       {source !== 'loading' && merged.length > 0 && (
@@ -133,7 +135,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
         <p className="text-sm text-[rgb(var(--text-secondary))] text-center py-12">Nothing matches these filters.</p>
       ) : (
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-          {filtered.map((a) => (
+          {page.visible.map((a) => (
             <div
               key={a.id}
               onClick={() => setDetail(a)}
@@ -145,7 +147,7 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-ink text-sm inline-flex items-center gap-2">
                   {a.name}
-                  {supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
+                  {a.listOnly ? <Pill variant="warning">Not bookable yet</Pill> : supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
                 </p>
                 <div className="mt-1 flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
                   {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{fmtDuration(a.durationMin)}</span>}
@@ -158,14 +160,24 @@ export function AddActivityModal({ open, onClose, cityCode, cityName, slot, onPi
                 <span className="mt-1.5 inline-flex items-center gap-0.5 text-[11px] font-medium text-crimson-700">View details <ChevronRight className="w-3 h-3" /></span>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-mono font-semibold text-ink">{money(a.pricePaise)}</p>
-                <p className="text-[11px] text-[rgb(var(--text-secondary))]">for {party} traveller{party !== 1 ? 's' : ''}</p>
-                <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); choose(a); }} disabled={a.id === currentId}>
-                  {a.id === currentId ? 'Added' : 'Add'}
-                </Button>
+                {a.listOnly ? (
+                  <>
+                    <p className="font-mono font-semibold text-ink">{a.pricePaise > 0 ? money(a.pricePaise) : 'Price on request'}</p>
+                    <p className="text-[11px] text-[rgb(var(--text-secondary))]">listed from</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-mono font-semibold text-ink">{money(a.pricePaise)}</p>
+                    <p className="text-[11px] text-[rgb(var(--text-secondary))]">for {party} traveller{party !== 1 ? 's' : ''}</p>
+                    <Button size="sm" className="mt-2" onClick={(e) => { e.stopPropagation(); choose(a); }} disabled={a.id === currentId}>
+                      {a.id === currentId ? 'Added' : 'Add'}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           ))}
+          <LoadMore m={page} />
         </div>
       )}
 
@@ -195,7 +207,7 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
       <div>
         <h3 className="text-lg font-semibold text-ink inline-flex items-center gap-2">
           {a.name}
-          {supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
+          {a.listOnly ? <Pill variant="warning">Not bookable yet</Pill> : supplierOf(a) ? <Pill variant="success">Live · {supplierOf(a)}</Pill> : <Pill variant="warning">Sample</Pill>}
         </h3>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
           {fmtDuration(a.durationMin) && <span className="inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{fmtDuration(a.durationMin)}</span>}
@@ -204,7 +216,9 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
         </div>
       </div>
 
-      {a.leamigo ? (
+      {a.listOnly ? (
+        <ActivityInfo a={a} />
+      ) : a.leamigo ? (
         <>
           <ActivityOptions a={a} chosenOptionId={a.leamigo.optionId} onChoose={onOption} date={date} />
           <ActivityInfo a={a} chosenOptionId={a.leamigo.optionId} />
@@ -219,6 +233,18 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
       )}
 
       <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+        {a.listOnly ? (
+          <>
+            <div>
+              <p className="text-[11px] text-[rgb(var(--text-secondary))]">Listed from</p>
+              <p className="money text-xl text-ink">{a.pricePaise > 0 ? money(a.pricePaise) : 'Price on request'}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-[rgb(var(--text-secondary))] max-w-[240px] text-right">The supplier hasn&apos;t released a bookable option for this yet.</p>
+              <Button variant="ghost" onClick={onBack}>Back</Button>
+            </div>
+          </>
+        ) : (<>
         <div>
           <p className="text-[11px] text-[rgb(var(--text-secondary))]">Price for this trip{a.perPersonPaise && a.priceBasis !== 'group' ? ` · ${money(a.perPersonPaise)} per person` : a.priceBasis === 'group' ? ' · private, whole group' : ''}</p>
           <p className="money text-xl text-ink">{money(a.pricePaise)}</p>
@@ -227,6 +253,7 @@ function ActivityDetail({ a, date, isCurrent, onBack, onAdd, onOption }: { a: Ac
           <Button variant="ghost" onClick={onBack}>Back</Button>
           <Button onClick={onAdd} disabled={isCurrent}>{isCurrent ? 'Already added' : 'Add to this day'}</Button>
         </div>
+        </>)}
       </div>
     </div>
   );

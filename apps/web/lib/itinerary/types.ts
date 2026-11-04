@@ -134,6 +134,8 @@ export interface Activity {
     /** Tickets to buy, when adults and children need different ones. */
     lines?: Array<{ ticketId: string; quantity: number; name?: string }>;
   };
+  /** Listed by the supplier with nothing we can sell yet: visible in search, never bookable or added to a trip. */
+  listOnly?: { activityId: number };
   /** Every option on sale (search results only — not saved with the trip). */
   options?: ActivityOptionChoice[];
   supplierCategory?: string;

@@ -5,7 +5,7 @@ export type ActivitySupplier = 'Hotelbeds' | 'Leamigo' | null;
 
 export function supplierOf(a: Pick<Activity, 'id'>): ActivitySupplier {
   if (a.id.startsWith('ACT-')) return 'Hotelbeds';
-  if (a.id.startsWith('LMA-')) return 'Leamigo';
+  if (a.id.startsWith('LMA-') || a.id.startsWith('LML-')) return 'Leamigo';
   return null;            // sample inventory
 }
 

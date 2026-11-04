@@ -5,7 +5,7 @@
 
 import { searchActivities, isLive as hotelbedsLive, type HotelbedsActivity } from '@gg/hotelbeds';
 import { unstable_cache } from 'next/cache';
-import { searchLeamigoActivities, leamigoActivityCities, matchesCity, isLive as leamigoLive, type LeamigoActivity } from '@gg/leamigo';
+import { searchLeamigoActivities, leamigoActivityCities, matchesCity, isLive as leamigoLive, type LeamigoActivity, type LeamigoListing } from '@gg/leamigo';
 import { activitiesForCity, cityInfo } from '@/lib/itinerary/mock-inventory';
 import type { Activity } from '@/lib/itinerary/types';
 
@@ -24,7 +24,7 @@ const cachedSearch = unstable_cache(async (input: { cityId?: number; cityIds?: n
   const result = await searchLeamigoActivities(input);
   if (result.partial) throw new IncompleteSearch(result);   // never keep half a city
   return result;
-}, ['leamigo-activity-search-v2'], { revalidate: SEARCH_CACHE_S });
+}, ['leamigo-activity-search-v3'], { revalidate: SEARCH_CACHE_S });
 
 async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }): Promise<LeamigoResult> {
   try {
@@ -37,7 +37,7 @@ async function leamigoSearch(input: { cityId?: number; cityName?: string; countr
   } catch (e) {
     if (e instanceof IncompleteSearch) return e.result;
     console.error('[activities] leamigo', (e as Error)?.message ?? e);
-    return { activities: [], partial: true };
+    return { activities: [], listOnly: [], partial: true };
   }
 }
 
@@ -47,6 +47,8 @@ export interface ActivitySearch {
   toDate: string;
   adults: number;
   children?: number;
+  /** Also return products the supplier lists but we can't sell yet. Browsing only; never for building a trip automatically. */
+  includeListOnly?: boolean;
 }
 
 export interface ActivitySearchResult {
@@ -54,7 +56,8 @@ export interface ActivitySearchResult {
   source: 'live' | 'mock' | 'unsupported-city';
   /** Shown to agents only when nothing live came back. Plain wording. */
   warning?: string;
-  counts: { hotelbeds: number; leamigo: number };
+  /** hotelbeds + leamigo can be booked; listOnly can only be looked at. */
+  counts: { hotelbeds: number; leamigo: number; listOnly: number };
   /** Display name of the searched city. */
   cityName: string;
   /** The supplier had more than could be priced in time. */
@@ -72,10 +75,11 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
       leamigoSearch({ cityId: id, adults, children }),
       cachedCities().catch(() => []),
     ]);
+    const listed = q.includeListOnly ? lm.listOnly.map(listingToApp(q.cityCode)) : [];
     return {
-      activities: lm.activities.map(lmToApp(q.cityCode)), source: 'live',
-      counts: { hotelbeds: 0, leamigo: lm.activities.length },
-      cityName: cities.find((c) => c.id === id)?.name ?? lm.activities[0]?.city ?? 'this city',
+      activities: [...lm.activities.map(lmToApp(q.cityCode)), ...listed], source: 'live',
+      counts: { hotelbeds: 0, leamigo: lm.activities.length, listOnly: listed.length },
+      cityName: cities.find((c) => c.id === id)?.name ?? lm.activities[0]?.city ?? lm.listOnly[0]?.city ?? 'this city',
       partial: lm.partial,
     };
   }
@@ -88,12 +92,13 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
       : Promise.resolve({ activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: undefined as string | undefined }),
     leamigoLive()
       ? leamigoSearch({ cityName: city.name, countryCode: city.countryCode, adults, children })
-      : Promise.resolve({ activities: [] as LeamigoActivity[] }),
+      : Promise.resolve({ activities: [] as LeamigoActivity[], listOnly: [] as LeamigoListing[] }),
   ]);
   if (hb.warning && hb.source !== 'live') console.error('[activities] hotelbeds warning', hb.warning);
 
-  const live = [...hb.activities.map(hbToApp), ...lm.activities.map(lmToApp(q.cityCode))];
-  const counts = { hotelbeds: hb.activities.length, leamigo: lm.activities.length };
+  const listed = q.includeListOnly ? lm.listOnly.map(listingToApp(q.cityCode)) : [];
+  const live = [...hb.activities.map(hbToApp), ...lm.activities.map(lmToApp(q.cityCode)), ...listed];
+  const counts = { hotelbeds: hb.activities.length, leamigo: lm.activities.length, listOnly: listed.length };
   if (live.length) return { activities: live, source: 'live', counts, cityName: city.name, partial: (lm as { partial?: boolean }).partial };
 
   return {
@@ -112,6 +117,21 @@ function hbToApp(a: HotelbedsActivity): Activity {
     cityCode: a.cityCode, thumb: a.thumb, description: a.description,
   };
 }
+
+const listingToApp = (cityCode: string) => (a: LeamigoListing): Activity => ({
+  id: `LML-${a.activityId}`,
+  name: a.title,
+  category: 'tour',
+  durationMin: a.durationMin,
+  pricePaise: a.fromPaise ?? 0,
+  cityCode,
+  thumb: a.thumb,
+  description: a.description,
+  listOnly: { activityId: a.activityId },
+  supplierCategory: a.category,
+  supplierName: a.supplierName,
+  supplierVerified: a.supplierVerified,
+});
 
 const lmToApp = (cityCode: string) => (a: LeamigoActivity): Activity => ({
   id: a.id,

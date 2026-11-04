@@ -99,7 +99,7 @@ export function ActivityOptions({ a, chosenOptionId, onChoose, date }: { a: Acti
 
 /** Everything else the supplier publishes, fetched when the details open. */
 export function ActivityInfo({ a, chosenOptionId }: { a: Activity; chosenOptionId?: number }) {
-  const activityId = a.leamigo?.activityId;
+  const activityId = a.leamigo?.activityId ?? a.listOnly?.activityId;
   const [info, setInfo] = useState<Info | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
 

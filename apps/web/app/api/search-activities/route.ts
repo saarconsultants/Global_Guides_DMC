@@ -13,6 +13,6 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   const b = await req.json().catch(() => null);
   if (!b?.cityCode || !b?.fromDate) return NextResponse.json({ ok: false, error: 'Missing city or date.' }, { status: 400 });
-  const res = await searchAllActivities({ cityCode: b.cityCode, fromDate: b.fromDate, toDate: b.toDate ?? b.fromDate, adults: b.paxAdults ?? 2, children: b.paxChildren ?? 0 });
+  const res = await searchAllActivities({ cityCode: b.cityCode, fromDate: b.fromDate, toDate: b.toDate ?? b.fromDate, adults: b.paxAdults ?? 2, children: b.paxChildren ?? 0, includeListOnly: true });
   return NextResponse.json({ ok: true, ...res });
 }
