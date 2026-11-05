@@ -21,9 +21,10 @@ const cachedSearch = unstable_cache(async (input: { cityId?: number; cityName?: 
   const result = await searchLeamigoActivities(input);
   // A big city can't all be checked in one go, and that's kept: unchecked rows are checked when opened.
   // Only a search that found nothing because Leamigo failed isn't kept.
-  if (result.partial && !result.activities.length && !result.listOnly.length) throw new IncompleteSearch(result);
+  // Nor is one that ran out of time, or a slow moment would show a low bookable count for 15 minutes.
+  if (result.ranOut || (result.partial && !result.activities.length && !result.listOnly.length)) throw new IncompleteSearch(result);
   return result;
-}, ['leamigo-activity-search-v7'], { revalidate: SEARCH_CACHE_S });
+}, ['leamigo-activity-search-v8'], { revalidate: SEARCH_CACHE_S });
 
 async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number; optionsBudgetMs?: number }): Promise<LeamigoResult> {
   try {

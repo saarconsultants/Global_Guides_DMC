@@ -202,7 +202,10 @@ export interface LeamigoActivityCity { id: number; name: string; country: string
 const OPTIONS_BUDGET_MS = 30_000;     // from the start of the search; the rest is checked when opened
 const LISTING_DETAIL_BUDGET_MS = 5_000; // duration and summary for unbookable rows are nice to have; never wait long
 const SLOW_CALL_MS = 5_000;
-const SUPPLIER_STRIKES = 4;
+const SUPPLIER_STRIKES = 4;            // in a row: one quick answer clears them
+const MIN_OPTIONS_MS = 20_000;         // however long the list took, options still get this long...
+const MAX_OPTIONS_END_MS = 45_000;     // ...but finish by here, well inside the server's 60s limit
+const LIST_CONCURRENCY = 3;
 const PAGE_SIZE = 100;
 const CONCURRENCY = 6;
 
@@ -270,24 +273,23 @@ export async function leamigoCityPoint(name: string, countryCode?: string): Prom
   return { address: [row.city, row.country_name].filter(Boolean).join(', '), latitude, longitude };
 }
 
-/** Every listed product for a filter. One bad page is retried; if it still fails, keep what came back. */
+/** Every listed product for a filter, a few pages at a time. A bad page is retried once; if it still fails, keep what came back. */
 async function listActivities(filter: Record<string, string>): Promise<{ rows: any[]; complete: boolean }> {
-  const rows: any[] = [];
   const fetchPage = (page: number) => lmCall<any>('/v1/activities', { query: { ...filter, limit: String(PAGE_SIZE), page: String(page) }, timeoutMs: 12_000 });
-  for (let page = 1; ; page++) {
-    let res: any;
+  const first = await fetchPage(1).catch(() => fetchPage(1));
+  const rows: any[] = [...(first?.data ?? [])];
+  const pages = Array.from({ length: Math.max(0, Number(first?.meta?.total_pages ?? 1) - 1) }, (_, i) => i + 2);
+  let complete = true;
+  await mapLimit(pages, LIST_CONCURRENCY, async (page) => {
     try {
-      res = await fetchPage(page).catch(() => fetchPage(page));
-    } catch (e) {
-      if (!rows.length) throw e;
-      return { rows, complete: false };
-    }
-    rows.push(...(res?.data ?? []));
-    if (!res?.meta?.has_next_page) return { rows, complete: true };
-  }
+      const res = await fetchPage(page).catch(() => fetchPage(page));
+      rows.push(...(res?.data ?? []));
+    } catch { complete = false; }
+  });
+  return { rows, complete };
 }
 
-export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number; optionsBudgetMs?: number }): Promise<{ activities: LeamigoActivity[]; listOnly: LeamigoListing[]; warning?: string; partial?: boolean }> {
+export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number; optionsBudgetMs?: number }): Promise<{ activities: LeamigoActivity[]; listOnly: LeamigoListing[]; warning?: string; partial?: boolean; ranOut?: boolean }> {
   if (!isLive()) return { activities: [], listOnly: [] };
   const startedAt = Date.now();
   const adults = Math.max(1, input.adults), children = Math.max(0, input.children ?? 0);
@@ -313,15 +315,17 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
   // those calls have knocked Leamigo's whole API over. What isn't checked here is checked when an agent opens it.
   const strikes = new Map<string, number>();
   const strike = (supplier: string) => strikes.set(supplier, (strikes.get(supplier) ?? 0) + 1);
-  const budget = input.optionsBudgetMs ?? OPTIONS_BUDGET_MS;
-  const optionsUntil = startedAt + budget;
+  // A slow list mustn't eat the time for checking options. Callers with their own limit keep it.
+  const optionsUntil = input.optionsBudgetMs
+    ? startedAt + input.optionsBudgetMs
+    : Math.min(startedAt + MAX_OPTIONS_END_MS, Math.max(startedAt + OPTIONS_BUDGET_MS, Date.now() + MIN_OPTIONS_MS));
   const work = mapLimit(list, CONCURRENCY, async (a: any) => {
     const supplier = String(a.supplier?.name ?? '');
     if (Date.now() > optionsUntil || (strikes.get(supplier) ?? 0) >= SUPPLIER_STRIKES) return;
     const t0 = Date.now();
     try {
       const opts = await cached(optCache, a.id, `/v1/activities/${a.id}/options`);
-      if (Date.now() - t0 > SLOW_CALL_MS) strike(supplier);
+      if (Date.now() - t0 > SLOW_CALL_MS) strike(supplier); else strikes.delete(supplier);
       checked.add(a.id);
       const options = priceOptions(opts?.options ?? [], adults, children, String(opts?.currency ?? a.pricing?.currency ?? 'USD'), rates);
       const best = options[0];
@@ -342,7 +346,7 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
       });
     } catch { strike(supplier); }
   });
-  await Promise.race([work, new Promise((r) => setTimeout(r, budget - Math.min(budget, Date.now() - startedAt)))]);
+  await Promise.race([work, new Promise((r) => setTimeout(r, Math.max(0, optionsUntil - Date.now())))]);
   const activities = [...out].sort((x, y) => x.pricePaise - y.pricePaise);
 
   // Everything else stays visible, as a listing. Its details are best effort.
@@ -371,7 +375,9 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
       category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined, supplierVerified: !!a.supplier?.is_verified,
     };
   });
-  return { activities, listOnly, partial: list.length > checked.size || lists.some((l) => !l.complete) };
+  // Ran out of time with healthy suppliers still unchecked: the result is usable but not worth keeping.
+  const ranOut = list.some((a: any) => !checked.has(a.id) && (strikes.get(String(a.supplier?.name ?? '')) ?? 0) < SUPPLIER_STRIKES);
+  return { activities, listOnly, partial: list.length > checked.size || lists.some((l) => !l.complete), ranOut };
 }
 
 /** One activity's options for this party, checked live when an agent opens a listing. */
