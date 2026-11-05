@@ -26,9 +26,16 @@ export async function probeTripjack(): Promise<TripjackProbeResult> {
   } catch (e: any) {
     const ms = Date.now() - started;
     // A business error means the gateway answered with structured JSON → reachable.
-    if (e?.name === 'TripjackBizError') return { reachable: true, status: 200, ms, detail: 'Gateway responding (business validation).' };
+    // Tripjack answering "access denied" means fares can't load, so that isn't healthy.
+    if (e?.name === 'TripjackBizError') {
+      const denied = /"httpStatus":\s*40[13]/.test(String(e?.message ?? ''));
+      return denied
+        ? { reachable: false, status: 403, ms, detail: 'Tripjack refused this server. Check its IP whitelist and API key.' }
+        : { reachable: true, status: 200, ms, detail: 'Gateway responding' };
+    }
     // HTTP error: upstream=true → supplier-side outage (5xx / HTML / timeout); upstream=false → reachable but rejected.
-    if (e?.name === 'TripjackHttpError') return { reachable: !e.upstream, status: e.status ?? null, ms, detail: e.userMessage ?? e.message };
+    // 404 from the proxy address means the proxy itself is gone.
+    if (e?.name === 'TripjackHttpError') return { reachable: !e.upstream && e.status !== 404, status: e.status ?? null, ms, detail: e.userMessage ?? e.message };
     return { reachable: false, status: null, ms, detail: String(e?.message ?? e) };
   }
 }
