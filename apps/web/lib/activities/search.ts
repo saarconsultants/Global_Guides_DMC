@@ -17,15 +17,15 @@ const SEARCH_CACHE_S = 15 * 60;
 type LeamigoResult = Awaited<ReturnType<typeof searchLeamigoActivities>>;
 class IncompleteSearch extends Error { constructor(readonly result: LeamigoResult) { super('incomplete'); } }
 
-const cachedSearch = unstable_cache(async (input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }) => {
+const cachedSearch = unstable_cache(async (input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number; optionsBudgetMs?: number }) => {
   const result = await searchLeamigoActivities(input);
   // A big city can't all be checked in one go, and that's kept: unchecked rows are checked when opened.
   // Only a search that found nothing because Leamigo failed isn't kept.
   if (result.partial && !result.activities.length && !result.listOnly.length) throw new IncompleteSearch(result);
   return result;
-}, ['leamigo-activity-search-v5'], { revalidate: SEARCH_CACHE_S });
+}, ['leamigo-activity-search-v6'], { revalidate: SEARCH_CACHE_S });
 
-async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number }): Promise<LeamigoResult> {
+async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number; optionsBudgetMs?: number }): Promise<LeamigoResult> {
   try {
     return await cachedSearch(input);
   } catch (e) {
@@ -43,6 +43,8 @@ export interface ActivitySearch {
   children?: number;
   /** Also return products the supplier lists but we can't sell yet. Browsing only; never for building a trip automatically. */
   includeListOnly?: boolean;
+  /** How long to spend checking options, for callers that can't wait for the usual time. */
+  optionsBudgetMs?: number;
 }
 
 export interface ActivitySearchResult {
@@ -65,7 +67,7 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
   const lmCity = /^LM-(\d+)$/i.exec(q.cityCode);
   if (lmCity) {
     const id = Number(lmCity[1]);
-    const lm = await leamigoSearch({ cityId: id, adults, children });
+    const lm = await leamigoSearch({ cityId: id, adults, children, optionsBudgetMs: q.optionsBudgetMs });
     const listed = q.includeListOnly ? lm.listOnly.map(listingToApp(q.cityCode)) : [];
     return {
       activities: [...lm.activities.map(lmToApp(q.cityCode)), ...listed], source: 'live',
@@ -82,7 +84,7 @@ export async function searchAllActivities(q: ActivitySearch): Promise<ActivitySe
           .catch((e) => { console.error('[activities] hotelbeds', e?.message ?? e); return { activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: 'error' as string | undefined }; })
       : Promise.resolve({ activities: [] as HotelbedsActivity[], source: 'mock' as const, warning: undefined as string | undefined }),
     leamigoLive()
-      ? leamigoSearch({ cityName: city.name, countryCode: city.countryCode, adults, children })
+      ? leamigoSearch({ cityName: city.name, countryCode: city.countryCode, adults, children, optionsBudgetMs: q.optionsBudgetMs })
       : Promise.resolve({ activities: [] as LeamigoActivity[], listOnly: [] as LeamigoListing[] }),
   ]);
   if (hb.warning && hb.source !== 'live') console.error('[activities] hotelbeds warning', hb.warning);

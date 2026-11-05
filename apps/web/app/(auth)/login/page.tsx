@@ -10,6 +10,9 @@ import { loginAction } from '@/app/actions/auth';
 import { Dialog } from '@/components/ui/dialog';
 import { Eye, EyeOff, Mail, MessageCircle, Phone } from 'lucide-react';
 
+/** Only go back to a page on this site. */
+const safeNext = (next: string | null) => (next?.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\') ? next : null);
+
 export default function LoginPage() {
   const router = useRouter();
   const params = useSearchParams();
@@ -24,7 +27,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     const r = await loginAction({ email, password });
-    if (r.ok) start(() => router.push((params.get('next') ?? r.redirectTo) as any));
+    if (r.ok) start(() => router.push((safeNext(params.get('next')) ?? r.redirectTo) as any));
     else setError(r.error);
   }
 

@@ -132,7 +132,7 @@ async function ActivityResults({ city, from, to, adults, name }: { city: string;
 function ResultsLoading() {
   return (
     <div role="status" className="space-y-4">
-      <p className="text-sm text-[rgb(var(--text-secondary))]">Getting live prices…</p>
+      <p className="text-sm text-[rgb(var(--text-secondary))]">Getting live prices… The first search for a big city can take up to 40 seconds. After that it&apos;s instant.</p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
         {Array.from({ length: 6 }, (_, i) => <div key={i} className="h-72 rounded-lg bg-surface border border-border-subtle animate-pulse" />)}
       </div>

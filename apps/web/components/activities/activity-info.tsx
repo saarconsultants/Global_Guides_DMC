@@ -113,7 +113,10 @@ export function ListingCheck({ a, adults, childCount = 0, onBookable }: { a: Act
       .then((r) => {
         if (!live) return;
         if (!r.ok) { setState('failed'); return; }
-        if (r.options?.length) onBookable(bookableFrom(a, r.options)); else setState('none');
+        if (r.options?.length) { onBookable(bookableFrom(a, r.options)); return; }
+        setState('none');
+        // Now we know, so the label should say so.
+        if (!a.listOnly?.checked) onBookable({ ...a, listOnly: { activityId: id, checked: true } });
       })
       .catch(() => { if (live) setState('failed'); });
     return () => { live = false; };

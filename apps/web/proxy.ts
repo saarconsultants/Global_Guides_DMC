@@ -8,8 +8,9 @@ import { sessionOptions, type SessionPayload } from '@/lib/auth/session-options'
 //   /invite/<token>                     team invite links
 //   /widget/<slug>                      agency website widget
 //   /api/public/*                       public API used by the widget
+//   /api/health                         uptime and supplier status, no secrets
 //   /_next, /favicon, /manifest, /static, /brand/   framework + static assets
-const PUBLIC_PREFIXES = ['/login', '/signup', '/logout', '/p/', '/invite/', '/api/public', '/widget/', '/_next', '/favicon', '/manifest', '/static', '/brand/'];
+const PUBLIC_PREFIXES = ['/api/health', '/login', '/signup', '/logout', '/p/', '/invite/', '/api/public', '/widget/', '/_next', '/favicon', '/manifest', '/static', '/brand/'];
 
 // Top-level sections of the signed-in app. Everything under these (and "/")
 // requires a session. Keep in sync with the folders in app/ — when you add a
@@ -38,7 +39,10 @@ export async function proxy(req: NextRequest) {
     if (!isAppRoute(pathname)) return res;
     const url = req.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('next', pathname);
+    // Keep the whole address, so signing in lands on the same search.
+    const next = pathname + req.nextUrl.search;
+    url.search = '';
+    url.searchParams.set('next', next);
     return NextResponse.redirect(url);
   }
   // Admin guard

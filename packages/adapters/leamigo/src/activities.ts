@@ -173,7 +173,7 @@ function priceOptions(options: any[], adults: number, children: number, fallback
     const lead = picked[0]!;
     const cp = o.cancellation_policy ?? {};
     out.push({
-      optionId: o.id, name: String(o.name ?? ''), description: o.description ?? undefined,
+      optionId: o.id, name: String(o.name ?? ''), description: plain(o.description),
       ticketId: String(lead.ticket.id), quantity,
       lines: picked.map((l) => ({ ticketId: String(l.ticket.id), quantity: l.quantity, name: String(l.ticket.name ?? '') })),
       pricePaise: total,
@@ -211,6 +211,19 @@ async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<v
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
     while (next < items.length) await fn(items[next++]!);
   }));
+}
+
+/** Some suppliers (Headout) send HTML. Agents and vouchers need plain text. */
+function plain(v: unknown): string | undefined {
+  if (v === null || v === undefined || v === '') return undefined;
+  const text = String(v)
+    .replace(/<\s*li[^>]*>/gi, '\n• ')
+    .replace(/<\s*br\s*\/?>|<\/\s*(p|div|ul|ol|h[1-6]|li)\s*>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'")
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return text || undefined;
 }
 
 const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -266,7 +279,7 @@ async function listActivities(filter: Record<string, string>): Promise<{ rows: a
   }
 }
 
-export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number }): Promise<{ activities: LeamigoActivity[]; listOnly: LeamigoListing[]; warning?: string; partial?: boolean }> {
+export async function searchLeamigoActivities(input: { cityName?: string; countryCode?: string; cityId?: number; adults: number; children?: number; optionsBudgetMs?: number }): Promise<{ activities: LeamigoActivity[]; listOnly: LeamigoListing[]; warning?: string; partial?: boolean }> {
   if (!isLive()) return { activities: [], listOnly: [] };
   const startedAt = Date.now();
   const adults = Math.max(1, input.adults), children = Math.max(0, input.children ?? 0);
@@ -292,7 +305,8 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
   // those calls have knocked Leamigo's whole API over. What isn't checked here is checked when an agent opens it.
   const strikes = new Map<string, number>();
   const strike = (supplier: string) => strikes.set(supplier, (strikes.get(supplier) ?? 0) + 1);
-  const optionsUntil = startedAt + OPTIONS_BUDGET_MS;
+  const budget = input.optionsBudgetMs ?? OPTIONS_BUDGET_MS;
+  const optionsUntil = startedAt + budget;
   const work = mapLimit(list, CONCURRENCY, async (a: any) => {
     const supplier = String(a.supplier?.name ?? '');
     if (Date.now() > optionsUntil || (strikes.get(supplier) ?? 0) >= SUPPLIER_STRIKES) return;
@@ -312,7 +326,7 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
         title: a.title, optionName: best.name, city: a.city?.name ?? input.cityName ?? '',
         durationMin: durationMin(det?.duration), quantity: best.quantity, pricePaise: best.pricePaise,
         perPersonPaise: best.perPersonPaise, priceBasis: best.priceBasis,
-        thumb: a.media?.cover_image_url, description: det?.short_description ?? a.title,
+        thumb: a.media?.cover_image_url, description: plain(det?.short_description) ?? a.title,
         bookingType: best.bookingType, instantConfirmation: best.instantConfirmation,
         freeCancellation: best.freeCancellation, cancellationRules: best.cancellationRules,
         lines: best.lines, options,
@@ -320,7 +334,7 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
       });
     } catch { strike(supplier); }
   });
-  await Promise.race([work, new Promise((r) => setTimeout(r, OPTIONS_BUDGET_MS - Math.min(OPTIONS_BUDGET_MS, Date.now() - startedAt)))]);
+  await Promise.race([work, new Promise((r) => setTimeout(r, budget - Math.min(budget, Date.now() - startedAt)))]);
   const activities = [...out].sort((x, y) => x.pricePaise - y.pricePaise);
 
   // Everything else stays visible, as a listing. Its details are best effort.
@@ -345,7 +359,7 @@ export async function searchLeamigoActivities(input: { cityName?: string; countr
       fromPaise: from > 0 ? minorToInrPaise(rates, from, cur, precisionOf(cur)) : null,
       durationMin: durationMin(det?.duration),
       thumb: a.media?.cover_image_url,
-      description: det?.short_description ? String(det.short_description).slice(0, 200) : undefined,
+      description: plain(det?.short_description)?.slice(0, 200),
       category: a.category?.name ?? undefined, supplierName: a.supplier?.name ?? undefined, supplierVerified: !!a.supplier?.is_verified,
     };
   });
@@ -371,7 +385,7 @@ export interface LeamigoActivityInfo {
 
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v : v ? [v] : [])
   .map((x: any) => (typeof x === 'string' ? x : x?.text ?? x?.name ?? x?.description ?? x?.title ?? ''))
-  .map((x: any) => String(x).trim()).filter(Boolean);
+  .map((x: any) => plain(x) ?? '').filter(Boolean);
 
 /** Everything Leamigo publishes about one activity, for the details view. */
 export async function leamigoActivityInfo(activityId: number): Promise<LeamigoActivityInfo> {
@@ -385,7 +399,7 @@ export async function leamigoActivityInfo(activityId: number): Promise<LeamigoAc
     .filter((m: any) => typeof m === 'string' || !m?.type || m.type === 'image')
     .map((m: any) => (typeof m === 'string' ? m : m?.url ?? m?.image_url)).filter(Boolean);
   return {
-    description: d?.full_description ?? d?.short_description ?? undefined,
+    description: plain(d?.full_description) ?? plain(d?.short_description),
     included: strings(d?.included), excluded: strings(d?.excluded),
     knowBeforeYouGo: strings(d?.know_before_you_go).join('\n') || undefined,
     operatingHours: (d?.operating_hours ?? []).map((h: any) => ({ day: Number(h.day_of_week), start: String(h.start_time ?? '').slice(0, 5), end: String(h.end_time ?? '').slice(0, 5), closed: !!h.is_closed })),
@@ -398,14 +412,14 @@ export async function leamigoActivityInfo(activityId: number): Promise<LeamigoAc
     // "General: free shuttle" — the title alone when the supplier repeated it as the text.
     policies: [...new Set<string>((d?.policies ?? []).map((p: any) => (p?.description && p.description !== p.title ? `${p.title}: ${p.description}` : String(p?.title ?? p?.description ?? ''))).filter(Boolean))],
     highlights: strings(d?.highlights),
-    ticketUsage: d?.ticket_usage_instructions ?? undefined,
+    ticketUsage: plain(d?.ticket_usage_instructions),
     meetingPoint: d?.location?.meeting_point ?? undefined,
-    meetingInstructions: d?.location?.meeting_instructions ?? undefined,
+    meetingInstructions: plain(d?.location?.meeting_instructions),
     options: (o?.options ?? []).map((x: any) => ({
       id: x.id, name: String(x.name ?? ''),
       minTravellers: Math.min(...(x.tickets ?? []).map((t: any) => Number(t.min_purchase_qty ?? 1)).filter((n: number) => n > 0)),
       maxTravellers: Math.max(...(x.tickets ?? []).map((t: any) => Number(t.max_purchase_qty ?? 0))),
-      terms: x.terms_and_conditions ?? undefined, howToUse: x.how_to_use ?? undefined,
+      terms: plain(x.terms_and_conditions), howToUse: plain(x.how_to_use),
       included: strings(x.included), excluded: strings(x.excluded), eligibility: strings(x.eligibility),
       voucherType: x.voucher_type ?? undefined,
     })),

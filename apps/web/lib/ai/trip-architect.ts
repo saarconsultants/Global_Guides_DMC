@@ -172,7 +172,7 @@ export async function architectTrip(input: ArchitectInput, onProgress?: (p: Arch
     })),
     Promise.all(windows.map(async (w) => {
       try {
-        const res = await withTimeout(searchAllActivities({ cityCode: w.cityCode, fromDate: w.checkIn, toDate: w.checkOut, adults, children }), 20_000);
+        const res = await withTimeout(searchAllActivities({ cityCode: w.cityCode, fromDate: w.checkIn, toDate: w.checkOut, adults, children, optionsBudgetMs: 12_000 }), 20_000);
         if (res.source === 'live') {
           // The model picks from a short menu: real experiences, no train tickets,
           // and products that don't need a start time chosen by hand.
