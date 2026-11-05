@@ -36,6 +36,11 @@ export function TransferSearch({ heroImg }: { heroImg?: string | null }) {
   const [time, setTime] = useState('12:00');
   const [hours, setHours] = useState('8');
   const [passengers, setPassengers] = useState('2');
+  const [roundTrip, setRoundTrip] = useState(false);
+  const [returnDate, setReturnDate] = useState(inDays(34));
+  const [returnTime, setReturnTime] = useState('18:00');
+  // What the shown results were searched for, so the labels don't change while the form is edited.
+  const [searched, setSearched] = useState<{ roundTrip: boolean; returnDate: string; returnTime: string } | null>(null);
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [results, setResults] = useState<Transfer[]>([]);
   const [vehicleClass, setVehicleClass] = useState<VehicleClass>('ALL');
@@ -51,14 +56,17 @@ export function TransferSearch({ heroImg }: { heroImg?: string | null }) {
     setState('loading');
     setVehicleClass('ALL');
     const pax = parseInt(passengers, 10) || 1;
+    const isReturn = roundTrip && mode !== 'rental';
+    const back = isReturn ? { returnDate, returnTime } : {};
+    setSearched({ roundTrip: isReturn, returnDate, returnTime });
     try {
       const r = mode === 'rental'
         ? await fetch('/api/search-rentals', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cityCode: city, hotel: { name: `${cityInfo(city).name} centre` }, pickupDate: date, pickupTime: time, hours: parseInt(hours, 10), passengers: pax }) }).then((x) => x.json())
         : await fetch('/api/search-transfers', { method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(mode === 'city'
-              ? { kind: 'inter-city', fromCityCode: fromCity, cityCode: city, pickupDate: date, pickupTime: time, adults: pax }
-              : { kind: fromAirport ? 'arrival' : 'departure', airportCode: airport, airportName: airportByIata(airport)?.name, cityCode: city, pickupDate: date, pickupTime: time, adults: pax }) }).then((x) => x.json());
+              ? { kind: 'inter-city', fromCityCode: fromCity, cityCode: city, pickupDate: date, pickupTime: time, adults: pax, ...back }
+              : { kind: fromAirport ? 'arrival' : 'departure', airportCode: airport, airportName: airportByIata(airport)?.name, cityCode: city, pickupDate: date, pickupTime: time, adults: pax, ...back }) }).then((x) => x.json());
       if (!r.ok) { setState('error'); setResults([]); return; }
       setResults(r.rentals ?? r.alternatives ?? []);
       setState('done');
@@ -106,11 +114,27 @@ export function TransferSearch({ heroImg }: { heroImg?: string | null }) {
           </HeroCell>
           <HeroSubmit caption="Live prices">Search</HeroSubmit>
         </HeroBar>
-        {mode === 'airport' && (
-          <div className="shell mt-3.5">
-            <button type="button" onClick={() => setFromAirport((v) => !v)} className="inline-flex items-center gap-1.5 min-h-9 rounded-md border border-border bg-surface px-3 text-[13px] font-semibold text-navy-700 hover:border-border-strong transition-colors">
-              <ArrowLeftRight className="w-3.5 h-3.5" />{fromAirport ? 'Going to the airport instead' : 'Coming from the airport instead'}
-            </button>
+        {mode !== 'rental' && (
+          <div className="shell mt-3.5 flex flex-wrap items-center gap-2">
+            {mode === 'airport' && (
+              <button type="button" onClick={() => setFromAirport((v) => !v)} className="inline-flex items-center gap-1.5 min-h-9 rounded-md border border-border bg-surface px-3 text-[13px] font-semibold text-navy-700 hover:border-border-strong transition-colors">
+                <ArrowLeftRight className="w-3.5 h-3.5" />{fromAirport ? 'Going to the airport instead' : 'Coming from the airport instead'}
+              </button>
+            )}
+            <div role="group" aria-label="Journey" className="inline-flex rounded-md border border-border bg-surface p-0.5">
+              {[{ v: false, l: 'One way' }, { v: true, l: 'Return' }].map((o) => (
+                <button key={o.l} type="button" aria-pressed={roundTrip === o.v} onClick={() => setRoundTrip(o.v)}
+                  className={`min-h-8 px-3 rounded-[5px] text-[13px] font-semibold transition-colors ${roundTrip === o.v ? 'bg-ink text-white' : 'text-ink-soft hover:text-ink'}`}>{o.l}</button>
+              ))}
+            </div>
+            {roundTrip && (
+              <>
+                <label className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink-soft">Return
+                  <input type="date" value={returnDate} min={date} onChange={(e) => setReturnDate(e.target.value)} required aria-label="Return date" className="h-9 rounded-md border border-border bg-surface px-2 text-[13px] text-ink" />
+                </label>
+                <input type="time" value={returnTime} onChange={(e) => setReturnTime(e.target.value)} required aria-label="Return time" className="h-9 rounded-md border border-border bg-surface px-2 text-[13px] text-ink" />
+              </>
+            )}
           </div>
         )}
       </form>
@@ -136,7 +160,7 @@ export function TransferSearch({ heroImg }: { heroImg?: string | null }) {
                   );
                 })}
               </div>
-              <Pill variant="live">{results.length} with live prices</Pill>
+              <Pill variant="live">{results.length} with live prices{searched?.roundTrip ? ' · return trips' : ''}</Pill>
             </div>
             {shown.length === 0 && <p className="py-8 text-center text-sm text-[rgb(var(--text-secondary))]">No {CLASSES.find((c) => c.key === vehicleClass)?.label.toLowerCase()} rides on this route right now.</p>}
             <ul className="space-y-3">
@@ -145,10 +169,13 @@ export function TransferSearch({ heroImg }: { heroImg?: string | null }) {
                   <TransferSupplierPhoto info={t.supplierInfo} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-ink inline-flex items-center gap-2"><Car className="w-4 h-4 text-crimson-700" />{t.kind === 'rental' ? t.leamigoRental?.vehicleName : classLabel(t.vehicle)}</p>
-                    <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{t.fromName} → {t.toName}</p>
+                    <p className="text-xs text-[rgb(var(--text-secondary))] mt-0.5">{t.fromName} {searched?.roundTrip ? '⇄' : '→'} {t.toName}{searched?.roundTrip && t.kind !== 'rental' ? ` · back ${formatDateShort(searched.returnDate)}, ${searched.returnTime}` : ''}</p>
                     <TransferSupplierDetails info={t.supplierInfo} />
                   </div>
-                  <p className="money text-[17px] text-ink shrink-0">{money(t.pricePaise)}</p>
+                  <div className="text-right shrink-0">
+                    <p className="money text-[17px] text-ink">{money(t.pricePaise)}</p>
+                    {searched?.roundTrip && t.kind !== 'rental' && <p className="text-[11px] text-[rgb(var(--text-secondary))]">both ways</p>}
+                  </div>
                 </li>
               ))}
             </ul>

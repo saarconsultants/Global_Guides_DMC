@@ -43,7 +43,7 @@ function vehicleOf(t: LeamigoTransfer): TransferVehicle {
   return 'PRIVATE';
 }
 
-export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kind']; fromName: string; toName: string; leg?: Omit<LeamigoLeg, 'providerId' | 'vehicleName' | 'shared' | 'luxury'> }): Transfer {
+export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kind']; fromName: string; toName: string; returnTrip?: boolean; leg?: Omit<LeamigoLeg, 'providerId' | 'vehicleName' | 'shared' | 'luxury'> }): Transfer {
   const extras = [t.flags.meetAndGreet && 'meet & greet', t.flags.freeCancellation && 'free cancellation'].filter(Boolean);
   return {
     id: t.id,
@@ -61,6 +61,7 @@ export function leamigoToTransfer(t: LeamigoTransfer, ctx: { kind: Transfer['kin
         t.flags.instantConfirmation && 'Instant confirmation', t.flags.freeCancellation && 'Free cancellation',
         t.flags.meetAndGreet && 'Meet & greet', t.flags.driverDetails && 'Driver details provided',
         t.flags.childSeat && 'Child seat available', t.flags.amendable && 'Can be amended',
+        ctx.returnTrip && 'Return trip: price covers both legs', t.flags.roundTripOnly && 'Only sold as a return trip',
       ].filter(Boolean) as string[],
       cancellation: cancellationText(t.cancellation),
       category: t.vehicleCategory, distanceKm: t.distanceKm, taxesPaise: t.taxesPaise, extras: t.addons, policies: t.policies,
@@ -80,6 +81,8 @@ export async function quoteLeamigoLeg(args: {
   pickupDate: string; pickupTime?: string;
   passengers: number;
   timeoutMs?: number;
+  /** Both set: search as a return journey, which also finds routes only sold as a round trip. */
+  returnDate?: string; returnTime?: string;
 }): Promise<{ transfers: Transfer[]; live: boolean; warning?: string }> {
   if (!isLive()) return { transfers: [], live: false };
   const leg = {
@@ -93,9 +96,12 @@ export async function quoteLeamigoLeg(args: {
       passengers: leg.passengers,
       pickupDate: leg.pickupDate,
       pickupTime: leg.pickupTime,
+      ...(args.returnDate && args.returnTime ? { returnDate: args.returnDate, returnTime: args.returnTime } : {}),
     }), args.timeoutMs ?? 9_000);
+    const returnTrip = !!(args.returnDate && args.returnTime);
     return {
-      transfers: res.transfers.map((t) => leamigoToTransfer(t, { ...args, leg })),
+      // A return quote isn't one leg of a trip, so it carries no booking leg: it's for browsing and quoting.
+      transfers: res.transfers.map((t) => leamigoToTransfer(t, { ...args, returnTrip, leg: returnTrip ? undefined : leg })),
       live: res.source === 'live',
       warning: res.warning,
     };

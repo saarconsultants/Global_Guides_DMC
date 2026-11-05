@@ -15,6 +15,10 @@ import { cityInfo } from '@/lib/itinerary/mock-inventory';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
+// Some operators answer slowly and Leamigo keeps collecting for ~20s. Give them that long.
+const LEAMIGO_TIMEOUT_MS = 25_000;
 
 interface Body {
   kind: 'arrival' | 'departure' | 'inter-city';
@@ -28,6 +32,9 @@ interface Body {
   pickupTime?: string;                     // HH:mm, from the attached flight when known
   adults: number;
   children?: number;
+  /** Both set: a return journey (Transfers page). Routes only sold as a round trip appear only then. */
+  returnDate?: string;
+  returnTime?: string;
 }
 
 const respond = (all: Transfer[], live: boolean, warnings: Array<string | undefined>) => NextResponse.json({
@@ -47,13 +54,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'Missing route, date or transfer kind.' }, { status: 400 });
   }
   const pax = (input.adults || 1) + (input.children ?? 0);
+  const ret = /^\d{4}-\d{2}-\d{2}$/.test(input.returnDate ?? '') && /^\d{2}:\d{2}$/.test(input.returnTime ?? '')
+    ? { returnDate: input.returnDate, returnTime: input.returnTime } : {};
 
   if (interCity) {
     const [from, to] = await Promise.all([cityPoint(input.fromCityCode), cityPoint(input.cityCode)]);
     if (!from || !to) return respond([], false, []);
     const res = await quoteLeamigoLeg({
       kind: 'inter-city', from, to, fromName: `${cityInfo(input.fromCityCode!).name} (City)`, toName: `${cityInfo(input.cityCode!).name} (City)`,
-      pickupDate: input.pickupDate, pickupTime: input.pickupTime, passengers: pax,
+      pickupDate: input.pickupDate, pickupTime: input.pickupTime, passengers: pax, timeoutMs: LEAMIGO_TIMEOUT_MS, ...ret,
     });
     return respond([...res.transfers].sort((a, b) => a.pricePaise - b.pricePaise), res.live, [res.warning]);
   }
@@ -65,7 +74,7 @@ export async function POST(req: Request) {
   const toName = arrival ? hotelName : airportName;
 
   const hbTask = (async (): Promise<{ transfers: Transfer[]; live: boolean; warning?: string }> => {
-    if (!input.hotelAtlasCode) return { transfers: [], live: false };
+    if (!input.hotelAtlasCode || ret.returnDate) return { transfers: [], live: false };
     const res = await searchTransfers({
       fromType: arrival ? 'IATA' : 'ATLAS', fromCode: arrival ? input.airportCode! : input.hotelAtlasCode,
       toType: arrival ? 'ATLAS' : 'IATA', toCode: arrival ? input.hotelAtlasCode : input.airportCode!,
@@ -80,7 +89,7 @@ export async function POST(req: Request) {
     if (!airport || !hotel) return { transfers: [] as Transfer[], live: false, warning: leamigoIsLive() && !hotel ? 'Leamigo skipped: this hotel has no coordinates from its supplier.' : undefined };
     return quoteLeamigoLeg({
       kind: input.kind, from: arrival ? airport : hotel, to: arrival ? hotel : airport,
-      fromName, toName, pickupDate: input.pickupDate, pickupTime: input.pickupTime, passengers: pax,
+      fromName, toName, pickupDate: input.pickupDate, pickupTime: input.pickupTime, passengers: pax, timeoutMs: LEAMIGO_TIMEOUT_MS, ...ret,
     });
   })();
 

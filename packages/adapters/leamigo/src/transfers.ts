@@ -61,6 +61,8 @@ export interface LeamigoTransfer {
     driverDetails: boolean;
     childSeat: boolean;
     amendable: boolean;
+    /** Only sold as a return trip; the price covers both legs. */
+    roundTripOnly: boolean;
   };
   cancellation: { title: string; description: string; rules: Array<{ hoursBefore: number; chargePct: number }> };
   expiresAt: string;
@@ -100,6 +102,7 @@ interface RawRide {
     free_cancellation: boolean; instant_confirmation: boolean; meet_and_greet: boolean;
     driver_details_available: boolean; luxury_transfer: boolean; amendment_available: boolean;
     child_seat_available: boolean; shared_transfer: boolean;
+    round_trip_only?: boolean;
   };
   cancellation_policy?: {
     title?: string; description?: string;
@@ -243,6 +246,7 @@ function normalize(r: RawRide, meta: RawSearchResponse['metadata'], rates: Recor
       driverDetails: !!r.flags?.driver_details_available,
       childSeat: !!r.flags?.child_seat_available,
       amendable: !!r.flags?.amendment_available,
+      roundTripOnly: !!r.flags?.round_trip_only,
     },
     cancellation: {
       title: r.cancellation_policy?.title ?? '',
