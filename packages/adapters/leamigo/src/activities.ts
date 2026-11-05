@@ -213,16 +213,24 @@ async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<v
   }));
 }
 
-/** Some suppliers (Headout) send HTML. Agents and vouchers need plain text. */
-function plain(v: unknown): string | undefined {
+/** Some suppliers send HTML or Markdown. Agents and vouchers need plain, tidy text. */
+export function plain(v: unknown): string | undefined {
   if (v === null || v === undefined || v === '') return undefined;
   const text = String(v)
+    // Escaped HTML first, so it's removed with the rest. &amp; last, so "&amp;lt;" can't turn into a tag afterwards.
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/<\s*li[^>]*>/gi, '\n• ')
     .replace(/<\s*br\s*\/?>|<\/\s*(p|div|ul|ol|h[1-6]|li)\s*>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'")
-    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    .replace(/<\/?[a-z][^>]*>/gi, '')
+    .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&amp;/g, '&')
+    // Markdown
+    .replace(/\*\*(.+?)\*\*/g, '$1').replace(/^\s*#{1,6}\s+/gm, '').replace(/^\s*[-*]\s+/gm, '• ')
+    // Bullets stay with their text, and sit on consecutive lines.
+    .replace(/•\s*\n\s*/g, '• ').replace(/[ \t]+\n/g, '\n').replace(/\n\s*\n(?=• )/g, '\n').replace(/\n{3,}/g, '\n\n')
+    .trim()
+    // The section already has its own title on our page.
+    .replace(/^(your experience|know before you go|about this experience)\s*\n+/i, '')
+    .trim();
   return text || undefined;
 }
 
@@ -410,7 +418,7 @@ export async function leamigoActivityInfo(activityId: number): Promise<LeamigoAc
     latitude: Number(d?.location?.lat) || undefined, longitude: Number(d?.location?.lng) || undefined,
     images: [...new Set<string>(images)],
     // "General: free shuttle" — the title alone when the supplier repeated it as the text.
-    policies: [...new Set<string>((d?.policies ?? []).map((p: any) => (p?.description && p.description !== p.title ? `${p.title}: ${p.description}` : String(p?.title ?? p?.description ?? ''))).filter(Boolean))],
+    policies: [...new Set<string>((d?.policies ?? []).map((p: any) => (p?.description && p.description !== p.title ? `${plain(p.title)}: ${plain(p.description)}` : plain(p?.title ?? p?.description) ?? '')).filter(Boolean))],
     highlights: strings(d?.highlights),
     ticketUsage: plain(d?.ticket_usage_instructions),
     meetingPoint: d?.location?.meeting_point ?? undefined,

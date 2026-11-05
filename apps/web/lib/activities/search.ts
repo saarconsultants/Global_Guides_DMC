@@ -23,7 +23,7 @@ const cachedSearch = unstable_cache(async (input: { cityId?: number; cityName?: 
   // Only a search that found nothing because Leamigo failed isn't kept.
   if (result.partial && !result.activities.length && !result.listOnly.length) throw new IncompleteSearch(result);
   return result;
-}, ['leamigo-activity-search-v6'], { revalidate: SEARCH_CACHE_S });
+}, ['leamigo-activity-search-v7'], { revalidate: SEARCH_CACHE_S });
 
 async function leamigoSearch(input: { cityId?: number; cityName?: string; countryCode?: string; adults: number; children: number; optionsBudgetMs?: number }): Promise<LeamigoResult> {
   try {
