@@ -4,7 +4,8 @@ import { HotelSearchForm } from '@/components/hotels/search-form';
 import { HotelResults } from '@/components/hotels/results';
 import { hotelsForCity, CITY_BANK } from '@/lib/itinerary/mock-inventory';
 import { Pill } from '@/components/ui/pill';
-import { searchHotels, isLive } from '@gg/hotelbeds';
+import { searchLiveHotels, anyHotelSupplierLive } from '@/lib/hotels/live';
+import { isLiveHotelId } from '@/lib/hotels/supplier';
 import { captureException } from '@/lib/observability';
 import type { Hotel } from '@/lib/itinerary/types';
 import { promoSrc } from '@/lib/promos';
@@ -44,27 +45,14 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   const dateInvalid = hasQuery && new Date(checkout) <= new Date(checkin);
 
   if (hasQuery && !dateInvalid) {
-    if (isLive()) {
+    if (anyHotelSupplierLive()) {
       try {
-        const res = await searchHotels({
-          cityCode: city,
-          checkIn: checkin,
-          checkOut: checkout,
-          rooms: occupancy,
-          sourceMarket: residence,
-        });
+        const res = await searchLiveHotels({ cityCode: city, checkIn: checkin, checkOut: checkout, rooms: occupancy, market: residence, nationality: sp.nationality ?? residence });
         source = res.source;
         warning = res.warning;
-        if (warning) console.error('[hotels-search] supplier warning', warning);
-        const liveHotels: Hotel[] = res.hotels.map((h) => ({
-          id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
-          thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
-          pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages,
-          roomOptions: h.roomOptions, rateKey: h.rateKey, latitude: h.latitude, longitude: h.longitude,
-        }));
-        // Live or sample, never both: certification reviews only Hotelbeds product.
+        // Live or sample, never both.
         hotels = source === 'live'
-          ? liveHotels
+          ? res.hotels
           : hotelsForCity(city);
       } catch (e: any) {
         source = 'mock';
@@ -95,7 +83,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   });
   const filteredOut = totalBeforeFilter - hotels.length;
 
-  const liveCount = hotels.filter((h) => h.id.startsWith('HB-')).length;
+  const liveCount = hotels.filter((h) => isLiveHotelId(h.id)).length;
   const badge =
     source === 'live'
       ? { variant: 'live' as const, label: `${liveCount} with live prices` }

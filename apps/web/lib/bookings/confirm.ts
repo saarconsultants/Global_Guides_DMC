@@ -16,8 +16,10 @@ import { sampleItems } from '@/lib/bookings/sample';
 import { verifyQuote, validateGuests, bookHotels, PRICE_TOLERANCE_PCT, type GuestsInput, type SupplierHotelBooking, type HotelQuote } from './hotelbeds';
 import { leamigoLegs, validateContact, bookTransfers, type TransferQuote, type SupplierTransferBooking, type LeadContact } from './leamigo';
 import { isLive as leamigoLive } from '@gg/leamigo';
+import { isLive as unifyLive } from '@gg/unifystays';
+import { bookUnifyStays, type SupplierUnifyBooking } from './unifystays';
 
-export type SupplierItem = SupplierHotelBooking | SupplierTransferBooking;
+export type SupplierItem = SupplierHotelBooking | SupplierUnifyBooking | SupplierTransferBooking;
 
 export type ConfirmResult =
   | { ok: true; bookingId: string; code: string; status: 'CONFIRMED' | 'PENDING'; hotels: SupplierItem[] }
@@ -26,6 +28,8 @@ export type ConfirmResult =
 export async function confirmProposalBooking(args: {
   agencyId: string; userId: string; proposalId: string;
   quoteToken?: string; guests?: GuestsInput; contact?: LeadContact; acceptPriceChange?: boolean;
+  /** The agent's public IP: some Unifystays suppliers require it. */
+  endUserIp?: string;
 }): Promise<ConfirmResult> {
   const { agencyId, userId, proposalId } = args;
   const proposal = await db.proposal.findFirst({ where: { id: proposalId, agencyId }, include: { lead: true } });
@@ -42,7 +46,9 @@ export async function confirmProposalBooking(args: {
   if (samples.length) return { ok: false, code: 'bad_status', error: `Can't book sample prices: ${samples.map((x) => x.hotelName).join(', ')}.` };
 
   // Which stays must go through Hotelbeds?
-  const liveStays = isLive('hotels') ? it.destinations.filter((d) => d.stay?.hotel.id.startsWith('HB-')) : [];
+  const hbStays = isLive('hotels') ? it.destinations.filter((d) => d.stay?.hotel.id.startsWith('HB-')) : [];
+  const usStays = unifyLive() ? it.destinations.filter((d) => d.stay?.hotel.id.startsWith('US-')) : [];
+  const liveStays = [...hbStays, ...usStays];
   const liveLegs = leamigoLive() ? leamigoLegs(it) : [];
   const liveCount = liveStays.length + liveLegs.length;
   let quoteHotels: HotelQuote[] = [];
@@ -56,7 +62,7 @@ export async function confirmProposalBooking(args: {
       const bad = validateGuests(args.guests as GuestsInput, it.intake.rooms);
       if (bad) return { ok: false, code: 'guests', error: bad };
     }
-    if (liveLegs.length) {
+    if (liveLegs.length || usStays.length) {
       const bad = validateContact(args.contact);
       if (bad) return { ok: false, code: 'guests', error: bad };
     }
@@ -89,16 +95,18 @@ export async function confirmProposalBooking(args: {
     throw e;
   }
 
-  const [hotelResults, transferResults] = await Promise.all([
-    liveStays.length ? bookHotels({ hotels: quoteHotels, guests: args.guests!, rooms: it.intake.rooms, clientReference: proposal.code }) : Promise.resolve([] as SupplierHotelBooking[]),
+  const [hotelResults, unifyResults, transferResults] = await Promise.all([
+    hbStays.length ? bookHotels({ hotels: quoteHotels.filter((h) => h.supplier !== 'UNIFYSTAYS'), guests: args.guests!, rooms: it.intake.rooms, clientReference: proposal.code }) : Promise.resolve([] as SupplierHotelBooking[]),
+    usStays.length ? bookUnifyStays({ hotels: quoteHotels.filter((h) => h.supplier === 'UNIFYSTAYS'), guests: args.guests!, contact: args.contact!, rooms: it.intake.rooms, clientReference: proposal.code, endUserIp: args.endUserIp }) : Promise.resolve([] as SupplierUnifyBooking[]),
     liveLegs.length ? bookTransfers({ transfers: quoteTransfers, contact: args.contact!, clientReference: proposal.code, guestNames: (args.guests?.rooms ?? []).flatMap((r) => [...r.adults, ...r.children]).map((p) => `${p.name} ${p.surname}`.trim()) }) : Promise.resolve([] as SupplierTransferBooking[]),
   ]);
-  const hotels: SupplierItem[] = [...hotelResults, ...transferResults];
+  const hotels: SupplierItem[] = [...hotelResults, ...unifyResults, ...transferResults];
   const confirmed = hotels.filter((h) => h.status === 'CONFIRMED');
-  const label = (h: SupplierItem) => (h.supplier === 'HOTELBEDS' ? h.hotelName : h.product === 'activity' ? h.fromName : `${h.fromName} → ${h.toName}`);
+  const label = (h: SupplierItem) => (h.supplier === 'HOTELBEDS' || h.supplier === 'UNIFYSTAYS' ? h.hotelName : h.product === 'activity' ? h.fromName : `${h.fromName} → ${h.toName}`);
 
   // Every live booking failed → nothing is held at any supplier: undo everything.
-  if (liveCount && confirmed.length === 0) {
+  // A pending one (Unifystays still confirming) may yet go through, so it never triggers this.
+  if (liveCount && hotels.every((h) => h.status === 'FAILED')) {
     await db.$transaction(async (tx) => {
       await tx.booking.delete({ where: { id: bookingId } });
       await tx.agency.update({ where: { id: agencyId }, data: { walletPaise: { increment: net } } });
@@ -113,7 +121,7 @@ export async function confirmProposalBooking(args: {
     where: { id: bookingId },
     data: {
       status: allOk ? 'CONFIRMED' : 'PENDING',
-      pnrs: confirmed.map((h) => `${h.supplier === 'HOTELBEDS' ? 'HB' : 'LM'} ${h.reference}`).join(', ') || null,
+      pnrs: confirmed.map((h) => `${h.supplier === 'HOTELBEDS' ? 'HB' : h.supplier === 'UNIFYSTAYS' ? 'US' : 'LM'} ${h.reference}`).join(', ') || null,
       supplierJson: hotels.length ? JSON.stringify(hotels) : null,
     },
   });
@@ -124,7 +132,10 @@ export async function confirmProposalBooking(args: {
     title: allOk ? `Booking confirmed · ${proposal.code}` : `Booking needs attention · ${proposal.code}`,
     body: allOk
       ? `${proposal.lead?.customerName ?? 'Customer'} · ${proposal.name}${confirmed.length ? ` · ${confirmed.map((h) => h.reference).join(', ')}` : ''}`
-      : `${hotels.filter((h) => h.status === 'FAILED').map(label).join(', ')} could not be booked — operations will follow up.`,
+      : [
+          hotels.some((h) => h.status === 'FAILED') && `${hotels.filter((h) => h.status === 'FAILED').map(label).join(', ')} could not be booked — operations will follow up.`,
+          hotels.some((h) => h.status === 'PENDING') && `${hotels.filter((h) => h.status === 'PENDING').map(label).join(', ')} is waiting for the supplier to confirm. Check its status in Bookings.`,
+        ].filter(Boolean).join(' '),
     href: '/bookings',
   });
 

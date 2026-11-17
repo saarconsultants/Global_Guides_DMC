@@ -8,6 +8,7 @@ import { useMoney } from '@/components/providers/currency-provider';
 import { hotelsForCity } from '@/lib/itinerary/mock-inventory';
 import type { Hotel, StarRating, Room } from '@/lib/itinerary/types';
 import { Star, Building2 } from 'lucide-react';
+import { isLiveHotelId } from '@/lib/hotels/supplier';
 
 interface Props {
   open: boolean;
@@ -124,7 +125,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
                 <div className="flex items-center gap-1 text-amber-500 text-sm" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</div>
                 <h4 className="font-semibold text-ink mt-1 flex items-center gap-2 flex-wrap">
                   {h.name}
-                  {h.id.startsWith('HB-') && <Pill variant="success">LIVE</Pill>}
+                  {isLiveHotelId(h.id) && <Pill variant="success">LIVE</Pill>}
                 </h4>
                 <p className="text-xs text-[rgb(var(--text-secondary))]">{h.address}</p>
                 <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">

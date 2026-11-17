@@ -13,8 +13,8 @@ import { statusLabel } from '@/lib/labels';
 import { Settings2, Loader2 } from 'lucide-react';
 
 export interface SupplierRow {
-  supplier: 'HOTELBEDS' | 'LEAMIGO';
-  status: 'CONFIRMED' | 'FAILED' | 'CANCELLED';
+  supplier: 'HOTELBEDS' | 'UNIFYSTAYS' | 'LEAMIGO';
+  status: 'CONFIRMED' | 'PENDING' | 'FAILED' | 'CANCELLED';
   reference?: string;
   title: string;
   detail: string;
@@ -29,7 +29,18 @@ export function SupplierItems({ bookingId, code, items }: { bookingId: string; c
   const [busy, setBusy] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ ref: string; feePaise: number; refundPaise: number } | null>(null);
 
-  const route = (s: SupplierRow['supplier']) => (s === 'HOTELBEDS' ? '/api/bookings/cancel-hotel' : '/api/bookings/cancel-transfer');
+  const route = (s: SupplierRow['supplier']) => (s === 'LEAMIGO' ? '/api/bookings/cancel-transfer' : '/api/bookings/cancel-hotel');
+
+  async function refresh(item: SupplierRow) {
+    setBusy(item.reference!);
+    try {
+      const j = await fetch('/api/bookings/hotel-status', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ bookingId, reference: item.reference }) }).then((r) => r.json());
+      if (!j.ok) { toast.error('Could not check', j.error ?? 'Try again.'); return; }
+      toast.success('Status checked', j.message);
+      router.refresh();
+    } catch { toast.error('Network error', 'Try again in a minute.'); }
+    finally { setBusy(null); }
+  }
 
   async function call(item: SupplierRow, confirm: boolean) {
     setBusy(item.reference!);
@@ -60,11 +71,16 @@ export function SupplierItems({ bookingId, code, items }: { bookingId: string; c
                   <p className="text-xs text-[rgb(var(--text-secondary))]">{it.detail}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-mono text-xs">{it.supplier === 'HOTELBEDS' ? 'HB' : 'LM'} {it.reference ?? '—'}</p>
-                  <p className={`text-xs font-semibold ${it.status === 'CONFIRMED' ? 'text-emerald-700' : it.status === 'CANCELLED' ? 'text-[rgb(var(--text-tertiary))]' : 'text-danger-500'}`}>{statusLabel(it.status)}</p>
+                  <p className="font-mono text-xs">{it.supplier === 'HOTELBEDS' ? 'HB' : it.supplier === 'UNIFYSTAYS' ? 'US' : 'LM'} {it.reference ?? '—'}</p>
+                  <p className={`text-xs font-semibold ${it.status === 'CONFIRMED' ? 'text-emerald-700' : it.status === 'CANCELLED' ? 'text-[rgb(var(--text-tertiary))]' : it.status === 'PENDING' ? 'text-amber-700' : 'text-danger-500'}`}>{it.status === 'PENDING' ? 'Waiting for supplier' : statusLabel(it.status)}</p>
                 </div>
               </div>
               {it.error && <p className="text-xs text-danger-500">{it.error}</p>}
+              {it.supplier === 'UNIFYSTAYS' && it.status === 'PENDING' && it.reference && (
+                <div className="flex justify-end">
+                  <Button size="sm" variant="secondary" disabled={!!busy} onClick={() => refresh(it)}>{busy === it.reference ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Check status'}</Button>
+                </div>
+              )}
               {it.supplier === 'LEAMIGO' && it.reference && <LeamigoLivePanel bookingId={bookingId} reference={it.reference} ourStatus={it.status} open={open} />}
               {it.status === 'CONFIRMED' && it.reference && (
                 preview?.ref === it.reference ? (

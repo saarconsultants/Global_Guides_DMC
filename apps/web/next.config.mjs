@@ -3,7 +3,7 @@ import { join } from 'node:path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  transpilePackages: ['@gg/tripjack', '@gg/hotelbeds', '@gg/leamigo'],
+  transpilePackages: ['@gg/tripjack', '@gg/hotelbeds', '@gg/leamigo', '@gg/unifystays'],
   // Static artwork (/promos, /brand) has fixed, un-hashed names, so it can't be
   // `immutable` — but caching for a day (and serving stale while revalidating for
   // a week) stops every page view re-validating ~1 MB of images.

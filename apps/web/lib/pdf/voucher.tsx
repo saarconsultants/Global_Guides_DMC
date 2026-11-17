@@ -6,6 +6,7 @@ import { Document, Page, View, Text, StyleSheet, Image } from '@react-pdf/render
 import { formatMoneyCode } from '@/lib/money';
 import type { Itinerary } from '@/lib/itinerary/types';
 import type { SupplierHotelBooking } from '@/lib/bookings/hotelbeds';
+import type { SupplierUnifyBooking } from '@/lib/bookings/unifystays';
 import type { SupplierTransferBooking } from '@/lib/bookings/leamigo';
 
 interface AgencyBrand {
@@ -23,7 +24,7 @@ export interface VoucherPdfInput {
   rate?: number;
   itinerary: Itinerary;
   /** Hotelbeds confirmations (certification §4 voucher fields). */
-  supplierHotels?: Array<SupplierHotelBooking | SupplierTransferBooking>;
+  supplierHotels?: Array<SupplierHotelBooking | SupplierUnifyBooking | SupplierTransferBooking>;
 }
 
 function fmtDate(s: string) {
@@ -66,6 +67,8 @@ export function buildVoucherPdf(input: VoucherPdfInput) {
 function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', rate = 1, itinerary: it, supplierHotels }: VoucherPdfInput) {
   const hb = (supplierHotels ?? []).filter((h): h is SupplierHotelBooking => h.supplier === 'HOTELBEDS' && h.status === 'CONFIRMED' && !!h.booking);
   const lm = (supplierHotels ?? []).filter((h): h is SupplierTransferBooking => h.supplier === 'LEAMIGO' && h.status === 'CONFIRMED');
+  // Only CONFIRMED: a pending Unifystays booking never gets a voucher.
+  const us = (supplierHotels ?? []).filter((h): h is SupplierUnifyBooking => h.supplier === 'UNIFYSTAYS' && h.status === 'CONFIRMED');
   const primary = agency.primaryColor || '#630909';
   const accent = agency.accentColor || '#FFBA06';
   const money = (p: number | bigint) => formatMoneyCode(p, currency, rate);
@@ -126,6 +129,27 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
             </View>
           )}
 
+          {us.length > 0 && (
+            <View style={s.section}>
+              <Text style={s.sectionLabel}>{hb.length ? 'More hotel confirmations' : 'Hotel confirmations'}</Text>
+              {us.map((h) => (
+                <View key={h.reference} style={s.card} wrap={false}>
+                  <View style={s.row}>
+                    <Text style={s.bold}>{h.hotelName}</Text>
+                    <Text style={[s.bold, { color: primary }]}>Hotel conf. {h.hotelConfirmationNumber ?? 'to follow'}</Text>
+                  </View>
+                  <Text style={s.muted}>{h.address}{h.hotelPhone ? ` · Tel ${h.hotelPhone}` : ''}</Text>
+                  <Text style={s.muted}>Check-in {fmtDate(h.checkIn)}  ·  Check-out {fmtDate(h.checkOut)}  ·  Agency ref {code}  ·  Booking {h.reference}</Text>
+                  <Text style={s.muted}>Lead guest: {h.leadGuest}</Text>
+                  <Text style={s.muted}>{h.roomName} · {h.board}</Text>
+                  <Text style={s.muted}>Guests: {h.guests.join(', ')}</Text>
+                  {/* The PDF font has no rupee sign. */}
+                  {h.conditions && <Text style={[s.note, { color: '#334155' }]}>Hotel conditions: {h.conditions.replace(/\u20b9/g, 'INR ')}</Text>}
+                </View>
+              ))}
+            </View>
+          )}
+
           {lm.length > 0 && (
             <View style={s.section}>
               <Text style={s.sectionLabel}>Transfers, cars & activities</Text>
@@ -145,10 +169,11 @@ function VoucherPdf({ agency, code, bookedAt, customerName, currency = 'INR', ra
             </View>
           )}
 
-          {it.destinations.some((d) => d.stay && !hb.some((x) => x.hotelId === d.stay!.hotel.id)) && (
+          {/* Unifystays stays only appear above, once confirmed: a pending one is not a reservation. */}
+          {it.destinations.some((d) => d.stay && !hb.some((x) => x.hotelId === d.stay!.hotel.id) && !d.stay.hotel.id.startsWith('US-')) && (
             <View style={s.section}>
               <Text style={s.sectionLabel}>Accommodation</Text>
-              {it.destinations.map((d) => d.stay && !hb.some((x) => x.hotelId === d.stay!.hotel.id) && (
+              {it.destinations.map((d) => d.stay && !hb.some((x) => x.hotelId === d.stay!.hotel.id) && !d.stay.hotel.id.startsWith('US-') && (
                 <View key={d.cityCode} style={s.card}>
                   <View style={s.row}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>

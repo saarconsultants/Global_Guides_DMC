@@ -16,9 +16,10 @@ export async function GET(req: Request) {
   const apis = inventoryStatus();
   let suppliers: Record<string, { ok: boolean; status: number | null }> | undefined;
   if (new URL(req.url).searchParams.get('check')) {
-    const [leamigo, flights] = await Promise.all([probeApi('leamigo'), probeApi('flights')]);
+    const [leamigo, flights, unifystays] = await Promise.all([probeApi('leamigo'), probeApi('flights'), probeApi('unifystays')]);
     suppliers = {
       leamigo: { ok: !!leamigo.reachable, status: leamigo.status ?? null },
+      unifystays: { ok: !!unifystays.reachable, status: unifystays.status ?? null },
       flights: { ok: !!flights.reachable, status: flights.status ?? null },
     };
   }

@@ -1,17 +1,18 @@
 // POST /api/search-hotels — see comment in search-activities/route.ts for why this isn't a server action.
 
 import { NextResponse } from 'next/server';
-import { searchHotels, type HotelbedsHotel } from '@gg/hotelbeds';
-import type { Hotel } from '@/lib/itinerary/types';
+import { searchLiveHotels } from '@/lib/hotels/live';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 interface Body {
   cityCode: string;
   checkIn: string;
   checkOut: string;
-  rooms: Array<{ adults: number; children?: number }>;
+  rooms: Array<{ adults: number; children?: number; childAges?: number[] }>;
+  nationality?: string;
 }
 
 export async function POST(req: Request) {
@@ -19,10 +20,10 @@ export async function POST(req: Request) {
   try { input = await req.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 }); }
 
   try {
-    const res = await searchHotels(input);
+    const res = await searchLiveHotels({ ...input, rooms: input.rooms.map((r) => ({ adults: r.adults, children: r.children ?? 0, childAges: r.childAges })), nationality: input.nationality });
     return NextResponse.json({
       ok: true,
-      hotels: res.hotels.map(toApp),
+      hotels: res.hotels,
       source: res.source,
       warning: res.warning,
     });
@@ -31,12 +32,3 @@ export async function POST(req: Request) {
   }
 }
 
-function toApp(h: HotelbedsHotel): Hotel {
-  return {
-    id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
-    thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
-    pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages, latitude: h.latitude, longitude: h.longitude,
-    // Kept with the trip: booking uses these rates rather than searching again.
-    roomOptions: h.roomOptions, rateKey: h.rateKey,
-  };
-}

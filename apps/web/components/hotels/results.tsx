@@ -10,6 +10,7 @@ import { Star, Search, Hotel as HotelIcon } from 'lucide-react';
 import Link from 'next/link';
 import { SelectHotelButton } from './select-hotel-button';
 import { HotelPhoto } from './hotel-photo';
+import { isLiveHotelId } from '@/lib/hotels/supplier';
 
 interface Props {
   hotels: Hotel[];
@@ -76,7 +77,7 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
-                {h.id.startsWith('HB-') && <Pill variant="live">Live</Pill>}
+                {isLiveHotelId(h.id) && <Pill variant="live">Live</Pill>}
               </div>
               <h3 className="mt-1 text-[17px] font-bold text-ink tracking-[-0.01em] leading-tight">
                 {h.id.startsWith('HB-') ? <Link href={`/hotels/${h.id}` as any} className="hover:text-crimson-700">{h.name}</Link> : h.name}

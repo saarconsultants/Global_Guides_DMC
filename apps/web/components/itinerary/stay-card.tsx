@@ -10,6 +10,7 @@ import { useMoney } from '@/components/providers/currency-provider';
 import { Star, Hotel as HotelIcon, Bed } from 'lucide-react';
 import { HotelPhoto } from '@/components/hotels/hotel-photo';
 import { formatWeekdayDate } from '@/lib/utils';
+import { isLiveHotelId } from '@/lib/hotels/supplier';
 
 interface Props {
   cityCode: string;
@@ -31,7 +32,7 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange, on
     <>
       <div className="flex items-baseline justify-between mb-3">
         <h3 className="text-[18px] font-extrabold text-ink tracking-[-0.01em] inline-flex items-center gap-2"><Bed className="w-4 h-4 text-crimson-700" />{cityName} · {nights} night{nights !== 1 ? 's' : ''}</h3>
-        {h.id.startsWith('HB-') && <Pill variant="live">Live rate</Pill>}
+        {isLiveHotelId(h.id) && <Pill variant="live">Live rate</Pill>}
       </div>
       <Pass>
         <PassMain className="flex gap-4 lg:gap-5">
@@ -67,7 +68,7 @@ export function StayCard({ cityCode, cityName, nights, stay, rooms, onChange, on
           {onRemove && <Button size="sm" variant="ghost" className="w-full" onClick={onRemove}>Remove hotel</Button>}
         </PassStub>
       </Pass>
-      <ChangeRoomModal open={roomOpen} onClose={() => setRoomOpen(false)} hotel={h} nights={nights} onPick={onRoomChange ?? onChange} onChangeHotel={() => setOpen(true)} />
+      <ChangeRoomModal open={roomOpen} onClose={() => setRoomOpen(false)} hotel={h} nights={nights} checkIn={stay.checkIn} checkOut={stay.checkOut} rooms={rooms} onPick={onRoomChange ?? onChange} onChangeHotel={() => setOpen(true)} />
       <ChangeHotelModal
         open={open}
         onClose={() => setOpen(false)}

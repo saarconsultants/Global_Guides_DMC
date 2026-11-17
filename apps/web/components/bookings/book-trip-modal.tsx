@@ -29,7 +29,7 @@ interface Props {
 
 interface Policy { from: string; amountPaise: number }
 interface Rate { roomName: string; board: string; promotions?: string[]; rooms: number; adults: number; childAges: number[]; cancellationPolicies: Policy[]; rateComments?: string }
-interface Hotel { hotelId: string; hotelName: string; cityName: string; address: string; checkIn: string; checkOut: string; rates: Rate[]; netPaise: number; quotedPaise: number; priceChangePct: number; sameRoomAndBoard: boolean }
+interface Hotel { supplier?: 'UNIFYSTAYS'; hotelId: string; hotelName: string; cityName: string; address: string; checkIn: string; checkOut: string; rates: Rate[]; netPaise: number; quotedPaise: number; priceChangePct: number; sameRoomAndBoard: boolean }
 interface Issue { cityName: string; hotelName: string; reason: string }
 interface TQ { product?: 'transfer' | 'rental' | 'activity'; key: string; fromName: string; toName: string; pickupDate: string; pickupTime: string; vehicleName: string; provider: string; netPaise: number; quotedPaise: number; priceChangePct: number; sameVehicle: boolean; cancellationText: string; kind: string }
 interface Contact { salutation: 'Mr' | 'Mrs' | 'Ms' | 'Miss' | 'Dr'; firstName: string; lastName: string; email: string; phone: string; flightNumber: string }
@@ -55,6 +55,8 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
 
   const hasHotels = (prep?.hotels.length ?? 0) > 0;
   const hasTransfers = (prep?.transfers?.length ?? 0) > 0;
+  // Unifystays sends the lead guest's email and phone to the hotel, so it needs the contact step too.
+  const needsContact = hasTransfers || (prep?.hotels ?? []).some((h) => h.supplier === 'UNIFYSTAYS');
   const live = hasHotels || hasTransfers;
   const increase = [...(prep?.hotels ?? []), ...(prep?.transfers ?? [])].reduce((s, h) => s + Math.max(0, h.netPaise - h.quotedPaise), 0);
   const debit = netCostPaise + increase;
@@ -82,17 +84,18 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
     setGuests((g) => g.map((r, i) => i !== room ? r : { ...r, [kind]: r[kind].map((p, k) => k !== idx ? p : { ...p, [field]: v }) }));
   }
   const contactOk = !!(contact.firstName.trim() && contact.lastName.trim() && /^\S+@\S+\.\S+$/.test(contact.email) && /^\+\d{8,15}$/.test(contact.phone.replace(/[\s-]/g, '')));
-  const guestsOk = (!hasHotels || guests.every((r) => [...r.adults, ...r.children].every((p) => p.name.trim() && p.surname.trim()))) && (!hasTransfers || contactOk);
+  const guestsOk = (!hasHotels || guests.every((r) => [...r.adults, ...r.children].every((p) => p.name.trim() && p.surname.trim()))) && (!needsContact || contactOk);
 
   async function confirm() {
     setStep('booking'); setError(null);
     try {
       const r = await fetch('/api/bookings/confirm', { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ proposalId, quoteToken: prep?.token, guests: hasHotels ? { rooms: guests } : undefined, contact: hasTransfers ? contact : undefined, acceptPriceChange: acceptRise }) });
+        body: JSON.stringify({ proposalId, quoteToken: prep?.token, guests: hasHotels ? { rooms: guests } : undefined, contact: needsContact ? contact : undefined, acceptPriceChange: acceptRise }) });
       const j = await r.json();
       if (j.ok) {
         setResult({ status: j.status, hotels: j.hotels ?? [] }); setStep('done');
         if (j.status === 'CONFIRMED') toast.success('Booking confirmed', `${code} is booked. Wallet debited ${money(debit)}.`);
+        else if ((j.hotels ?? []).some((h: { status: string }) => h.status === 'PENDING') && !(j.hotels ?? []).some((h: { status: string }) => h.status === 'FAILED')) toast.warning('Booked, waiting for the hotel supplier', `${code} is saved and paid. A hotel is still confirming: use Check status in Bookings before sending vouchers.`);
         else toast.error('Partly booked', 'Some hotels did not confirm. Our team has been alerted.');
         router.refresh();
       } else {
@@ -220,7 +223,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
             <>
               {hasHotels && <p className="text-sm text-[rgb(var(--text-secondary))]">Names exactly as on passports. The hotel receives these.</p>}
               <div className="space-y-3 max-h-[50vh] overflow-y-auto">
-                {hasTransfers && (
+                {needsContact && (
                   <div className="rounded-md border border-border-subtle p-3 space-y-2">
                     <p className="label">Lead passenger — for drivers and activity suppliers</p>
                     <div className="grid grid-cols-[90px_1fr_1fr] gap-2">
@@ -270,14 +273,14 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
           {step === 'done' && result && (
             <>
               <div className={`rounded-md px-3 py-3 text-sm ${result.status === 'CONFIRMED' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
-                {result.status === 'CONFIRMED' ? `${code} is confirmed.` : `${code} is partly confirmed. Our team will follow up on the hotels below that failed.`}
+                {result.status === 'CONFIRMED' ? `${code} is confirmed.` : result.hotels.some((h) => h.status === 'PENDING') ? `${code} is booked. Some items are waiting for the supplier to confirm: check their status in Bookings before sending vouchers.` : `${code} is partly confirmed. Our team will follow up on the hotels below that failed.`}
               </div>
               {result.hotels.length > 0 && (
                 <div className="rounded-md border border-border-subtle divide-y divide-border-subtle text-sm">
                   {result.hotels.map((h, i) => (
                     <div key={i} className="flex items-center justify-between px-3 py-2 gap-3">
                       <span className="text-ink">{h.hotelName ?? (h.product === 'activity' ? h.fromName : h.product === 'rental' ? `Car with driver · ${h.fromName}` : `${h.fromName} → ${h.toName}`)}</span>
-                      {h.status === 'CONFIRMED' ? <span className="font-mono text-xs text-emerald-700">{h.reference}</span> : <span className="text-xs text-danger-500">{h.error ?? 'Failed'}</span>}
+                      {h.status === 'CONFIRMED' ? <span className="font-mono text-xs text-emerald-700">{h.reference}</span> : h.status === 'PENDING' ? <span className="text-xs text-amber-700">{h.error ?? 'Waiting for the supplier to confirm'}</span> : <span className="text-xs text-danger-500">{h.error ?? 'Failed'}</span>}
                     </div>
                   ))}
                 </div>

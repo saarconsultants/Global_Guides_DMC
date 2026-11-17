@@ -19,7 +19,7 @@ import { suggestItinerary, type SuggestedCity } from './suggest-itinerary';
 import { findCity, findCityCodeByName } from '@/lib/cities';
 import { chat } from './openrouter';
 import { composeItineraryAction } from '@/app/actions/compose-itinerary';
-import { searchHotels, isLive as hbLive } from '@gg/hotelbeds';
+import { searchLiveHotels, anyHotelSupplierLive } from '@/lib/hotels/live';
 import { searchAllActivities } from '@/lib/activities/search';
 import { forTrip } from '@/lib/activities/format';
 import { searchFlights, type FlightOffer } from '@gg/tripjack';
@@ -158,13 +158,9 @@ export async function architectTrip(input: ArchitectInput, onProgress?: (p: Arch
     composeItineraryAction(intake), // existing live pipeline (median hotel + transfers, 9s-capped)
     Promise.all(windows.map(async (w) => {
       try {
-        if (hbLive('hotels')) {
-          const res = await withTimeout(searchHotels({ cityCode: w.cityCode, checkIn: w.checkIn, checkOut: w.checkOut, rooms: [{ adults, children }], minStars: starRating }), 8_000);
-          const mapped: Hotel[] = res.hotels.slice(0, CAND_HOTELS).map((h) => ({
-            id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
-            thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
-            pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages, roomOptions: h.roomOptions, rateKey: h.rateKey, latitude: h.latitude, longitude: h.longitude,
-          }));
+        if (anyHotelSupplierLive()) {
+          const res = await withTimeout(searchLiveHotels({ cityCode: w.cityCode, checkIn: w.checkIn, checkOut: w.checkOut, rooms: [{ adults, children }], minStars: starRating, fast: true }), 8_000);
+          const mapped = res.hotels.slice(0, CAND_HOTELS);
           if (mapped.length > 0) return mapped;
         }
       } catch { /* fall through to mock */ }

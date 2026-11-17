@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     agencyId: actor.agencyId, userId: actor.userId,
     proposalId: String(body?.proposalId ?? ''),
     quoteToken: body?.quoteToken, guests: body?.guests, contact: body?.contact, acceptPriceChange: body?.acceptPriceChange === true,
+    endUserIp: (req.headers.get('x-forwarded-for') ?? '').split(',')[0]?.trim() || undefined,
   });
   if (res.ok) for (const p of ['/bookings', '/proposals', '/statement', '/leads', '/dashboard']) revalidatePath(p);
   return NextResponse.json(res, { status: res.ok ? 200 : res.code === 'not_found' ? 404 : 409 });

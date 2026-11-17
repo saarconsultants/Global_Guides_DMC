@@ -17,8 +17,10 @@ import type { SupplierItem } from '@/lib/bookings/confirm';
 function supplierRows(json: string | null): SupplierRow[] {
   if (!json) return [];
   try {
-    return (JSON.parse(json) as SupplierItem[]).map((x) => x.supplier === 'HOTELBEDS'
+    return (JSON.parse(json) as SupplierItem[]).map((x): SupplierRow => x.supplier === 'HOTELBEDS'
       ? { supplier: x.supplier, status: x.status, reference: x.reference, title: x.hotelName, detail: `${x.cityName} · ${x.checkIn} → ${x.checkOut}`, netPaise: x.netPaise, error: x.error }
+      : x.supplier === 'UNIFYSTAYS'
+      ? { supplier: x.supplier, status: x.status, reference: x.reference, title: x.hotelName, detail: `${x.cityName} · ${x.checkIn} → ${x.checkOut}${x.hotelConfirmationNumber ? ` · Hotel conf. ${x.hotelConfirmationNumber}` : ''}`, netPaise: x.netPaise, error: x.error }
       : { supplier: x.supplier, status: x.status, reference: x.reference, title: x.product === 'activity' ? x.fromName : x.product === 'rental' ? `Car with driver · ${x.fromName}` : `${x.fromName} → ${x.toName}`, detail: `${x.pickupDate}${x.pickupTime ? ` ${x.pickupTime}` : ''} · ${x.vehicleName}${x.product === 'rental' ? ` · ${x.toName}` : ''}`, netPaise: x.netPaise, error: x.error });
   } catch { return []; }
 }

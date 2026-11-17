@@ -3,6 +3,7 @@
 
 import { hotelsForCity } from '@/lib/itinerary/mock-inventory';
 import type { Hotel } from '@/lib/itinerary/types';
+import { isLiveHotelId } from '@/lib/hotels/supplier';
 
 export interface RoomChoice {
   roomName: string; board: string; refundable: boolean; pricePerNightPaise: number;
@@ -14,7 +15,7 @@ export interface RoomChoice {
 const SAMPLE_TIERS: Array<[string, number]> = [['Superior Room', 1.2], ['Deluxe Room', 1.4], ['Junior Suite', 1.8], ['Suite', 2.4]];
 const SAMPLE_BOARDS: Array<[string, number]> = [['Room Only', 1], ['Breakfast Included', 1.15], ['Half Board', 1.35]];
 
-export const isSampleHotel = (h: Hotel) => !h.id.startsWith('HB-');
+export const isSampleHotel = (h: Hotel) => !isLiveHotelId(h.id);
 
 export function roomChoices(h: Hotel): RoomChoice[] {
   if (!isSampleHotel(h)) {

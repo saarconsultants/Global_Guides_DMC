@@ -14,6 +14,7 @@
 // books exactly what was reviewed — a tampered or expired quote is refused.
 
 import type { TransferQuote } from './leamigo';
+import type { UnifyRequirement } from '@gg/unifystays';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
   getHotelDetail, checkRates, getRateComments, createBooking, buildOccupancies, childAgesFor,
@@ -45,6 +46,8 @@ export interface QuotedRate {
 }
 
 export interface HotelQuote {
+  /** Absent for Hotelbeds (the original supplier). */
+  supplier?: 'UNIFYSTAYS';
   cityCode: string;
   cityName: string;
   hotelId: string;             // HB-12345
@@ -58,6 +61,12 @@ export interface HotelQuote {
   quotedPaise: number;         // what the proposal priced this stay at
   priceChangePct: number;
   sameRoomAndBoard: boolean;
+  /** Unifystays prebooking: what the confirm step books. */
+  unify?: {
+    hotelId: string; prebookingId: string; offerId: string; expiresAt: string; provider: string;
+    rooms: Array<{ allocationId: string; adults: number; childAges: number[] }>;
+    requirements: UnifyRequirement[];
+  };
 }
 
 export interface PrepareResult {
@@ -79,7 +88,7 @@ function sign(payload: string): string {
 }
 export function signQuote(proposalId: string, hotels: HotelQuote[], transfers: TransferQuote[] = []): { token: string; expiresAt: string } {
   // A Leamigo prebooking can expire before our 20 minutes — the quote dies with it.
-  const ends = [Date.now() + QUOTE_TTL_MS, ...transfers.map((t) => Date.parse(t.prebookExpiresAt)).filter(Number.isFinite)];
+  const ends = [Date.now() + QUOTE_TTL_MS, ...transfers.map((t) => Date.parse(t.prebookExpiresAt)), ...hotels.map((h) => Date.parse(h.unify?.expiresAt ?? ''))].filter(Number.isFinite);
   const expiresAt = new Date(Math.min(...ends)).toISOString();
   const payload = Buffer.from(JSON.stringify({ proposalId, expiresAt, hotels, transfers })).toString('base64url');
   return { token: `${payload}.${sign(payload)}`, expiresAt };

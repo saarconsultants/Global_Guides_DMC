@@ -8,11 +8,11 @@ import { AdminPage, Disclosure } from '@/components/admin/admin-ui';
 
 export const dynamic = 'force-dynamic';
 
-const ICONS: Record<string, any> = { flights: Plane, hotels: Hotel, transfers: Car, leamigo: Car, activities: MapPin };
+const ICONS: Record<string, any> = { flights: Plane, hotels: Hotel, unifystays: Hotel, transfers: Car, leamigo: Car, activities: MapPin };
 
-/** Two suppliers both provide transfers, so the card title names the supplier. */
+/** Two suppliers provide transfers (and two hotels), so the card title names the supplier. */
 function cardTitle(key: string, label: string, provider: string) {
-  if (key === 'transfers' || key === 'leamigo') return `${label} · ${provider.replace(/\s*\(.*\)$/, '')}`;
+  if (key === 'transfers' || key === 'leamigo' || key === 'hotels' || key === 'unifystays') return `${label} · ${provider.replace(/\s*\(.*\)$/, '')}`;
   return label;
 }
 
@@ -23,6 +23,7 @@ const SETUP: { name: string; keys: string[] }[] = [
   { name: 'Transfers · Hotelbeds', keys: ['HOTELBEDS_TRANSFERS_API_KEY', 'HOTELBEDS_TRANSFERS_API_SECRET'] },
   { name: 'Activities · Hotelbeds', keys: ['HOTELBEDS_ACTIVITIES_API_KEY', 'HOTELBEDS_ACTIVITIES_API_SECRET'] },
   { name: 'Transfers · Leamigo', keys: ['LEAMIGO_API_KEY', 'LEAMIGO_BASE_URL (optional, defaults to the test server)'] },
+  { name: 'Hotels · Unifystays', keys: ['UNIFYSTAYS_API_KEY', 'UNIFYSTAYS_BASE_URL (optional, defaults to the sandbox; production is https://api.unifystays.com)'] },
 ];
 
 export default async function AdminInventoryPage() {

@@ -2,6 +2,7 @@
 // Anything without a live supplier price stops the booking until it is replaced.
 
 import { isLive } from '@gg/hotelbeds';
+import { isLive as unifyLive } from '@gg/unifystays';
 import type { Itinerary } from '@/lib/itinerary/types';
 
 export interface SampleItem { cityName: string; hotelName: string; reason: string }
@@ -10,7 +11,7 @@ export function sampleItems(it: Itinerary): SampleItem[] {
   const out: SampleItem[] = [];
   for (const d of it.destinations) {
     const h = d.stay?.hotel;
-    if (h && !(h.id.startsWith('HB-') && isLive('hotels'))) {
+    if (h && !((h.id.startsWith('HB-') && isLive('hotels')) || (h.id.startsWith('US-') && unifyLive()))) {
       out.push({ cityName: d.cityName, hotelName: h.name, reason: 'Sample price with no live hotel supplier. Remove this hotel from the trip to book the rest.' });
     }
   }

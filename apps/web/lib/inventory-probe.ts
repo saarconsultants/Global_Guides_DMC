@@ -9,6 +9,7 @@
 import { probeTripjack } from '@gg/tripjack';
 import { probeHotelbeds } from '@gg/hotelbeds';
 import { probeLeamigo } from '@gg/leamigo';
+import { probeUnifystays } from '@gg/unifystays';
 
 export interface InventoryProbeResult {
   key: string;
@@ -31,6 +32,7 @@ export async function probeApi(key: string, force = false): Promise<InventoryPro
   if (key === 'flights') base = await probeTripjack();
   else if (key === 'hotels' || key === 'activities' || key === 'transfers') base = await probeHotelbeds(key);
   else if (key === 'leamigo') base = await probeLeamigo();
+  else if (key === 'unifystays') base = await probeUnifystays();
   else throw new Error(`Unknown inventory API: ${key}`);
 
   const result: InventoryProbeResult = { key, ...base, checkedAt: new Date().toISOString() };

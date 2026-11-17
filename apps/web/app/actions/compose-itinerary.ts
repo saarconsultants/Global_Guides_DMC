@@ -10,7 +10,8 @@
 //             Intercity transfers stay mock (Hotelbeds doesn't natively
 //             support city-to-city transfers without an airport leg).
 
-import { searchHotels, searchTransfers, isLive } from '@gg/hotelbeds';
+import { searchTransfers, isLive } from '@gg/hotelbeds';
+import { searchLiveHotels, anyHotelSupplierLive } from '@/lib/hotels/live';
 import { composeItinerary } from '@/lib/itinerary/compose';
 import { cityInfo } from '@/lib/itinerary/mock-inventory';
 import { airportPlace } from '@/lib/airport-coords';
@@ -38,8 +39,8 @@ export async function composeItineraryAction(intake: IntakeForm): Promise<Itiner
 async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
   const overrides: Record<string, Hotel> = {};
 
-  if (isLive('hotels')) {
-    // Walk destinations, fetching Hotelbeds in parallel — but with realistic
+  if (anyHotelSupplierLive()) {
+    // Walk destinations, fetching live hotels in parallel — but with realistic
     // check-in/out per destination based on the running day offset.
     const startDate = new Date(intake.departureDate);
     let dayOffset = 0;
@@ -59,12 +60,13 @@ async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
 
     const results = await Promise.allSettled(
       fetches.map((f) =>
-        searchHotels({
+        searchLiveHotels({
           cityCode: f.cityCode,
           checkIn: f.checkIn,
           checkOut: f.checkOut,
           rooms: intake.rooms.map((r) => ({ adults: r.adults, children: r.children, childAges: r.childAges })),
           minStars: intake.starRating,
+          fast: true,
         }),
       ),
     );
@@ -86,7 +88,7 @@ async function composeWithLive(intake: IntakeForm): Promise<Itinerary> {
       const sorted = [...filtered].sort((a, b) => a.pricePerNightPaise - b.pricePerNightPaise);
       const median = sorted[Math.floor(sorted.length / 2)]!;
 
-      overrides[cityCode] = hotelbedsToHotel(median);
+      overrides[cityCode] = median;
     }
   }
 
@@ -184,23 +186,6 @@ function mapVehicle(kind: string): TransferVehicle {
   if (kind === 'PRIVATE_PREMIUM' || kind === 'LUXURY') return 'PRIVATE_PREMIUM';
   if (kind === 'PRIVATE' || kind === 'MINIBUS') return 'PRIVATE';
   return 'SHARED';
-}
-
-function hotelbedsToHotel(h: {
-  id: string; name: string; stars: StarRating; address: string; cityCode: string;
-  thumb?: string; rating?: { score: number; label: string; reviewCount: number };
-  refundable: boolean; mealPlan: string; pricePerNightPaise: number; room: { name: string; bedConfig: string };
-  latitude?: number; longitude?: number;
-  roomOptions?: Hotel['roomOptions']; rateKey?: string; allImages?: string[];
-}): Hotel {
-  return {
-    id: h.id, name: h.name, stars: h.stars, address: h.address, cityCode: h.cityCode,
-    thumb: h.thumb, rating: h.rating, refundable: h.refundable, mealPlan: h.mealPlan,
-    pricePerNightPaise: h.pricePerNightPaise, room: h.room, allImages: h.allImages,
-    latitude: h.latitude, longitude: h.longitude,
-    // Kept with the trip: booking uses these rates rather than searching again.
-    roomOptions: h.roomOptions, rateKey: h.rateKey,
-  };
 }
 
 function addDays(d: Date, n: number): Date {

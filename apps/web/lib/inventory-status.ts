@@ -4,6 +4,7 @@
 
 import { isLive as hotelbedsIsLive, isEnabled as hotelbedsEnabled } from '@gg/hotelbeds';
 import { isLive as leamigoIsLive, baseUrl as leamigoBaseUrl } from '@gg/leamigo';
+import { isLive as unifyIsLive, baseUrl as unifyBaseUrl } from '@gg/unifystays';
 
 export interface ApiStatus {
   key: string;
@@ -33,6 +34,13 @@ export function inventoryStatus(): ApiStatus[] {
       provider: 'Hotelbeds (HBX Group)',
       live: hotelbedsIsLive('hotels'),
       note: hotelbedsIsLive('hotels') ? 'Live · 250k+ properties' : (hotelbedsEnabled() ? 'Mock — set HOTELBEDS_HOTELS_API_KEY' : 'Turned off — set HOTELBEDS_ENABLED=true to restore'),
+    },
+    {
+      key: 'unifystays',
+      label: 'Hotels',
+      provider: 'Unifystays',
+      live: unifyIsLive(),
+      note: unifyIsLive() ? `Live · multi-supplier hotels${unifyBaseUrl().includes('sandbox') ? ' · SANDBOX' : ''}` : 'Not connected — set UNIFYSTAYS_API_KEY',
     },
     {
       key: 'transfers',

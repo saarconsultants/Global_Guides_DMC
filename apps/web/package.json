@@ -19,6 +19,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@gg/hotelbeds": "*",
     "@gg/leamigo": "*",
+    "@gg/unifystays": "*",
     "@gg/tripjack": "*",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^6.1.0",

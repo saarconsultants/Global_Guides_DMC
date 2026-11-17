@@ -9,6 +9,7 @@ import { db } from '@/lib/db/client';
 import { proposalToItinerary } from '@/lib/db/proposals';
 import { prepareHotelBookings, signQuote, PRICE_TOLERANCE_PCT } from '@/lib/bookings/hotelbeds';
 import { prepareTransfers } from '@/lib/bookings/leamigo';
+import { prepareUnifyStays } from '@/lib/bookings/unifystays';
 import { leamigoIsLive } from '@/lib/transfers/leamigo';
 import { sampleItems } from '@/lib/bookings/sample';
 
@@ -25,10 +26,13 @@ export async function POST(req: Request) {
   const it = proposalToItinerary(p as any);
   if (!it) return NextResponse.json({ ok: false, error: 'Proposal data is unreadable.' }, { status: 422 });
 
-  const [res, tr] = await Promise.all([
+  const [hb, us, tr] = await Promise.all([
     prepareHotelBookings(it),
+    prepareUnifyStays(it),
     leamigoIsLive() ? prepareTransfers(it) : Promise.resolve({ transfers: [], problems: [] }),
   ]);
+  const order = it.destinations.map((d) => d.cityCode);
+  const res = { ...hb, hotels: [...hb.hotels, ...us.hotels].sort((a, b) => order.indexOf(a.cityCode) - order.indexOf(b.cityCode)), problems: [...hb.problems, ...us.problems] };
   const problems = [...sampleItems(it), ...res.problems, ...tr.problems.map((p) => ({ cityName: 'Leamigo', hotelName: p.label, reason: p.reason }))];
   const live = res.hotels.length + tr.transfers.length > 0;
   const signed = live && problems.length === 0 ? signQuote(proposalId, res.hotels, tr.transfers) : undefined;
