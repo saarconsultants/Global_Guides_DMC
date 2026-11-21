@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { formatINR, formatDateShort } from '@/lib/utils';
 import { StatCard } from '@/components/ui/stat-card';
 import { notFound } from 'next/navigation';
-import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletAction, saveCommissionRuleAction, deleteCommissionRuleAction } from '@/app/actions/admin';
+import { setAgencyStatusAction, updateAgencyMarkupAction, creditAgencyWalletAction, setAgencyCreditLimitAction, saveCommissionRuleAction, deleteCommissionRuleAction } from '@/app/actions/admin';
 import { viewAsAgencyAction } from '@/app/actions/impersonation';
 import { ArrowLeft, FileText, Users as UsersIcon, Wallet, Percent, Coins, Trash2, Plus, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
@@ -64,7 +64,7 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatCard label="Users" value={String(agency.users.length)} sub="team members" />
         <StatCard label="Proposals" value={String(agency._count.proposals)} sub={`${agency._count.bookings} booked`} />
-        <StatCard label="Wallet" value={formatINR(agency.walletPaise)} sub="available balance" mono />
+        <StatCard label="Wallet" value={formatINR(agency.walletPaise)} sub={agency.creditLimitPaise > 0n ? `credit limit ${formatINR(agency.creditLimitPaise)}` : 'available balance'} mono />
         <StatCard label="Commission earned" value={formatINR(BigInt(totalRevenue))} sub={`${agency._count.commissionEntries} entries`} mono />
       </div>
 
@@ -103,6 +103,12 @@ export default async function AdminAgencyDetail({ params }: { params: Promise<{ 
               <Button size="sm" className="w-full">Credit wallet</Button>
             </ActionForm>
             <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">Recorded as a credit in the agency&apos;s wallet history.</p>
+            <h3 className="text-sm font-semibold text-ink mt-5 mb-3">Credit limit</h3>
+            <ActionForm action={setAgencyCreditLimitAction.bind(null, agency.id)} confirm="Change this agency's credit limit?" success="Credit limit saved" className="space-y-2">
+              <Input type="number" name="rupees" aria-label="Credit limit in rupees" defaultValue={Number(agency.creditLimitPaise / 100n)} min={0} step={1000} className="money" />
+              <Button size="sm" variant="secondary" className="w-full">Save credit limit</Button>
+            </ActionForm>
+            <p className="text-xs text-[rgb(var(--text-secondary))] mt-2">The agency can book until its wallet is this far below zero. 0 means prepaid only.</p>
           </CardContent>
         </Card>
       </div>

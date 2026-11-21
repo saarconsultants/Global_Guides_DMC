@@ -46,6 +46,14 @@ export async function updateAgencyMarkupAction(agencyId: string, formData: FormD
   revalidatePath(`/admin/agencies/${agencyId}`);
 }
 
+export async function setAgencyCreditLimitAction(agencyId: string, formData: FormData) {
+  await requireSuperAdmin();
+  const rupees = Number(String(formData.get('rupees') ?? ''));
+  if (!Number.isFinite(rupees) || rupees < 0 || rupees > 1_00_00_00_000) return;
+  await db.agency.update({ where: { id: agencyId }, data: { creditLimitPaise: BigInt(Math.round(rupees)) * 100n } });
+  revalidatePath(`/admin/agencies/${agencyId}`);
+}
+
 export async function creditAgencyWalletAction(agencyId: string, formData: FormData) {
   await requireSuperAdmin();
   const rupees = parseInt(String(formData.get('rupees') ?? '0'), 10);

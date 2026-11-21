@@ -142,7 +142,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
               </p>
               <Pill variant={badge.variant} className="max-w-full whitespace-normal text-left leading-tight">{badge.label}</Pill>
             </div>
-            <HotelResults hotels={hotels} nights={nights} checkin={checkin} adults={adults} />
+            <HotelResults hotels={hotels} nights={nights} checkin={checkin} adults={adults} share={{ cityName, checkIn: checkin, checkOut: checkout, rooms: occupancy.map((r) => ({ adults: r.adults, children: r.children })) }} />
           </>
         )}
       </div>

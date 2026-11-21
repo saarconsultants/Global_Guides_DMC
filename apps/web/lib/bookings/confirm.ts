@@ -17,7 +17,7 @@ import { verifyQuote, validateGuests, bookHotels, PRICE_TOLERANCE_PCT, type Gues
 import { leamigoLegs, validateContact, bookTransfers, type TransferQuote, type SupplierTransferBooking, type LeadContact } from './leamigo';
 import { isLive as leamigoLive } from '@gg/leamigo';
 import { isLive as unifyLive } from '@gg/unifystays';
-import { bookUnifyStays, type SupplierUnifyBooking } from './unifystays';
+import { bookUnifyStays, missingGuestDetails, type SupplierUnifyBooking } from './unifystays';
 
 export type SupplierItem = SupplierHotelBooking | SupplierUnifyBooking | SupplierTransferBooking;
 
@@ -66,6 +66,10 @@ export async function confirmProposalBooking(args: {
       const bad = validateContact(args.contact);
       if (bad) return { ok: false, code: 'guests', error: bad };
     }
+    if (usStays.length) {
+      const missing = missingGuestDetails(quoteHotels, args.guests as GuestsInput, args.contact!);
+      if (missing) return { ok: false, code: 'guests', error: missing };
+    }
     const rises = [...quoteHotels.map((h) => ({ n: h.hotelName, p: h.priceChangePct })), ...quoteTransfers.map((t) => ({ n: `${t.fromName} → ${t.toName}`, p: t.priceChangePct }))].filter((x) => x.p > PRICE_TOLERANCE_PCT);
     if (rises.length && !args.acceptPriceChange) return { ok: false, code: 'price_change', error: `Supplier price went up for ${rises.map((x) => x.n).join(', ')}. Accept the new price to continue.` };
   }
@@ -83,7 +87,9 @@ export async function confirmProposalBooking(args: {
         data: { status: 'BOOKED' },
       });
       if (claimed.count === 0) throw new Error('ALREADY_BOOKED');
-      const debited = await tx.agency.updateMany({ where: { id: agencyId, walletPaise: { gte: net } }, data: { walletPaise: { decrement: net } } });
+      // The wallet may go below zero, down to the agency's credit limit.
+      const limit = (await tx.agency.findUnique({ where: { id: agencyId }, select: { creditLimitPaise: true } }))?.creditLimitPaise ?? 0n;
+      const debited = await tx.agency.updateMany({ where: { id: agencyId, walletPaise: { gte: net - limit } }, data: { walletPaise: { decrement: net } } });
       if (debited.count === 0) throw new Error('INSUFFICIENT_FUNDS');
       const b = await tx.booking.create({ data: { agencyId, proposalId, paidPaise: net, status: liveCount ? 'PENDING' : 'CONFIRMED' } });
       await tx.walletTxn.create({ data: { agencyId, type: 'DEBIT', amountPaise: net, ref: proposal.code, note: `Booking · ${proposal.name}` } });
@@ -91,7 +97,7 @@ export async function confirmProposalBooking(args: {
     })).id;
   } catch (e: any) {
     if (e?.message === 'ALREADY_BOOKED') return { ok: false, code: 'already_booked', error: 'Already booked.' };
-    if (e?.message === 'INSUFFICIENT_FUNDS') return { ok: false, code: 'insufficient_funds', error: 'Not enough wallet balance for this booking.' };
+    if (e?.message === 'INSUFFICIENT_FUNDS') return { ok: false, code: 'insufficient_funds', error: 'Not enough wallet balance or credit for this booking. Recharge the wallet and try again.' };
     throw e;
   }
 

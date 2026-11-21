@@ -11,12 +11,19 @@ import Link from 'next/link';
 import { SelectHotelButton } from './select-hotel-button';
 import { HotelPhoto } from './hotel-photo';
 import { isLiveHotelId } from '@/lib/hotels/supplier';
+import { MAX_SHARED_HOTELS } from '@/lib/hotels/share';
+import { createHotelShareAction } from '@/app/actions/hotel-share';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/toast';
 
 interface Props {
   hotels: Hotel[];
   nights: number;
   checkin?: string;
   adults?: string;
+  /** The search these results answer. With it, agents can share 2–4 hotels for a customer to choose from. */
+  share?: { cityName: string; checkIn: string; checkOut: string; rooms: Array<{ adults: number; children?: number }> };
 }
 
 /**
@@ -43,9 +50,22 @@ function freeUntil(policies?: Array<{ from: string }>): string | null {
   return `${m[2]} ${mon}, ${m[3]}:${m[4]}`;
 }
 
-export function HotelResults({ hotels, nights, checkin, adults }: Props) {
+export function HotelResults({ hotels, nights, checkin, adults, share }: Props) {
   const money = useMoney();
   const [q, setQ] = useState('');
+  const [picked, setPicked] = useState<string[]>([]);
+  const [sharing, setSharing] = useState(false);
+  const [shared, setShared] = useState<{ token: string; markupPct: number } | null>(null);
+  const chosen = hotels.filter((h) => picked.includes(h.id));
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= MAX_SHARED_HOTELS ? p : [...p, id]));
+  async function shareOptions() {
+    if (!share) return;
+    setSharing(true);
+    const r = await createHotelShareAction({ ...share, hotels: chosen }).catch(() => ({ ok: false as const, error: 'Could not create the link. Try again.' }));
+    setSharing(false);
+    if (r.ok) setShared({ token: r.token, markupPct: r.markupPct }); else toast.error('Could not share', r.error);
+  }
+  const shareUrl = shared ? `${typeof window !== 'undefined' ? window.location.origin : ''}/p/hotels/${shared.token}` : '';
 
   if (!hotels.length) {
     return <EmptyState icon={<HotelIcon className="w-5 h-5" />} title="No rooms in this city for these dates" body="Try shifting the dates by a day, or widen the star and board filters." />;
@@ -76,6 +96,12 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
+                {share && (
+                  <label className={`order-last ml-auto inline-flex items-center gap-1.5 min-h-9 px-2 rounded-md border text-[12.5px] font-semibold cursor-pointer select-none ${picked.includes(h.id) ? 'border-crimson-700 bg-crimson-50 text-crimson-700' : 'border-border text-ink-soft hover:border-border-strong'} ${!picked.includes(h.id) && picked.length >= MAX_SHARED_HOTELS ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <input type="checkbox" className="accent-crimson-700" checked={picked.includes(h.id)} disabled={!picked.includes(h.id) && picked.length >= MAX_SHARED_HOTELS} onChange={() => toggle(h.id)} aria-label={`Compare ${h.name}`} />
+                    Compare
+                  </label>
+                )}
                 <span className="inline-flex items-center gap-0.5 text-amber-500" role="img" aria-label={`${h.stars} star`}>{Array.from({ length: h.stars }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />)}</span>
                 {isLiveHotelId(h.id) && <Pill variant="live">Live</Pill>}
               </div>
@@ -125,6 +151,31 @@ export function HotelResults({ hotels, nights, checkin, adults }: Props) {
           </PassStub>
         </Pass>
       ))}
+      {share && picked.length > 0 && (
+        <div role="region" aria-label="Hotels to compare" className="sticky bottom-16 z-20 rounded-lg bg-ink text-white shadow-lg px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm min-w-0"><span className="font-bold tnum">{picked.length}</span> of {MAX_SHARED_HOTELS} selected{picked.length < 2 ? '. Pick one more to share.' : ''}<span className="hidden sm:inline text-white/70"> · {chosen.map((h) => h.name).join(', ')}</span></p>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button size="sm" variant="ghost" className="text-white hover:text-white hover:bg-white/10" onClick={() => setPicked([])}>Clear</Button>
+            <Button size="sm" disabled={picked.length < 2 || sharing} onClick={shareOptions}>{sharing ? 'Creating link…' : 'Share with customer'}</Button>
+          </div>
+        </div>
+      )}
+      <Dialog open={!!shared} onClose={() => setShared(null)} title="Hotel options ready to share" size="md">
+        {shared && (
+          <div className="space-y-4">
+            <p className="text-sm text-[rgb(var(--text-secondary))]">Your customer sees these {chosen.length} hotels side by side, with your {shared.markupPct}% hotel markup included, and can tell you which one they prefer. They don&apos;t need to log in.</p>
+            {chosen.some((h) => !isLiveHotelId(h.id)) && <p role="status" className="rounded-md border border-warning-500/30 bg-amber-50 text-amber-700 px-3 py-2 text-xs">Some of these are sample prices, not live supplier rates. Check the price before the customer commits.</p>}
+            <div className="flex items-center gap-2">
+              <Input value={shareUrl} readOnly aria-label="Customer link" className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+              <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard.writeText(shareUrl); toast.success('Link copied'); }}>Copy</Button>
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              <a href={shareUrl} target="_blank" rel="noreferrer" className="inline-flex items-center min-h-10 px-4 rounded-md border border-border text-sm font-semibold text-ink hover:border-border-strong">Preview</a>
+              <a href={`https://wa.me/?text=${encodeURIComponent(`Here are ${chosen.length} hotel options for your ${share?.cityName ?? ''} stay. Have a look and tell me which you prefer:\n\n${shareUrl}`)}`} target="_blank" rel="noreferrer" className="inline-flex items-center min-h-10 px-4 rounded-md bg-[#107C41] text-white text-sm font-semibold hover:bg-[#0B6334]">Send on WhatsApp</a>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

@@ -1,4 +1,7 @@
 import { MessageCircle } from 'lucide-react';
+import { OnlineTopup } from './online-topup';
+
+const ONLINE = !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
 // Bank details for wallet top-ups. Set these in the hosting environment:
 // NEXT_PUBLIC_WALLET_BANK_NAME, NEXT_PUBLIC_WALLET_ACCOUNT_NO,
@@ -18,7 +21,9 @@ export const WALLET_WHATSAPP_LINK =
 export function WalletTopupDetails() {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-ink">Top up your wallet by bank transfer. Bookings confirm instantly against your wallet balance.</p>
+      <p className="text-sm text-ink">Bookings confirm instantly against your wallet balance. Top up {ONLINE ? 'online, or by bank transfer' : 'by bank transfer'}.</p>
+      <OnlineTopup />
+      {ONLINE && <p className="label pt-1">Or by bank transfer</p>}
       <ol className="text-sm text-ink space-y-2 list-decimal list-inside">
         <li>Send the amount by NEFT/IMPS to Global Guides DMC:
           <div className="ml-5 mt-1.5 font-mono text-xs bg-surface-2 border border-border-subtle p-2.5 rounded-md leading-relaxed">

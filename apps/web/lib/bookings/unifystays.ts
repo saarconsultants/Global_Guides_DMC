@@ -11,11 +11,11 @@
 import { getRoomOffers, prebook, createBooking, bookingByIdempotencyKey, waitForBooking, isLive, type UnifyOffer, type UnifyRequirement, type UnifyStatus } from '@gg/unifystays';
 import { BEST_ROOM, UNIFY_PREFIX, boardLabel, roomLabel, unifyRooms } from '@/lib/hotels/unifystays';
 import type { Itinerary, Room } from '@/lib/itinerary/types';
-import type { HotelQuote, GuestsInput, QuotedPolicy } from './hotelbeds';
+import type { HotelQuote, GuestsInput, GuestName, QuotedPolicy } from './hotelbeds';
 import type { LeadContact } from './leamigo';
 
-/** Guest fields we can answer from the booking form. An offer needing more (passport, date of birth) is skipped. */
-const ANSWERABLE = new Set(['TITLE', 'FIRST_NAME', 'LAST_NAME', 'EMAIL', 'PHONE']);
+/** Guest fields the booking form can answer. An offer needing anything else (gender, tax id) is skipped. */
+const ANSWERABLE = new Set(['TITLE', 'FIRST_NAME', 'LAST_NAME', 'EMAIL', 'PHONE', 'DATE_OF_BIRTH', 'PASSPORT_NUMBER', 'PASSPORT_EXPIRY', 'PASSPORT_COUNTRY', 'NATIONALITY']);
 const answerable = (o: UnifyOffer) => o.requirements.every((r) => !r.required || ANSWERABLE.has(r.code));
 
 const ymd = (iso: string) => iso.slice(0, 10);
@@ -44,11 +44,11 @@ export async function prepareUnifyStays(it: Itinerary): Promise<{ hotels: HotelQ
     try {
       const { offers } = await getRoomOffers(hotelId, { checkIn, checkOut, rooms: unifyRooms(it.intake.rooms) });
       const chosen = pick(offers, { roomName: h.room.name, board: h.mealPlan });
-      if (!chosen) return problem(offers.length ? 'Every room needs guest details we don’t collect yet (passport or date of birth). Choose another hotel.' : 'No rooms left for these dates. Choose the hotel again with Change hotel.');
+      if (!chosen) return problem(offers.length ? 'Every room needs guest details the booking form can’t supply. Choose another hotel.' : 'No rooms left for these dates. Choose the hotel again with Change hotel.');
       const pb = await prebook(hotelId, chosen.offer.bookingToken);
       if (pb.decision === 'NOT_BOOKABLE' || !pb.prebookingId || !pb.offer) return problem('This room just sold out. Choose the room or hotel again.');
       const o = pb.offer;
-      if (!answerable(o)) return problem('This room now needs guest details we don’t collect yet (passport or date of birth). Choose another room.');
+      if (!answerable(o)) return problem('This room now needs guest details the booking form can’t supply. Choose another room.');
       const quoted = h.pricePerNightPaise * d.nights;
       const comments = [
         o.policyText,
@@ -107,25 +107,59 @@ export interface SupplierUnifyBooking {
 }
 
 const clean = (s: string) => s.replace(/[^\p{L}\p{M}' .-]/gu, '').replace(/\s+/g, ' ').trim();
-const TITLE: Record<LeadContact['salutation'], string> = { Mr: 'MR', Mrs: 'MRS', Ms: 'MS', Miss: 'MISS', Dr: 'DR' };
+interface Person extends GuestName { lead: boolean; type: 'ADULT' | 'CHILD' | 'INFANT'; first: string; last: string; allocationId: string }
+
+const applies = (r: UnifyRequirement, g: Pick<Person, 'lead' | 'type' | 'allocationId'>) =>
+  (!r.roomAllocationIds.length || r.roomAllocationIds.includes(g.allocationId)) && (r.scope === 'ALL_GUESTS' || (r.scope === 'LEAD_GUEST' && g.lead) || r.scope === g.type);
+
+function answer(r: UnifyRequirement, g: Person, contact: LeadContact): string {
+  switch (r.code) {
+    case 'FIRST_NAME': return g.first;
+    case 'LAST_NAME': return g.last;
+    case 'EMAIL': return contact.email.trim();
+    case 'PHONE': return contact.phone.replace(/[\s-]/g, '');
+    case 'DATE_OF_BIRTH': return g.dob ?? '';
+    case 'PASSPORT_NUMBER': return (g.passportNo ?? '').replace(/\s/g, '').toUpperCase();
+    case 'PASSPORT_EXPIRY': return g.passportExpiry ?? '';
+    case 'PASSPORT_COUNTRY': case 'NATIONALITY': return (g.passportCountry ?? '').toUpperCase();
+    case 'TITLE': {
+      // The guest's own title; the lead falls back to the contact form's; anyone else to the neutral option.
+      const want = (g.title || (g.lead ? contact.salutation : '')).toUpperCase();
+      return r.allowedValues.includes(want) ? want : r.allowedValues.includes('OTHER') ? 'OTHER' : r.allowedValues[0] ?? want;
+    }
+    default: return '';
+  }
+}
 
 /** Answers for one guest, from the requirements that apply to them. */
-function answersFor(reqs: UnifyRequirement[], g: { lead: boolean; type: 'ADULT' | 'CHILD' | 'INFANT'; first: string; last: string; allocationId: string }, contact: LeadContact) {
-  const applies = (r: UnifyRequirement) => (!r.roomAllocationIds.length || r.roomAllocationIds.includes(g.allocationId)) && (
-    r.scope === 'ALL_GUESTS' || (r.scope === 'LEAD_GUEST' && g.lead) || r.scope === g.type);
-  return reqs.filter(applies).flatMap((r) => {
-    const value =
-      r.code === 'FIRST_NAME' ? g.first :
-      r.code === 'LAST_NAME' ? g.last :
-      r.code === 'EMAIL' ? contact.email.trim() :
-      r.code === 'PHONE' ? contact.phone.replace(/[\s-]/g, '') :
-      r.code === 'TITLE' ? (() => {
-        // The lead's title comes from the form; for others we don't know it, so use the neutral option when offered.
-        const want = g.lead ? TITLE[contact.salutation] : 'OTHER';
-        return r.allowedValues.includes(want) ? want : r.allowedValues.includes('OTHER') ? 'OTHER' : r.allowedValues[0] ?? want;
-      })() : '';
-    return value ? [{ requirementId: r.requirementId, value }] : [];
+const answersFor = (reqs: UnifyRequirement[], g: Person, contact: LeadContact) =>
+  reqs.filter((r) => applies(r, g)).flatMap((r) => { const value = answer(r, g, contact); return value ? [{ requirementId: r.requirementId, value }] : []; });
+
+const LABEL: Record<string, string> = { DATE_OF_BIRTH: 'date of birth', PASSPORT_NUMBER: 'passport number', PASSPORT_EXPIRY: 'passport expiry date', PASSPORT_COUNTRY: 'passport country', NATIONALITY: 'passport country', TITLE: 'title', EMAIL: 'email', PHONE: 'phone' };
+
+function peopleOf(hq: HotelQuote, guests: GuestsInput): Person[][] {
+  return hq.unify!.rooms.map((room, ri) => {
+    const g = guests.rooms[ri] ?? { adults: [], children: [] };
+    return [
+      ...g.adults.map((p, i) => ({ ...p, type: 'ADULT' as const, lead: ri === 0 && i === 0, first: clean(p.name), last: clean(p.surname) })),
+      ...g.children.map((p, i) => ({ ...p, type: (room.childAges[i] ?? 8) <= 1 ? 'INFANT' as const : 'CHILD' as const, lead: false, first: clean(p.name), last: clean(p.surname) })),
+    ].map((x) => ({ ...x, allocationId: room.allocationId }));
   });
+}
+
+/** What the suppliers of these hotels still need before booking, in words. Null when nothing is missing. */
+export function missingGuestDetails(hotels: HotelQuote[], guests: GuestsInput, contact: LeadContact): string | null {
+  for (const hq of hotels) {
+    if (!hq.unify) continue;
+    for (const [ri, room] of peopleOf(hq, guests).entries()) {
+      for (const g of room) {
+        const gap = hq.unify.requirements.find((r) => r.required && applies(r, g) && !answer(r, g, contact));
+        if (gap) return `${hq.hotelName} needs the ${LABEL[gap.code] ?? gap.code.toLowerCase()} of ${g.first || 'every guest'} (room ${ri + 1}).`;
+        if (g.passportExpiry && g.passportExpiry < hq.checkOut) return `${g.first}’s passport expires before the stay at ${hq.hotelName} ends.`;
+      }
+    }
+  }
+  return null;
 }
 
 export async function bookUnifyStays(args: { hotels: HotelQuote[]; guests: GuestsInput; contact: LeadContact; rooms: Room[]; clientReference: string; endUserIp?: string }): Promise<SupplierUnifyBooking[]> {
@@ -133,18 +167,13 @@ export async function bookUnifyStays(args: { hotels: HotelQuote[]; guests: Guest
     const u = hq.unify!;
     // Deterministic, so a retry of the same confirm reuses it instead of booking twice.
     const idempotencyKey = `${args.clientReference}-${u.hotelId}-${u.offerId}`.slice(0, 128);
-    const people = u.rooms.map((room, ri) => {
-      const g = args.guests.rooms[ri]!;
-      return [
-        ...g.adults.map((p, i) => ({ type: 'ADULT' as const, lead: ri === 0 && i === 0, first: clean(p.name), last: clean(p.surname) })),
-        ...g.children.map((p, i) => ({ type: (room.childAges[i] ?? 8) <= 1 ? 'INFANT' as const : 'CHILD' as const, lead: false, first: clean(p.name), last: clean(p.surname) })),
-      ].map((x) => ({ ...x, allocationId: room.allocationId }));
-    });
+    const people = peopleOf(hq, args.guests);
     const base = {
       supplier: 'UNIFYSTAYS' as const, cityName: hq.cityName, hotelId: hq.hotelId, hotelName: hq.hotelName, address: hq.address,
       checkIn: hq.checkIn, checkOut: hq.checkOut, netPaise: hq.netPaise, idempotencyKey,
       roomName: hq.rates[0]?.roomName ?? '', board: hq.rates[0]?.board ?? '',
-      guests: people.flat().map((p) => `${p.first} ${p.last}`), leadGuest: `${people[0]?.[0]?.first ?? ''} ${people[0]?.[0]?.last ?? ''}`.trim(),
+      // Names only: passport details go to the supplier and are not kept.
+      guests: people.flat().map((p) => `${p.title ? `${p.title} ` : ''}${p.first} ${p.last}`), leadGuest: `${people[0]?.[0]?.first ?? ''} ${people[0]?.[0]?.last ?? ''}`.trim(),
       conditions: hq.rates[0]?.rateComments,
     };
     try {

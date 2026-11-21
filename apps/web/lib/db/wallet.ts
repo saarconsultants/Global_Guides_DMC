@@ -7,6 +7,12 @@ export async function getWalletBalance(): Promise<bigint> {
   return actor.agency?.walletPaise ?? 0n;
 }
 
+/** The credit limit: how far below zero this agency's wallet may go. */
+export async function getCreditLimit(): Promise<bigint> {
+  const actor = await requireAgency();
+  return actor.agency?.creditLimitPaise ?? 0n;
+}
+
 export async function listWalletTxns(opts: { from?: Date; to?: Date } = {}) {
   const actor = await requireAgency();
   return db.walletTxn.findMany({

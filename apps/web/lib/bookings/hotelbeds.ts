@@ -215,7 +215,8 @@ export async function prepareHotelBookings(it: Itinerary): Promise<Omit<PrepareR
 
 // ── Confirm ──────────────────────────────────────────────────────────────────
 
-export interface GuestName { name: string; surname: string }
+/** Title and passport details are only needed by some suppliers; they are sent to the supplier and never stored. */
+export interface GuestName { name: string; surname: string; title?: string; dob?: string; passportNo?: string; passportExpiry?: string; passportCountry?: string }
 export interface RoomGuests { adults: GuestName[]; children: GuestName[] }
 export interface GuestsInput { rooms: RoomGuests[] }
 

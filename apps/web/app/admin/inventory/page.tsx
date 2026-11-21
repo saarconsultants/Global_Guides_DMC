@@ -23,6 +23,7 @@ const SETUP: { name: string; keys: string[] }[] = [
   { name: 'Transfers · Hotelbeds', keys: ['HOTELBEDS_TRANSFERS_API_KEY', 'HOTELBEDS_TRANSFERS_API_SECRET'] },
   { name: 'Activities · Hotelbeds', keys: ['HOTELBEDS_ACTIVITIES_API_KEY', 'HOTELBEDS_ACTIVITIES_API_SECRET'] },
   { name: 'Transfers · Leamigo', keys: ['LEAMIGO_API_KEY', 'LEAMIGO_BASE_URL (optional, defaults to the test server)'] },
+  { name: 'Wallet top-up · Razorpay', keys: ['NEXT_PUBLIC_RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET (webhook URL: /api/public/razorpay-webhook, event payment.captured)'] },
   { name: 'Hotels · Unifystays', keys: ['UNIFYSTAYS_API_KEY', 'UNIFYSTAYS_BASE_URL (optional, defaults to the sandbox; production is https://api.unifystays.com)'] },
 ];
 

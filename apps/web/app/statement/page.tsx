@@ -3,7 +3,7 @@ import { Pill } from '@/components/ui/pill';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button, ButtonLink } from '@/components/ui/button';
-import { getWalletBalance, listWalletTxns } from '@/lib/db/wallet';
+import { getWalletBalance, getCreditLimit, listWalletTxns } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
 import { statusLabel } from '@/lib/labels';
 import { getDisplayMoney } from '@/lib/money-server';
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function StatementPage() {
   const { fmt } = await getDisplayMoney();
-  const [balance, txns] = await Promise.all([getWalletBalance(), listWalletTxns()]);
+  const [balance, creditLimit, txns] = await Promise.all([getWalletBalance(), getCreditLimit(), listWalletTxns()]);
 
   return (
     <div className="shell py-8 lg:py-10 space-y-6">
@@ -35,7 +35,13 @@ export default async function StatementPage() {
           <div className="flex-1 px-6 py-6">
             <p className="label text-white/70 inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Wallet balance</p>
             <p className="mt-2 money text-[36px] sm:text-[44px] leading-none break-words">{fmt(balance)}</p>
-            <p className="text-[13px] text-white/70 mt-3 max-w-md">Bookings confirm instantly against this balance. Top up by NEFT/IMPS bank transfer and WhatsApp us the receipt.</p>
+            {creditLimit > 0n && (
+              <p className="text-[13px] text-white/85 mt-3">
+                Credit limit <span className="money">{fmt(creditLimit)}</span> · you can book up to <span className="money">{fmt(balance + creditLimit > 0n ? balance + creditLimit : 0n)}</span>
+                {balance < 0n && <> · <span className="font-bold text-amber-300">{fmt(-balance)} due</span></>}
+              </p>
+            )}
+            <p className="text-[13px] text-white/70 mt-3 max-w-md">Bookings confirm instantly against this balance. Top up {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'online or by bank transfer' : 'by NEFT/IMPS bank transfer and WhatsApp us the receipt'}.</p>
           </div>
           <div className="lg:w-[220px] border-t lg:border-t-0 lg:border-l border-dashed border-white/25 px-6 py-5 flex flex-col justify-center gap-1">
             <p className="label text-white/60">Account</p>

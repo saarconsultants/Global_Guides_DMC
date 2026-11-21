@@ -13,14 +13,14 @@ export interface ActorContext {
   name?: string;
   role: Role;
   agencyId: string | null;     // null only for SUPER_ADMIN (unless impersonating)
-  agency?: { id: string; name: string; code: string; slug: string; logoUrl: string | null; primaryColor: string | null; accentColor: string | null; currency: string; walletPaise: bigint };
+  agency?: { id: string; name: string; code: string; slug: string; logoUrl: string | null; primaryColor: string | null; accentColor: string | null; currency: string; walletPaise: bigint; creditLimitPaise: bigint };
   impersonating?: boolean;     // super-admin is "viewing as" agency
 }
 
 // Only the agency columns the app shell needs — never the markup JSON blobs.
 const AGENCY_SELECT = {
   id: true, name: true, code: true, slug: true, logoUrl: true,
-  primaryColor: true, accentColor: true, currency: true, walletPaise: true,
+  primaryColor: true, accentColor: true, currency: true, walletPaise: true, creditLimitPaise: true,
 } as const;
 
 // Memoised per request (React cache): the root layout, the page, getDisplayMoney()
@@ -54,7 +54,7 @@ export const getActor = cache(async function getActor(): Promise<ActorContext | 
     agency: agency ? {
       id: agency.id, name: agency.name, code: agency.code, slug: agency.slug,
       logoUrl: agency.logoUrl, primaryColor: agency.primaryColor, accentColor: agency.accentColor,
-      currency: agency.currency, walletPaise: agency.walletPaise,
+      currency: agency.currency, walletPaise: agency.walletPaise, creditLimitPaise: agency.creditLimitPaise,
     } : undefined,
     impersonating,
   };

@@ -37,6 +37,8 @@ model Agency {
   markupConfigJson String?               // JSON: per-product overrides, e.g. { FLIGHT: 5, HOTEL: 12 }
   markupRulesJson  String?               // JSON: destination/season overrides — array of MarkupRule (see lib/markup.ts)
   walletPaise   BigInt   @default(0)
+  // How far below zero the wallet may go: book now, settle later. Set by the platform admin.
+  creditLimitPaise BigInt @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -48,6 +50,39 @@ model Agency {
   invites           Invite[]
   commissionRules   CommissionRule[]
   commissionEntries CommissionEntry[]
+  hotelShares       HotelShare[]
+  walletTopups      WalletTopup[]
+}
+
+// A set of hotel options an agent shared with a customer to choose from (/p/hotels/<token>).
+// A snapshot: the customer prices are fixed when it is shared.
+model HotelShare {
+  token       String   @id
+  agencyId    String
+  agency      Agency   @relation(fields: [agencyId], references: [id])
+  createdById String?
+  cityName    String
+  checkIn     String                       // YYYY-MM-DD
+  checkOut    String
+  guests      String                       // "2 adults, 1 child · 1 room"
+  hotels      String                       // JSON: SharedHotel[] (lib/hotels/share.ts)
+  createdAt   DateTime @default(now())
+
+  @@index([agencyId, createdAt])
+}
+
+// An online wallet top-up. Created with the gateway order; claimed exactly once when paid.
+model WalletTopup {
+  orderId     String   @id                 // gateway order id
+  agencyId    String
+  agency      Agency   @relation(fields: [agencyId], references: [id])
+  amountPaise BigInt
+  status      String   @default("CREATED") // CREATED | PAID
+  paymentId   String?
+  createdAt   DateTime @default(now())
+  paidAt      DateTime?
+
+  @@index([agencyId, createdAt])
 }
 
 model User {

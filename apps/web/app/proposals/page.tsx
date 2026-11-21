@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ButtonLink } from '@/components/ui/button';
 import { listProposals } from '@/lib/db/proposals';
-import { getWalletBalance } from '@/lib/db/wallet';
+import { getWalletBalance, getCreditLimit } from '@/lib/db/wallet';
 import { formatDateShort } from '@/lib/utils';
 import { getDisplayMoney } from '@/lib/money-server';
 import { FileText, ExternalLink, Copy, Download, GitBranch, FileCheck } from 'lucide-react';
@@ -27,9 +27,10 @@ const statusVariant: Record<string, 'neutral' | 'info' | 'success' | 'warning' |
 export default async function ProposalsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const { fmt } = await getDisplayMoney();
   const sp = await searchParams;
-  const [rows, walletBalance] = await Promise.all([
+  const [rows, walletBalance, creditLimit] = await Promise.all([
     listProposals({ q: sp.q, status: sp.status }),
     getWalletBalance(),
+    getCreditLimit(),
   ]);
 
   return (
@@ -82,7 +83,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                     <span className="text-[rgb(var(--text-secondary))]">Travel <span className="font-mono text-ink">{formatDateShort(p.travelDate)}</span> · Created <span className="font-mono">{formatDateShort(p.createdAt)}</span></span>
                     <span className="money font-bold text-[13.5px]">{fmt(p.pricePaise)}</span>
                   </div>
-                  <ProposalActions p={p} walletBalance={walletBalance} stacked />
+                  <ProposalActions p={p} walletBalance={walletBalance} creditLimit={creditLimit} stacked />
                 </li>
               ))}
             </ul>
@@ -114,7 +115,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
                       <td className="py-3 pr-4 money text-right">{fmt(p.pricePaise)}</td>
                       <td className="py-3 pr-4"><Pill variant={statusVariant[p.status] ?? 'neutral'}>{statusLabel(p.status)}</Pill></td>
                       <td className="py-3 pr-4">
-                        <ProposalActions p={p} walletBalance={walletBalance} />
+                        <ProposalActions p={p} walletBalance={walletBalance} creditLimit={creditLimit} />
                       </td>
                     </tr>
                   ))}
@@ -132,7 +133,7 @@ export default async function ProposalsPage({ searchParams }: { searchParams: Pr
 type ProposalRow = Awaited<ReturnType<typeof listProposals>>[number];
 
 /** Row actions, shared by the desktop table and the phone card list. */
-function ProposalActions({ p, walletBalance, stacked }: { p: ProposalRow; walletBalance: bigint | number; stacked?: boolean }) {
+function ProposalActions({ p, walletBalance, creditLimit, stacked }: { p: ProposalRow; walletBalance: bigint | number; creditLimit: bigint | number; stacked?: boolean }) {
   return (
     <div className={`flex flex-wrap items-center ${stacked ? 'gap-x-4 gap-y-1 pt-1' : 'gap-3'}`}>
       {BOOKABLE.includes(p.status) && (
@@ -143,6 +144,7 @@ function ProposalActions({ p, walletBalance, stacked }: { p: ProposalRow; wallet
           customerName={p.lead?.customerName}
           netCostPaise={Number(p.netCostPaise)}
           balancePaise={Number(walletBalance)}
+          creditLimitPaise={Number(creditLimit)}
           accepted={p.status === 'ACCEPTED'}
           variant="link"
         />

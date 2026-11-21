@@ -15,6 +15,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
 import { toast } from '@/components/ui/toast';
 import { useMoney } from '@/components/providers/currency-provider';
 import { CheckCircle2, Wallet, AlertTriangle, Briefcase, Loader2, Info } from 'lucide-react';
+import { COUNTRIES } from '@/lib/countries';
 
 interface Props {
   proposalId: string;
@@ -23,25 +24,34 @@ interface Props {
   customerName?: string | null;
   netCostPaise: number;   // canonical INR paise (supplier net, debited from wallet)
   balancePaise: number;   // agency wallet balance, INR paise
+  creditLimitPaise?: number; // how far below zero the wallet may go
   accepted: boolean;      // has the customer accepted the proposal?
   variant?: 'button' | 'link';
 }
 
 interface Policy { from: string; amountPaise: number }
 interface Rate { roomName: string; board: string; promotions?: string[]; rooms: number; adults: number; childAges: number[]; cancellationPolicies: Policy[]; rateComments?: string }
-interface Hotel { supplier?: 'UNIFYSTAYS'; hotelId: string; hotelName: string; cityName: string; address: string; checkIn: string; checkOut: string; rates: Rate[]; netPaise: number; quotedPaise: number; priceChangePct: number; sameRoomAndBoard: boolean }
+interface Hotel { supplier?: 'UNIFYSTAYS'; unify?: { requirements: Array<{ code: string; scope: string; required: boolean }> }; hotelId: string; hotelName: string; cityName: string; address: string; checkIn: string; checkOut: string; rates: Rate[]; netPaise: number; quotedPaise: number; priceChangePct: number; sameRoomAndBoard: boolean }
 interface Issue { cityName: string; hotelName: string; reason: string }
 interface TQ { product?: 'transfer' | 'rental' | 'activity'; key: string; fromName: string; toName: string; pickupDate: string; pickupTime: string; vehicleName: string; provider: string; netPaise: number; quotedPaise: number; priceChangePct: number; sameVehicle: boolean; cancellationText: string; kind: string }
 interface Contact { salutation: 'Mr' | 'Mrs' | 'Ms' | 'Miss' | 'Dr'; firstName: string; lastName: string; email: string; phone: string; flightNumber: string }
 interface Prep { hotels: Hotel[]; transfers: TQ[]; manual: Issue[]; problems: Issue[]; token?: string; expiresAt?: string; tolerancePct: number; rooms: Array<{ adults: number; children?: number }>; leadName: string | null }
-interface Guest { name: string; surname: string }
+interface Guest { name: string; surname: string; title: string; dob?: string; passportNo?: string; passportExpiry?: string; passportCountry?: string }
+const blank = (over: Partial<Guest> = {}): Guest => ({ name: '', surname: '', title: '', ...over });
+// Extra details some hotel suppliers ask for. NATIONALITY shares the passport-country field.
+const EXTRA = [
+  { code: 'DATE_OF_BIRTH', field: 'dob', label: 'Date of birth', type: 'date' },
+  { code: 'PASSPORT_NUMBER', field: 'passportNo', label: 'Passport number', type: 'text' },
+  { code: 'PASSPORT_EXPIRY', field: 'passportExpiry', label: 'Passport expiry', type: 'date' },
+  { code: 'PASSPORT_COUNTRY', field: 'passportCountry', label: 'Passport country', type: 'country' },
+] as const;
 interface Booked { supplier?: string; product?: string; hotelName?: string; fromName?: string; toName?: string; status: string; reference?: string; error?: string }
 
 type Step = 'check' | 'review' | 'guests' | 'booking' | 'done';
 
 const fmtDate = (s: string) => new Date(s).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-export function BookTripModal({ proposalId, code, tripName, customerName, netCostPaise, balancePaise, accepted, variant = 'button' }: Props) {
+export function BookTripModal({ proposalId, code, tripName, customerName, netCostPaise, balancePaise, creditLimitPaise = 0, accepted, variant = 'button' }: Props) {
   const money = useMoney();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -60,7 +70,8 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
   const live = hasHotels || hasTransfers;
   const increase = [...(prep?.hotels ?? []), ...(prep?.transfers ?? [])].reduce((s, h) => s + Math.max(0, h.netPaise - h.quotedPaise), 0);
   const debit = netCostPaise + increase;
-  const enough = balancePaise >= debit;
+  const enough = balancePaise + creditLimitPaise >= debit;
+  const onCredit = Math.min(debit, Math.max(0, debit - Math.max(0, balancePaise)));
   const rises = [...(prep?.hotels ?? []).map((h) => ({ name: h.hotelName, pct: h.priceChangePct })), ...(prep?.transfers ?? []).map((t) => ({ name: `${t.fromName} → ${t.toName}`, pct: t.priceChangePct }))].filter((x) => x.pct > (prep?.tolerancePct ?? 2));
 
   async function begin() {
@@ -73,8 +84,8 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
       const lead = (j.leadName ?? customerName ?? '').trim().split(/\s+/);
       setContact((c) => ({ ...c, firstName: c.firstName || lead[0] || '', lastName: c.lastName || lead.slice(1).join(' ') }));
       setGuests((j.rooms as Prep['rooms']).map((room, i) => ({
-        adults: Array.from({ length: room.adults }, (_, k) => (i === 0 && k === 0 && lead[0] ? { name: lead[0], surname: lead.slice(1).join(' ') } : { name: '', surname: '' })),
-        children: Array.from({ length: room.children ?? 0 }, () => ({ name: '', surname: '' })),
+        adults: Array.from({ length: room.adults }, (_, k) => (i === 0 && k === 0 && lead[0] ? blank({ name: lead[0], surname: lead.slice(1).join(' ') }) : blank())),
+        children: Array.from({ length: room.children ?? 0 }, () => blank()),
       })));
       setStep('review');
     } catch { setError('Network error while checking prices. Try again.'); }
@@ -82,9 +93,17 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
 
   function setGuest(room: number, kind: 'adults' | 'children', idx: number, field: keyof Guest, v: string) {
     setGuests((g) => g.map((r, i) => i !== room ? r : { ...r, [kind]: r[kind].map((p, k) => k !== idx ? p : { ...p, [field]: v }) }));
+    // The lead guest and the lead passenger are the same person: keep their title in step.
+    if (room === 0 && kind === 'adults' && idx === 0 && field === 'title' && v) setContact((c) => ({ ...c, salutation: v as Contact['salutation'] }));
   }
   const contactOk = !!(contact.firstName.trim() && contact.lastName.trim() && /^\S+@\S+\.\S+$/.test(contact.email) && /^\+\d{8,15}$/.test(contact.phone.replace(/[\s-]/g, '')));
-  const guestsOk = (!hasHotels || guests.every((r) => [...r.adults, ...r.children].every((p) => p.name.trim() && p.surname.trim()))) && (!needsContact || contactOk);
+  // Which extra fields a guest must fill: only what a hotel's supplier requires, for the guests it requires it of.
+  const reqs = (prep?.hotels ?? []).flatMap((h) => h.unify?.requirements ?? []).filter((q) => q.required);
+  const extrasFor = (kind: 'adults' | 'children', isLead: boolean) => EXTRA.filter((x) => reqs.some((q) =>
+    (q.code === x.code || (x.code === 'PASSPORT_COUNTRY' && q.code === 'NATIONALITY')) &&
+    (q.scope === 'ALL_GUESTS' || (q.scope === 'LEAD_GUEST' && isLead) || (q.scope === 'ADULT' && kind === 'adults') || ((q.scope === 'CHILD' || q.scope === 'INFANT') && kind === 'children'))));
+  const guestOk = (p: Guest, kind: 'adults' | 'children', isLead: boolean) => !!(p.name.trim() && p.surname.trim() && p.title && extrasFor(kind, isLead).every((x) => (p[x.field] ?? '').trim()));
+  const guestsOk = (!hasHotels || guests.every((room, ri) => room.adults.every((p, i) => guestOk(p, 'adults', ri === 0 && i === 0)) && room.children.every((p) => guestOk(p, 'children', false)))) && (!needsContact || contactOk);
 
   async function confirm() {
     setStep('booking'); setError(null);
@@ -198,7 +217,9 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                 <Row label="Total debited from wallet" value={money(debit)} bold />
                 <Row label="Wallet balance" value={money(balancePaise)} />
                 <Row label="Balance after booking" value={money(balancePaise - debit)} danger={!enough} />
+                {creditLimitPaise > 0 && <Row label="Credit limit" value={money(creditLimitPaise)} />}
               </div>
+              {enough && onCredit > 0 && <Note tone="info">{money(onCredit)} of this booking goes on your credit limit. Recharge your wallet to settle it.</Note>}
 
               {rises.length > 0 && (
                 <label className="flex items-start gap-2 text-sm">
@@ -206,7 +227,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                   I accept the higher supplier price for {rises.map((x) => x.name).join(', ')}.
                 </label>
               )}
-              {!enough && <Note tone="warn"><Wallet className="w-4 h-4 inline mr-1" />Insufficient wallet balance. Recharge, then try again.</Note>}
+              {!enough && <Note tone="warn"><Wallet className="w-4 h-4 inline mr-1" />{creditLimitPaise > 0 ? 'This is more than your wallet balance and credit limit together.' : 'Insufficient wallet balance.'} Recharge, then try again.</Note>}
 
               <div className="flex items-center justify-end gap-2 pt-1">
                 <Button variant="ghost" onClick={close}>Cancel</Button>
@@ -221,7 +242,7 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
 
           {step === 'guests' && prep && (
             <>
-              {hasHotels && <p className="text-sm text-[rgb(var(--text-secondary))]">Names exactly as on passports. The hotel receives these.</p>}
+              {hasHotels && <p className="text-sm text-[rgb(var(--text-secondary))]">Names exactly as on passports. The hotel receives these.{reqs.some((q) => /PASSPORT|DATE_OF_BIRTH|NATIONALITY/.test(q.code)) ? ' This hotel’s supplier also needs the passport details below; they are sent to the supplier and not kept here.' : ''}</p>}
               <div className="space-y-3 max-h-[50vh] overflow-y-auto">
                 {needsContact && (
                   <div className="rounded-md border border-border-subtle p-3 space-y-2">
@@ -245,13 +266,39 @@ export function BookTripModal({ proposalId, code, tripName, customerName, netCos
                 {hasHotels && guests.map((room, ri) => (
                   <div key={ri} className="rounded-md border border-border-subtle p-3 space-y-2">
                     <p className="label">Room {ri + 1}</p>
-                    {(['adults', 'children'] as const).map((kind) => room[kind].map((g, gi) => (
-                      <div key={kind + gi} className="grid grid-cols-[90px_1fr_1fr] gap-2 items-center">
-                        <span className="text-xs text-[rgb(var(--text-secondary))]">{kind === 'adults' ? 'Adult' : 'Child'} {gi + 1}{ri === 0 && kind === 'adults' && gi === 0 ? ' (lead)' : ''}</span>
-                        <input className="control" aria-label={`Room ${ri + 1}, ${kind === 'adults' ? 'adult' : 'child'} ${gi + 1} first name`} placeholder="First name" value={g.name} onChange={(e) => setGuest(ri, kind, gi, 'name', e.target.value)} />
-                        <input className="control" aria-label={`Room ${ri + 1}, ${kind === 'adults' ? 'adult' : 'child'} ${gi + 1} last name`} placeholder="Last name" value={g.surname} onChange={(e) => setGuest(ri, kind, gi, 'surname', e.target.value)} />
-                      </div>
-                    )))}
+                    {(['adults', 'children'] as const).map((kind) => room[kind].map((g, gi) => {
+                      const who = `Room ${ri + 1}, ${kind === 'adults' ? 'adult' : 'child'} ${gi + 1}`;
+                      const extras = extrasFor(kind, ri === 0 && kind === 'adults' && gi === 0);
+                      return (
+                        <div key={kind + gi} className="space-y-2">
+                          <p className="text-xs text-[rgb(var(--text-secondary))]">{kind === 'adults' ? 'Adult' : 'Child'} {gi + 1}{ri === 0 && kind === 'adults' && gi === 0 ? ' (lead)' : ''}</p>
+                          <div className="grid grid-cols-[92px_1fr_1fr] gap-2">
+                            <select className="control" aria-label={`${who} title`} value={g.title} onChange={(e) => setGuest(ri, kind, gi, 'title', e.target.value)}>
+                              <option value="">Title</option>
+                              {(kind === 'adults' ? ['Mr', 'Mrs', 'Ms', 'Miss'] : ['Master', 'Miss']).map((x) => <option key={x}>{x}</option>)}
+                            </select>
+                            <input className="control" aria-label={`${who} first name`} placeholder="First name" value={g.name} onChange={(e) => setGuest(ri, kind, gi, 'name', e.target.value)} />
+                            <input className="control" aria-label={`${who} last name`} placeholder="Last name" value={g.surname} onChange={(e) => setGuest(ri, kind, gi, 'surname', e.target.value)} />
+                          </div>
+                          {extras.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {extras.map((x) => (
+                                <label key={x.code} className="block text-xs text-[rgb(var(--text-secondary))]">{x.label}
+                                  {x.type === 'country' ? (
+                                    <select className="control w-full mt-1" aria-label={`${who} ${x.label.toLowerCase()}`} value={g[x.field] ?? ''} onChange={(e) => setGuest(ri, kind, gi, x.field, e.target.value)}>
+                                      <option value="">Choose a country</option>
+                                      {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+                                    </select>
+                                  ) : (
+                                    <input className="control w-full mt-1" type={x.type} aria-label={`${who} ${x.label.toLowerCase()}`} autoComplete="off" spellCheck={false} value={g[x.field] ?? ''} onChange={(e) => setGuest(ri, kind, gi, x.field, e.target.value)} />
+                                  )}
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }))}
                   </div>
                 ))}
               </div>
