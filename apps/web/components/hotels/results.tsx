@@ -61,7 +61,9 @@ export function HotelResults({ hotels, nights, checkin, adults, share }: Props) 
   async function shareOptions() {
     if (!share) return;
     setSharing(true);
-    const r = await createHotelShareAction({ ...share, hotels: chosen }).catch(() => ({ ok: false as const, error: 'Could not create the link. Try again.' }));
+    // Only what the customer page shows: a live hotel carries every room rate, which is too much to post.
+    const slim = chosen.map(({ id, name, stars, address, thumb, room, mealPlan, refundable, pricePerNightPaise }) => ({ id, name, stars, address, thumb, room, mealPlan, refundable, pricePerNightPaise }));
+    const r = await createHotelShareAction({ ...share, hotels: slim }).catch(() => ({ ok: false as const, error: 'Could not create the link. Try again.' }));
     setSharing(false);
     if (r.ok) setShared({ token: r.token, markupPct: r.markupPct }); else toast.error('Could not share', r.error);
   }

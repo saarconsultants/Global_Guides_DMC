@@ -13,7 +13,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 export async function createHotelShareAction(args: {
   cityName: string; checkIn: string; checkOut: string;
   rooms: Array<{ adults: number; children?: number }>;
-  hotels: Hotel[];
+  hotels: Array<Pick<Hotel, 'id' | 'name' | 'stars' | 'address' | 'thumb' | 'room' | 'mealPlan' | 'refundable' | 'pricePerNightPaise'>>;
 }): Promise<{ ok: true; token: string; markupPct: number } | { ok: false; error: string }> {
   const actor = await requireAgency();
   const picked = (args.hotels ?? []).slice(0, MAX_SHARED_HOTELS);
