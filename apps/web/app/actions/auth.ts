@@ -17,9 +17,11 @@ async function nextAgencyCode(): Promise<string> {
 export async function loginAction(args: { email: string; password: string }): Promise<{ ok: true; redirectTo: string } | { ok: false; error: string }> {
   const email = args.email.trim().toLowerCase();
   const user = await db.user.findUnique({ where: { email }, include: { agency: true } });
-  if (!user || !user.passwordHash) return { ok: false, error: 'No account with that email.' };
+  // One message for both cases, so the form can't be used to find out which emails have accounts.
+  const WRONG = 'That email and password don\u2019t match. Check both and try again.';
+  if (!user || !user.passwordHash) return { ok: false, error: WRONG };
   const ok = await bcrypt.compare(args.password, user.passwordHash);
-  if (!ok) return { ok: false, error: 'Wrong password.' };
+  if (!ok) return { ok: false, error: WRONG };
   if (user.agency && user.agency.status === 'SUSPENDED') return { ok: false, error: 'Your agency is suspended. Contact the platform admin.' };
 
   const s = await getSession();

@@ -99,7 +99,7 @@ export default async function ProposalPublicPage({ params }: { params: Promise<{
           <h1 className="mt-8 text-[34px] lg:text-[48px] font-extrabold leading-[1.02] tracking-[-0.02em] [text-wrap:balance]">
             Your {cities.length === 1 ? cities[0] : `${cities.slice(0, -1).join(', ')} & ${cities.at(-1)}`} trip
           </h1>
-          <p className="mt-3 text-[16px] text-white/80 max-w-[60ch]">Your trip proposal from {p.agency.name}. Every hotel, transfer and fare below is a real, bookable option.</p>
+          <p className="mt-3 text-[16px] text-white/80 max-w-[60ch]">Your trip proposal from {p.agency.name}. Look through the plan below, then accept it or ask for changes.</p>
           {heroPhotos.length >= 2 && (
             <div className="relative mt-8 grid grid-cols-3 gap-3">
               {heroPhotos.map((src) => (

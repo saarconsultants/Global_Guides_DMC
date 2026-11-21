@@ -156,9 +156,12 @@ function ProposalActions({ p, walletBalance, stacked }: { p: ProposalRow; wallet
           Open <ExternalLink className="w-3 h-3" />
         </a>
         <a href={`/api/proposal-pdf/${p.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 min-h-6 hit-area text-xs text-[rgb(var(--text-secondary))] hover:text-crimson-700" title="Download branded PDF"><Download className="w-3 h-3" />PDF</a>
-        <form action={reviseProposalAction.bind(null, p.id)} className="inline">
-          <RowSubmitButton icon={<GitBranch className="w-3 h-3" />} label="Revise" pendingLabel="Revising…" title="Create a revised version (v2)" />
-        </form>
+        {/* Revising retires the original, which would hide a booked trip's voucher. */}
+        {p.status !== 'BOOKED' && p.status !== 'SUPERSEDED' && (
+          <form action={reviseProposalAction.bind(null, p.id)} className="inline">
+            <RowSubmitButton icon={<GitBranch className="w-3 h-3" />} label="Revise" pendingLabel="Revising…" title="Create a revised version (v2)" />
+          </form>
+        )}
         <form action={duplicateProposalAction.bind(null, p.id)} className="inline">
           <RowSubmitButton icon={<Copy className="w-3 h-3" />} label="Copy" pendingLabel="Copying…" title="Duplicate as a new draft" />
         </form>

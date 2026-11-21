@@ -1,5 +1,5 @@
 'use server';
-import { saveProposal } from '@/lib/db/proposals';
+import { saveProposal, updateProposal } from '@/lib/db/proposals';
 import type { Itinerary } from '@/lib/itinerary/types';
 import { revalidatePath } from 'next/cache';
 
@@ -7,9 +7,12 @@ export async function saveProposalAction(args: {
   itinerary: Itinerary;
   customer?: { name?: string; email?: string; phone?: string };
   markupPct?: number;
-}): Promise<{ ok: true; code: string; shareToken: string } | { ok: false; error: string }> {
+  /** Set when the builder is editing a saved proposal: it is updated, not duplicated. */
+  proposalId?: string;
+}): Promise<{ ok: true; id: string; code: string; shareToken: string } | { ok: false; error: string }> {
   try {
-    const r = await saveProposal({
+    const r = await (args.proposalId ? updateProposal : saveProposal)({
+      proposalId: args.proposalId!,
       itinerary: args.itinerary,
       customerName: args.customer?.name,
       customerEmail: args.customer?.email,
@@ -19,7 +22,7 @@ export async function saveProposalAction(args: {
     revalidatePath('/proposals');
     revalidatePath('/leads');
     revalidatePath('/dashboard');
-    return { ok: true, code: r.code, shareToken: r.shareToken };
+    return { ok: true, id: r.id, code: r.code, shareToken: r.shareToken };
   } catch (e: any) {
     console.error('[saveProposalAction]', e);
     return { ok: false, error: e?.message ?? 'Failed to save' };

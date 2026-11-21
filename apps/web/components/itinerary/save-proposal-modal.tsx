@@ -12,14 +12,24 @@ interface Props {
   onClose: () => void;
   defaultMarkupPct: number;
   netPaise: number;
-  currentTotalPaise: number;
+  /** The saved proposal being edited: its customer details are prefilled and saving updates it. */
+  editing?: { code: string; status: string; customerName?: string; customerEmail?: string; customerPhone?: string };
   onSave: (args: { customer: { name: string; email?: string; phone?: string }; markupPct: number }) => Promise<{ ok: true; code: string; shareToken: string } | { ok: false; error: string }>;
 }
 
-export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, currentTotalPaise, onSave }: Props) {
+const rupees = (paise: number) => `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
+
+export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, editing, onSave }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  // Prefill from the saved proposal each time the dialog opens.
+  useEffect(() => {
+    if (!open || !editing) return;
+    setName(editing.customerName && editing.customerName !== 'Unknown customer' ? editing.customerName : '');
+    setEmail(editing.customerEmail ?? ''); setPhone(editing.customerPhone ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editing?.code]);
   const [markup, setMarkup] = useState(String(defaultMarkupPct));
   // The agency's markup arrives after first render; follow it until the agent edits the field.
   const [markupTouched, setMarkupTouched] = useState(false);
@@ -36,11 +46,12 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setBusy(true);
-    const r = await onSave({ customer: { name: name || 'Unknown customer', email: email || undefined, phone: phone || undefined }, markupPct });
+    // When editing, an emptied field clears it on the lead; a new proposal leaves blanks unset.
+    const r = await onSave({ customer: { name: name || 'Unknown customer', email: email || (editing ? '' : undefined), phone: phone || (editing ? '' : undefined) }, markupPct });
     setBusy(false);
     if (r.ok) {
       setResult({ code: r.code, shareToken: r.shareToken });
-      toast.success(`Proposal saved as ${r.code}`, 'Share the link with your customer to track their response.');
+      toast.success(editing ? `${r.code} updated` : `Proposal saved as ${r.code}`, editing ? 'The customer link is the same and now shows the new version.' : 'Share the link with your customer to track their response.');
     } else {
       setError(r.error);
       toast.error('Save failed', r.error);
@@ -68,10 +79,11 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
   }
 
   return (
-    <Dialog open={open} onClose={reset} title={result ? 'Proposal saved' : 'Save proposal'} size="md">
+    <Dialog open={open} onClose={reset} title={result ? (editing ? 'Proposal updated' : 'Proposal saved') : editing ? `Save changes to ${editing.code}` : 'Save proposal'} size="md">
       {!result ? (
         <form onSubmit={submit} className="space-y-4">
-          <p className="text-sm text-[rgb(var(--text-secondary))]">Customer details (optional — you can fill these later from the lead page).</p>
+          <p className="text-sm text-[rgb(var(--text-secondary))]">{editing ? 'This updates the saved proposal. The customer link stays the same.' : 'Customer details (optional — you can fill these later from the lead page).'}</p>
+          {editing?.status === 'ACCEPTED' && <p role="status" className="rounded-md bg-amber-50 text-amber-800 px-3 py-2 text-xs">The customer already accepted this proposal. After you save changes, they&apos;ll need to accept it again.</p>}
           <div><Label>Customer name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Rakesh Mehta" /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="rakesh@example.com" /></div>
@@ -89,25 +101,22 @@ export function SaveProposalModal({ open, onClose, defaultMarkupPct, netPaise, c
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-border-subtle/40">
-              <div><p className="label">Net cost</p><p className="font-mono text-sm text-ink">₹ {(netPaise / 100).toLocaleString('en-IN')}</p></div>
-              <div><p className="label">Margin</p><p className="font-mono text-sm text-success-500">₹ {(margin / 100).toLocaleString('en-IN')}</p></div>
-              <div><p className="label">Customer total</p><p className="font-mono text-sm font-bold text-crimson-900">₹ {(previewTotal / 100).toLocaleString('en-IN')}</p></div>
+              <div><p className="label">Net cost</p><p className="money text-sm text-ink">{rupees(netPaise)}</p></div>
+              <div><p className="label">Your margin</p><p className="money text-sm text-success-600">{rupees(margin)}</p></div>
+              <div><p className="label">Customer pays</p><p className="money text-sm font-bold text-crimson-900">{rupees(previewTotal)}</p></div>
             </div>
-            {Math.abs(previewTotal - currentTotalPaise) > 100 && (
-              <p className="text-[11px] text-warning-500">Heads up &mdash; this differs from the price shown in the builder ({(currentTotalPaise / 100).toLocaleString('en-IN')}). The saved proposal will use the customer total above.</p>
-            )}
           </div>
 
           {error && <div className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm">{error}</div>}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={reset}>Cancel</Button>
-            <Button type="submit" disabled={busy} className="gap-2">{busy ? <><Spinner size="sm" className="text-white" />Saving…</> : 'Save proposal'}</Button>
+            <Button type="submit" disabled={busy} className="gap-2">{busy ? <><Spinner size="sm" className="text-white" />Saving…</> : editing ? 'Save changes' : 'Save proposal'}</Button>
           </div>
         </form>
       ) : (
         <div className="space-y-5">
           <div className="rounded-md bg-success-100 text-success-500 px-3 py-2 text-sm inline-flex items-center gap-2">
-            <Check className="w-4 h-4" /> Saved as <strong className="font-mono">{result.code}</strong>
+            <Check className="w-4 h-4" /> {editing ? 'Updated' : 'Saved as'} <strong className="font-mono">{result.code}</strong>
           </div>
 
           <div>

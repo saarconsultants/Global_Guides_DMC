@@ -27,6 +27,79 @@ export interface SaveProposalArgs {
   markupPct?: number;        // override of agency default
 }
 
+/** Net (the builder's price), the agent's markup on top, and the customer total. */
+async function priceProposal(agencyId: string, it: Itinerary, override?: number) {
+  const net = BigInt(it.pricePaise);
+  let markupPct: number;
+  if (typeof override === 'number' && override >= 0 && override <= 100) {
+    markupPct = override;
+  } else {
+    // No per-proposal override: the agency's destination/season rules, then its default.
+    const agency = await db.agency.findUnique({ where: { id: agencyId }, select: { markupPct: true, markupRulesJson: true } });
+    markupPct = resolveTripMarkupPct(agency?.markupPct ?? 15, {
+      rules: parseMarkupRules(agency?.markupRulesJson),
+      destinationCodes: it.destinations.map((d) => d.cityCode),
+      travelDate: it.intake.departureDate,
+    }).pct;
+  }
+  // Integer basis-point math (handles fractional % like 12.5): exact, no float round-trip on money.
+  const total = net + (net * BigInt(Math.round(markupPct * 100))) / 10000n;
+  const adults = it.intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
+  return { net, markup: total - net, total, perAdult: BigInt(Math.round(Number(total) / adults)) };
+}
+
+const contentOf = (it: Itinerary) => ({
+  name: tripName(it),
+  travelDate: new Date(it.intake.departureDate),
+  nationality: it.intake.nationality,
+  travelers: JSON.stringify({ rooms: it.intake.rooms }),
+  destinations: JSON.stringify(it.destinations),
+  days: JSON.stringify(it.days),
+  flights: it.flights ? JSON.stringify(it.flights) : null,
+  visa: JSON.stringify(it.visa),
+  insurance: JSON.stringify(it.insurance),
+});
+
+/**
+ * Save edits to an existing proposal in place: same code, same customer link, same lead.
+ * A proposal the customer already accepted goes back to SENT, because what they accepted has changed.
+ */
+export async function updateProposal(args: SaveProposalArgs & { proposalId: string }): Promise<{ id: string; code: string; shareToken: string }> {
+  const actor = await requireAgency();
+  const it = args.itinerary;
+  const p = await db.proposal.findFirst({ where: { id: args.proposalId, agencyId: actor.agencyId } });
+  if (!p) throw new Error('Proposal not found.');
+  if (p.status === 'BOOKED') throw new Error('This trip is already booked, so it can\u2019t be changed here. Use Copy on the Proposals page to quote a new one.');
+  if (p.status === 'SUPERSEDED' || p.status === 'DECLINED') throw new Error('This proposal is closed. Use Copy on the Proposals page to start a new one from it.');
+  const price = await priceProposal(actor.agencyId, it, args.markupPct);
+  const changedPrice = price.total !== p.pricePaise;
+  await db.proposal.update({
+    where: { id: p.id },
+    data: {
+      ...contentOf(it),
+      netCostPaise: price.net, markupPaise: price.markup, pricePaise: price.total, pricePerAdultPaise: price.perAdult,
+      ...(p.status === 'ACCEPTED' ? { status: 'SENT', acceptedAt: null } : {}),
+    },
+  });
+  if (p.leadId) {
+    const name = args.customerName?.trim();
+    await db.lead.update({
+      where: { id: p.leadId },
+      data: {
+        ...(name ? { customerName: name } : {}),
+        ...(args.customerEmail !== undefined ? { customerEmail: args.customerEmail || null } : {}),
+        ...(args.customerPhone !== undefined ? { customerPhone: args.customerPhone || null } : {}),
+        destinations: it.destinations.map((d) => d.cityCode).join(','),
+        travelDate: new Date(it.intake.departureDate),
+        nights: it.destinations.reduce((s, d) => s + d.nights, 0),
+      },
+    });
+    await db.leadNote.create({ data: { leadId: p.leadId, authorId: actor.userId, kind: 'SYSTEM', body: `Updated ${p.code}${changedPrice ? ' with a new price' : ''}${p.status === 'ACCEPTED' ? '. The customer needs to accept it again.' : ''}` } });
+  }
+  await computeAndRecordCommissions(p.id);
+  return { id: p.id, code: p.code, shareToken: p.shareToken };
+}
+
 function tripName(it: Itinerary): string {
   const cities = it.destinations.map((d) => d.cityName).join(' + ');
   const nights = it.destinations.reduce((s, d) => s + d.nights, 0);
@@ -37,38 +110,8 @@ export async function saveProposal(args: SaveProposalArgs): Promise<{ id: string
   const actor = await requireAgency();
   const it = args.itinerary;
 
-  // Treat the price shown in the builder as the supplier-net total (approximation
-  // until adapters return per-line cost). Apply the markup % the agent picked at save.
-  const net = BigInt(it.pricePaise);
-
-  // Markup precedence: explicit per-proposal override (set at Save) wins; otherwise
-  // resolve the agency's destination/season rules, falling back to the agency default.
-  const agency = await db.agency.findUnique({
-    where: { id: actor.agencyId },
-    select: { markupPct: true, markupRulesJson: true },
-  });
-  let markupPct: number;
-  let markupReason = 'per-proposal override';
-  if (typeof args.markupPct === 'number' && args.markupPct >= 0 && args.markupPct <= 100) {
-    markupPct = args.markupPct;
-  } else {
-    const resolved = resolveTripMarkupPct(agency?.markupPct ?? 15, {
-      rules: parseMarkupRules(agency?.markupRulesJson),
-      destinationCodes: it.destinations.map((d) => d.cityCode),
-      travelDate: it.intake.departureDate,
-    });
-    markupPct = resolved.pct;
-    markupReason = resolved.reason;
-  }
-  void markupReason;
-  // Integer basis-point math (handles fractional % like 12.5) — exact at any
-  // magnitude, no float round-trip on money.
-  const markupBp = BigInt(Math.round(markupPct * 100));
-  const total = net + (net * markupBp) / 10000n;
-  const netCost = net;
-  const markup = total - net;
-  const adults = it.intake.rooms.reduce((s, r) => s + r.adults, 0) || 1;
-  const perAdult = BigInt(Math.round(Number(total) / adults));
+  // The builder's price is the supplier-net total; the agent's markup goes on top at save.
+  const price = await priceProposal(actor.agencyId, it, args.markupPct);
 
   const lead = await db.lead.create({
     data: {
@@ -91,19 +134,11 @@ export async function saveProposal(args: SaveProposalArgs): Promise<{ id: string
       agencyId: actor.agencyId,
       ownerUserId: actor.userId,
       leadId: lead.id,
-      name: tripName(it),
-      travelDate: new Date(it.intake.departureDate),
-      nationality: it.intake.nationality,
-      travelers: JSON.stringify({ rooms: it.intake.rooms }),
-      destinations: JSON.stringify(it.destinations),
-      days: JSON.stringify(it.days),
-      flights: it.flights ? JSON.stringify(it.flights) : null,
-      visa: JSON.stringify(it.visa),
-      insurance: JSON.stringify(it.insurance),
-      netCostPaise: netCost,
-      markupPaise: markup,
-      pricePaise: total,
-      pricePerAdultPaise: perAdult,
+      ...contentOf(it),
+      netCostPaise: price.net,
+      markupPaise: price.markup,
+      pricePaise: price.total,
+      pricePerAdultPaise: price.perAdult,
       currency: it.currency,
       shareToken: genShareToken(),
       status: 'DRAFT',

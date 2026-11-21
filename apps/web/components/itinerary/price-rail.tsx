@@ -4,9 +4,12 @@ import { useMoney } from '@/components/providers/currency-provider';
 import type { Itinerary } from '@/lib/itinerary/types';
 import { Wallet, Plane, Bed, Car, Sparkles, ShieldCheck, FileText, ArrowRight } from 'lucide-react';
 
-interface Props { itinerary: Itinerary; onSave: () => void; }
+interface Props { itinerary: Itinerary; onSave: () => void;   saveLabel?: string;
+  /** Shown instead of the save button when the proposal can't be edited (booked or closed). */
+  lockedNote?: string;
+}
 
-export function PriceRail({ itinerary, onSave }: Props) {
+export function PriceRail({ itinerary, onSave, saveLabel, lockedNote }: Props) {
   const money = useMoney();
   // Breakdown components
   const flightPaise = (itinerary.flights?.totalPaise ?? 0) + (itinerary.flights?.return?.totalPaise ?? 0);
@@ -54,12 +57,14 @@ export function PriceRail({ itinerary, onSave }: Props) {
         </div>
         <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-end justify-between gap-3">
           <div>
-            <p className="label text-white/70">Total price</p>
-            <p className="text-[11px] text-white/60 mt-0.5">all taxes included</p>
+            <p className="label text-white/70">Net price</p>
+            <p className="text-[11px] text-white/60 mt-0.5">your cost, before your markup</p>
           </div>
           <span className="money text-[26px] leading-none">{money(itinerary.pricePaise)}</span>
         </div>
-        <Button onClick={onSave} className="w-full mt-4">Save as proposal</Button>
+        {lockedNote
+          ? <p role="status" className="mt-4 text-[12.5px] text-white/80">{lockedNote}</p>
+          : <Button onClick={onSave} className="w-full mt-4">{saveLabel ?? 'Save as proposal'}</Button>}
       </div>
     </div>
   );

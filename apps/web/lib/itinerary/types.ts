@@ -231,4 +231,6 @@ export interface Itinerary {
   pricePerAdultPaise: number;
   currency: Currency;
   status: 'draft' | 'saved' | 'sent' | 'accepted' | 'booked';
+  /** Set when this trip is a saved proposal, so saving again updates it instead of creating another. */
+  proposal?: { id: string; code: string; status: string; customerName?: string; customerEmail?: string; customerPhone?: string; markupPct: number };
 }

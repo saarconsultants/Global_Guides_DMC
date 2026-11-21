@@ -7,8 +7,9 @@ export function visaTitle(country: string): string {
   return `${country} tourist visa`;
 }
 
-export function visaDetail(description: string): string {
-  const d = description.toLowerCase();
+// Older and imported proposals can lack a description, so these never assume one.
+export function visaDetail(description?: string): string {
+  const d = (description ?? '').toLowerCase();
   const bits: string[] = [];
   if (d.includes('assistance')) bits.push('application assistance');
   if (d.includes('fees directly payable')) bits.push('visa fee paid separately');
@@ -18,9 +19,9 @@ export function visaDetail(description: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function insuranceDetail(description: string): string {
-  const cover = description.match(/\$\s?([\d,]+)/)?.[1];
-  const age = description.match(/age below (\d+)/i)?.[1];
+export function insuranceDetail(description?: string): string {
+  const cover = description?.match(/\$\s?([\d,]+)/)?.[1];
+  const age = description?.match(/age below (\d+)/i)?.[1];
   const bits: string[] = [];
   if (cover) bits.push(`Medical cover of at least USD ${cover}`);
   if (age) bits.push(`for travellers under ${age}`);

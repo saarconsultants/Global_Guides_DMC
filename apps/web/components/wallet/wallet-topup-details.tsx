@@ -4,6 +4,7 @@ import { MessageCircle } from 'lucide-react';
 // NEXT_PUBLIC_WALLET_BANK_NAME, NEXT_PUBLIC_WALLET_ACCOUNT_NO,
 // NEXT_PUBLIC_WALLET_IFSC, NEXT_PUBLIC_WALLET_ACCOUNT_NAME.
 // IFSC deliberately has no default: a wrong IFSC sends money to the wrong branch.
+export const WALLET_BANK = { accountNo: process.env.NEXT_PUBLIC_WALLET_ACCOUNT_NO || '924020014711', ifsc: process.env.NEXT_PUBLIC_WALLET_IFSC || '', name: process.env.NEXT_PUBLIC_WALLET_ACCOUNT_NAME || 'Global Guides DMC LLP' };
 const BANK_NAME = process.env.NEXT_PUBLIC_WALLET_BANK_NAME || '';
 const ACCOUNT_NO = process.env.NEXT_PUBLIC_WALLET_ACCOUNT_NO || '924020014711';
 const IFSC = process.env.NEXT_PUBLIC_WALLET_IFSC || '';

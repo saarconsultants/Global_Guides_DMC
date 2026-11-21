@@ -9,6 +9,7 @@ import { statusLabel } from '@/lib/labels';
 import { getDisplayMoney } from '@/lib/money-server';
 import { Wallet, Download, Plus, Receipt } from 'lucide-react';
 import { RechargeButton } from '@/components/wallet/recharge-button';
+import { WALLET_BANK } from '@/components/wallet/wallet-topup-details';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,9 +39,10 @@ export default async function StatementPage() {
           </div>
           <div className="lg:w-[220px] border-t lg:border-t-0 lg:border-l border-dashed border-white/25 px-6 py-5 flex flex-col justify-center gap-1">
             <p className="label text-white/60">Account</p>
-            <p className="font-mono text-[13px] font-bold tnum">924020014711</p>
-            <p className="font-mono text-[12px] text-white/70 tnum">AXIS0001234</p>
-            <p className="text-[12px] text-white/70">Global Guides DMC LLP</p>
+            <p className="font-mono text-[13px] font-bold tnum">{WALLET_BANK.accountNo}</p>
+            {/* Never a placeholder: a wrong IFSC sends an agent's money to the wrong branch. */}
+            <p className="text-[12px] text-white/70">{WALLET_BANK.ifsc ? <span className="font-mono tnum">{WALLET_BANK.ifsc}</span> : 'IFSC: ask your account manager'}</p>
+            <p className="text-[12px] text-white/70">{WALLET_BANK.name}</p>
           </div>
         </div>
         <Card>

@@ -48,6 +48,13 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
   // Hydrate from DB if not in memory (page refresh, deep link from My Proposals, etc.)
   useEffect(() => {
     if (itinerary || hydrating || hydrateFailed) return;
+    // A trip that was never saved lives only in this tab: bring its draft back after a refresh.
+    if (id.startsWith('it_')) {
+      try {
+        const draft = sessionStorage.getItem(`gg-trip:${id}`);
+        if (draft) { upsert(JSON.parse(draft)); return; }
+      } catch { /* unreadable draft: fall through to not found */ }
+    }
     setHydrating(true);
     loadItineraryByIdAction(id).then((r) => {
       if (r.ok) upsert(r.itinerary);
@@ -55,9 +62,17 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     }).finally(() => setHydrating(false));
   }, [id, itinerary, hydrating, hydrateFailed, upsert]);
 
+  // Keep the unsaved draft in this tab, so a refresh doesn't lose the agent's work.
+  useEffect(() => {
+    if (!itinerary || !id.startsWith('it_')) return;
+    try { sessionStorage.setItem(`gg-trip:${id}`, JSON.stringify(itinerary)); } catch { /* storage full or blocked */ }
+  }, [itinerary, id]);
+
   // Pre-fill "Save as proposal" with the agency's own markup (Settings → Sales),
   // including any destination/season rules, instead of a fixed 15%.
   const [markupPct, setMarkupPct] = useState(15);
+  const saved = itinerary?.proposal;
+  const locked = saved?.status === 'BOOKED' || saved?.status === 'SUPERSEDED' || saved?.status === 'DECLINED';
   const markupKey = itinerary ? `${itinerary.destinations.map((d) => d.cityCode).join(',')}|${itinerary.intake.departureDate}` : '';
   useEffect(() => {
     if (!itinerary) return;
@@ -109,7 +124,7 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
     <div className="min-h-[60vh] flex items-center justify-center px-6">
       <div className="max-w-md text-center" role="alert">
         <h1 className="text-[20px] font-extrabold text-ink">We couldn&apos;t open this trip</h1>
-        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">It may have been deleted, or it was never saved as a proposal. Unsaved trips are lost when the page is refreshed.</p>
+        <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">It may have been deleted, or it was an unsaved trip from another tab or an earlier visit. Unsaved trips only stay in the tab they were built in.</p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <ButtonLink href="/proposals">Go to My proposals</ButtonLink>
           <ButtonLink href="/itinerary/new" variant="secondary">New trip</ButtonLink>
@@ -318,7 +333,9 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
 
         {/* Sticky rails */}
         <aside id="section-price" aria-label="Price summary" className="space-y-4 order-first lg:order-none lg:sticky lg:top-[132px] self-start min-w-0">
-          <PriceRail itinerary={itinerary} onSave={() => setSaveOpen(true)} />
+          <PriceRail itinerary={itinerary} onSave={() => setSaveOpen(true)}
+            saveLabel={saved ? `Save changes to ${saved.code}` : undefined}
+            lockedNote={locked ? (saved!.status === 'BOOKED' ? 'This trip is booked. To quote a new one from it, use Copy on the Proposals page.' : 'This proposal is closed. Use Copy on the Proposals page to start a new one from it.') : undefined} />
           <TripSummaryRail itinerary={itinerary} />
         </aside>
       </div>
@@ -326,10 +343,15 @@ export default function CustomizePage({ params }: { params: Promise<{ id: string
       <SaveProposalModal
         open={saveOpen}
         onClose={() => setSaveOpen(false)}
-        defaultMarkupPct={markupPct}
+        defaultMarkupPct={saved ? saved.markupPct : markupPct}
         netPaise={itinerary.pricePaise}
-        currentTotalPaise={itinerary.pricePaise}
-        onSave={async ({ customer, markupPct }) => saveProposalAction({ itinerary, customer, markupPct })}
+        editing={saved}
+        onSave={async ({ customer, markupPct }) => {
+          const r = await saveProposalAction({ itinerary, customer, markupPct, proposalId: saved?.id });
+          // Remember the proposal, so saving again updates it instead of creating another.
+          if (r.ok) upsert({ ...itinerary, proposal: { id: r.id, code: r.code, status: saved?.status === 'ACCEPTED' ? 'SENT' : saved?.status ?? 'DRAFT', customerName: customer.name, customerEmail: customer.email, customerPhone: customer.phone, markupPct } });
+          return r;
+        }}
       />
     </div>
   );
