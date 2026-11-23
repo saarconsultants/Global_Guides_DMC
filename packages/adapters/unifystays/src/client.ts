@@ -36,7 +36,8 @@ export interface CallOpts {
 export function headers(extra?: Record<string, string>): Record<string, string> {
   const key = process.env.UNIFYSTAYS_API_KEY;
   if (!key) throw new UnifyError('UNIFYSTAYS_API_KEY is not set.', 0, 'NO_KEY', false);
-  return { 'x-api-key': key, 'X-Unifystays-Currency': 'INR', Accept: 'application/json', ...extra };
+  // Pin contract 2 so an account-level pin on Unifystays' side can't change response shapes.
+  return { 'x-api-key': key, 'X-Unifystays-Currency': 'INR', 'X-Unifystays-Contract-Version': '2', Accept: 'application/json', ...extra };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
