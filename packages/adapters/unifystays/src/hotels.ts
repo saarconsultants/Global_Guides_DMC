@@ -112,5 +112,14 @@ export async function searchHotels(input: {
     if (!cursor) break;
   }
   const hotels = [...all.values()].map(toHotel).filter((h): h is UnifyHotel => !!h);
-  return { hotels, unpriced: all.size - hotels.length, placeName: place.name };
+  let warning: string | undefined;
+  if (!all.size) warning = `Unifystays found no hotels in ${place.name} for these dates.`;
+  else if (!hotels.length) {
+    // Say why every card was dropped (no live price, or not in INR) so an empty result is explainable.
+    const why = new Map<string, number>();
+    for (const h of all.values()) { const k = `${h.price?.status ?? 'no price'}${h.price?.currency && h.price.currency !== 'INR' ? ' ' + h.price.currency : ''}`; why.set(k, (why.get(k) ?? 0) + 1); }
+    warning = `Unifystays found ${all.size} hotels in ${place.name} but none had a bookable INR price (${[...why].map(([k, n]) => `${n} ${k}`).join(', ')}).`;
+  }
+  if (warning) console.error('[unifystays]', warning);
+  return { hotels, unpriced: all.size - hotels.length, placeName: place.name, warning };
 }
