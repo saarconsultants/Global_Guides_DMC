@@ -332,3 +332,15 @@ model HotelContent {
 
   @@id([code, kind])
 }
+
+// One-time sign-in codes sent by email. Only a hash is stored; rows are deleted on use.
+model LoginCode {
+  id        String   @id @default(cuid())
+  email     String
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}

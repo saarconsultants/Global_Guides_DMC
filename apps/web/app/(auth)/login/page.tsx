@@ -6,7 +6,7 @@ import { AuthShell } from '@/components/auth/auth-shell';
 import { Input, Label } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { loginAction } from '@/app/actions/auth';
+import { loginAction, requestLoginCodeAction, verifyLoginCodeAction } from '@/app/actions/auth';
 import { Dialog } from '@/components/ui/dialog';
 import { Eye, EyeOff, Mail, MessageCircle, Phone } from 'lucide-react';
 
@@ -22,14 +22,32 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [forgotOpen, setForgotOpen] = useState(false);
+  // Sign in with a password, or with a 6-digit code sent by email.
+  const [mode, setMode] = useState<'password' | 'code'>('password');
+  const [code, setCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const go = (redirectTo: string) => start(() => router.push((safeNext(params.get('next')) ?? redirectTo) as any));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const r = await loginAction({ email, password });
-    if (r.ok) start(() => router.push((safeNext(params.get('next')) ?? r.redirectTo) as any));
+    if (mode === 'code' && !codeSent) return sendCode();
+    const r = mode === 'password' ? await loginAction({ email, password }) : await verifyLoginCodeAction({ email, code });
+    if (r.ok) go(r.redirectTo);
     else setError(r.error);
   }
+
+  async function sendCode() {
+    setError(null);
+    setSending(true);
+    const r = await requestLoginCodeAction({ email }).catch(() => ({ ok: false as const, error: 'The code could not be sent. Try again.' }));
+    setSending(false);
+    if (r.ok) { setCodeSent(true); setCode(''); } else setError(r.error);
+  }
+
+  function switchMode(m: 'password' | 'code') { setMode(m); setError(null); setCodeSent(false); setCode(''); }
 
   return (
     <>
@@ -50,8 +68,20 @@ export default function LoginPage() {
             <form onSubmit={submit} className="space-y-4">
               <div>
                 <Label required>Email</Label>
-                <Input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@agency.com" />
+                <Input type="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); if (codeSent) setCodeSent(false); }} required placeholder="you@agency.com" />
               </div>
+              {mode === 'code' ? (
+                codeSent && (
+                  <div>
+                    <p role="status" className="mb-3 text-[13px] text-[rgb(var(--text-secondary))]">If <span className="font-semibold text-ink">{email}</span> has an account, we&apos;ve emailed it a 6-digit code. It works for 10 minutes.</p>
+                    <div className="flex items-center justify-between">
+                      <Label required>Code</Label>
+                      <button type="button" onClick={sendCode} disabled={sending} className="text-xs font-bold text-crimson-700 hover:underline mb-1.5 disabled:opacity-50">{sending ? 'Sending…' : 'Send a new code'}</button>
+                    </div>
+                    <Input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} required autoFocus placeholder="6-digit code" className="font-mono tracking-[0.3em] text-lg" />
+                  </div>
+                )
+              ) : (
               <div>
                 <div className="flex items-center justify-between">
                   <Label required>Password</Label>
@@ -64,15 +94,24 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+              )}
               {error && <div role="alert" className="rounded-md bg-danger-100 text-danger-500 px-3 py-2 text-sm animate-in slide-in-from-top-1 fade-in duration-200">{error}</div>}
-              <Button type="submit" disabled={pending} size="lg" className="w-full gap-2">
-                {pending ? <><Spinner size="sm" className="text-white" />Signing in…</> : 'Sign in'}
+              <Button type="submit" disabled={pending || sending} size="lg" className="w-full gap-2">
+                {pending ? <><Spinner size="sm" className="text-white" />Signing in…</> : sending ? <><Spinner size="sm" className="text-white" />Sending code…</> : mode === 'code' && !codeSent ? 'Email me a code' : 'Sign in'}
               </Button>
+              <button type="button" onClick={() => switchMode(mode === 'password' ? 'code' : 'password')} className="w-full min-h-10 text-sm font-semibold text-crimson-700 hover:underline">
+                {mode === 'password' ? 'Sign in with an email code instead' : 'Use my password instead'}
+              </button>
             </form>
     </AuthShell>
 
       <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)} title="Forgot your password?" size="sm">
         <div className="space-y-4 text-sm text-ink">
+          <div>
+            <p className="font-bold">Sign in with an email code</p>
+            <p className="mt-1 text-[rgb(var(--text-secondary))]">We email you a 6-digit code instead. Once you&apos;re in, set a new password in Settings.</p>
+            <Button size="sm" variant="secondary" className="mt-2" onClick={() => { setForgotOpen(false); switchMode('code'); }}>Email me a code</Button>
+          </div>
           <div>
             <p className="font-bold">Agents and counsellors</p>
             <p className="mt-1 text-[rgb(var(--text-secondary))]">Ask your agency owner to set a new password for you. They can do it in Settings › Team, using “Reset password” next to your name.</p>
