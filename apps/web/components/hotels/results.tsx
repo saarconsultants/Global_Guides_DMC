@@ -16,6 +16,7 @@ import { createHotelShareAction } from '@/app/actions/hotel-share';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/toast';
+import { CheckPriceButton, type PriceCheckStay } from './check-price';
 
 interface Props {
   hotels: Hotel[];
@@ -24,6 +25,8 @@ interface Props {
   adults?: string;
   /** The search these results answer. With it, agents can share 2–4 hotels for a customer to choose from. */
   share?: { cityName: string; checkIn: string; checkOut: string; rooms: Array<{ adults: number; children?: number }> };
+  /** The searched stay, for "Check price" on live hotels listed without a price. */
+  stay?: PriceCheckStay;
 }
 
 /**
@@ -50,8 +53,10 @@ function freeUntil(policies?: Array<{ from: string }>): string | null {
   return `${m[2]} ${mon}, ${m[3]}:${m[4]}`;
 }
 
-export function HotelResults({ hotels, nights, checkin, adults, share }: Props) {
+export function HotelResults({ hotels: searched, nights, checkin, adults, share, stay }: Props) {
   const money = useMoney();
+  const [checked, setChecked] = useState<Record<string, Hotel>>({});
+  const hotels = searched.map((h) => checked[h.id] ?? h);
   const [q, setQ] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
   const [sharing, setSharing] = useState(false);
@@ -100,7 +105,7 @@ export function HotelResults({ hotels, nights, checkin, adults, share }: Props) 
               <div className="flex items-center gap-2">
                 {share && (
                   <label className={`order-last ml-auto inline-flex items-center gap-1.5 min-h-9 px-2 rounded-md border text-[12.5px] font-semibold cursor-pointer select-none ${picked.includes(h.id) ? 'border-crimson-700 bg-crimson-50 text-crimson-700' : 'border-border text-ink-soft hover:border-border-strong'} ${!picked.includes(h.id) && picked.length >= MAX_SHARED_HOTELS ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                    <input type="checkbox" className="accent-crimson-700" checked={picked.includes(h.id)} disabled={!picked.includes(h.id) && picked.length >= MAX_SHARED_HOTELS} onChange={() => toggle(h.id)} aria-label={`Compare ${h.name}`} />
+                    <input type="checkbox" className="accent-crimson-700" checked={picked.includes(h.id)} disabled={h.needsPriceCheck || (!picked.includes(h.id) && picked.length >= MAX_SHARED_HOTELS)} onChange={() => toggle(h.id)} aria-label={`Compare ${h.name}`} />
                     Compare
                   </label>
                 )}
@@ -123,6 +128,7 @@ export function HotelResults({ hotels, nights, checkin, adults, share }: Props) 
                 <div className="min-w-0"><div className="label">Board</div><div className="mt-0.5 text-[13px] font-bold text-ink leading-snug">{h.mealPlan}</div></div>
                 <div className="min-w-0 col-span-2 sm:col-span-1 order-last sm:order-none"><div className="label">Room</div><div className="mt-0.5 text-[13px] font-bold text-ink leading-snug line-clamp-2" title={h.room.name}>{h.room.name}</div></div>
                 <div className="min-w-0"><div className="label">Cancellation</div>{(() => {
+                  if (h.needsPriceCheck) return <div className="mt-0.5 text-[13px] font-bold leading-snug text-[rgb(var(--text-secondary))]">After price check</div>;
                   const until = h.refundable ? freeUntil(h.roomOptions?.[0]?.cancellationPolicies) : null;
                   return <div className={`mt-0.5 text-[13px] font-bold leading-snug ${h.refundable ? 'text-success-600' : 'text-[rgb(var(--text-secondary))]'}`} title={until ? 'Hotel local time' : undefined}>{until ? `Free until ${until}` : h.refundable ? 'Fully refundable' : 'Non-refundable'}</div>;
                 })()}</div>
@@ -147,8 +153,17 @@ export function HotelResults({ hotels, nights, checkin, adults, share }: Props) 
           <Perforation />
           <PassStub>
             <div className="label">Per night</div>
-            <div className="money text-[24px] text-ink leading-none">{money(h.pricePerNightPaise)}</div>
-            <div className="text-[12px] text-[rgb(var(--text-secondary))] tnum">{money(h.pricePerNightPaise * nights)} for {nights} night{nights !== 1 ? 's' : ''}</div>
+            {h.needsPriceCheck ? (
+              <>
+                <div className="text-[14px] font-bold text-ink leading-tight">Price not loaded</div>
+                {stay && <CheckPriceButton hotel={h} stay={stay} className="mt-2 w-full" onPriced={(p) => setChecked((c) => ({ ...c, [h.id]: p }))} />}
+              </>
+            ) : (
+              <>
+                <div className="money text-[24px] text-ink leading-none">{money(h.pricePerNightPaise)}</div>
+                <div className="text-[12px] text-[rgb(var(--text-secondary))] tnum">{money(h.pricePerNightPaise * nights)} for {nights} night{nights !== 1 ? 's' : ''}</div>
+              </>
+            )}
             <SelectHotelButton hotelName={h.name} cityCode={h.cityCode} checkin={checkin} nights={nights} adults={adults} />
           </PassStub>
         </Pass>

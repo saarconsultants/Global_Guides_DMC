@@ -8,6 +8,8 @@ const HOTELS=[
  {hotel_id:'1400001',hotel_name:'Old Town Palace',stars:4,address:'3 Heritage Street',city:'Dubai',country:'AE',latitude:25.205,longitude:55.275,main_image_url:'https://picsum.photos/seed/otp/400/300',facilities:[],price:{amount:5400000,currency:'INR',rate_type:'live',status:'recent',supplier_code:'TRIPJACK',is_refundable:true,free_cancellation_until:'2027-01-01T23:59:59Z'}},
  {hotel_id:'1393348',hotel_name:'Creek Harbour Hotel & Spa',stars:5,address:'12 Creek Road',city:'Dubai',country:'AE',latitude:25.2,longitude:55.27,main_image_url:'https://picsum.photos/seed/chh/400/300',facilities:['Free WiFi'],price:{amount:null,currency:'INR',status:'checking'}},
  {hotel_id:'1400002',hotel_name:'Marina Suites',stars:5,address:'Marina Walk 1',city:'Dubai',country:'AE',price:{amount:null,currency:'INR',status:'no_price'}},
+ {hotel_id:'1400004',hotel_name:'Palm Retreat',stars:4,address:'Palm Jumeirah',city:'Dubai',country:'AE',price:{amount:null,currency:'INR',status:'unpriced',reason:'timeout'}},
+ {hotel_id:'1400005',hotel_name:'Unmapped Tower',stars:4,address:'Business Bay',city:'Dubai',country:'AE',price:{amount:null,currency:'INR',status:'unpriced',reason:'not_mapped'}},
  {hotel_id:'1400003',hotel_name:'Budget Inn',stars:2,address:'Deira',city:'Dubai',country:'AE',price:{amount:900000,currency:'INR',status:'live'}},
 ];
 const offer=(id,room,meal,payable,extra={})=>({offer_id:'off_'+id,revision:1,booking_token:'bq7.'+id,provider_code:'RATEHAWK',

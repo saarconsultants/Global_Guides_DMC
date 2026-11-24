@@ -1,6 +1,6 @@
 // Self-check against the stand-in (test/stub.js running): duplicate-safe booking and INR money handling.
 // Run: UNIFYSTAYS_API_KEY=test-key UNIFYSTAYS_BASE_URL=http://localhost:4013 npx tsx packages/adapters/unifystays/test/check.ts
-import { createBooking, bookingByIdempotencyKey, prebook } from '../src/index';
+import { createBooking, bookingByIdempotencyKey, prebook, searchHotels } from '../src/index';
 import assert from 'node:assert';
 (async()=>{
   const pb = await prebook('1400001', 'bq7.a1');
@@ -12,5 +12,9 @@ import assert from 'node:assert';
   assert.equal(await bookingByIdempotencyKey('never-used'), null);
   // payable from the INR display ledger; penalty scaled from the native USD amount
   assert.equal(pb.offer!.payablePaise, 5100000); assert.equal(pb.offer!.atPropertyPaise, 75000); assert.equal(pb.offer!.penalties[0]!.amountPaise, 5100000);
-  console.log('idempotency + money checks passed:', a.bookingId);
+  // "Check price": a retryable unpriced hotel is offered; sold out and not_mapped never are
+  const s = await searchHotels({ cityName: 'Dubai', countryCode: 'AE', checkIn: '2026-12-20', checkOut: '2026-12-23', rooms: [{ adults: 2, childAges: [] }], waitMs: 3000 });
+  assert.deepEqual(s.checkable.map((h) => h.hotelId), ['1400004']); assert.equal(s.checkable[0]!.totalPaise, 0);
+  assert.ok(!s.hotels.some((h) => h.hotelId === '1400004'), 'unpriced hotel must not get a price');
+  console.log('idempotency + money + check-price checks passed:', a.bookingId);
 })().catch((e)=>{ console.error('FAILED', e.message); process.exit(1); });

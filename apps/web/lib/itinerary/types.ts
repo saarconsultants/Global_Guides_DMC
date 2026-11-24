@@ -50,6 +50,8 @@ export interface Hotel {
     cancellationPolicies?: Array<{ from: string; amountPaise: number }>;
     promotions?: Array<{ name?: string; remark?: string }>;
   }>;
+  /** Live hotel listed without a price yet: show "Check price" (room search), never 0 or Select. */
+  needsPriceCheck?: boolean;
   latitude?: number;           // supplier coordinates, when the supplier sent them
   longitude?: number;
 }

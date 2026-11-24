@@ -13,6 +13,7 @@ interface Body {
   checkOut: string;
   rooms: Array<{ adults: number; children?: number; childAges?: number[] }>;
   nationality?: string;
+  includeUnpriced?: boolean;
 }
 
 export async function POST(req: Request) {
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
   try { input = await req.json(); } catch { return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 }); }
 
   try {
-    const res = await searchLiveHotels({ ...input, rooms: input.rooms.map((r) => ({ adults: r.adults, children: r.children ?? 0, childAges: r.childAges })), nationality: input.nationality });
+    const res = await searchLiveHotels({ ...input, rooms: input.rooms.map((r) => ({ adults: r.adults, children: r.children ?? 0, childAges: r.childAges })), nationality: input.nationality, includeUnpriced: input.includeUnpriced === true });
     return NextResponse.json({
       ok: true,
       hotels: res.hotels,

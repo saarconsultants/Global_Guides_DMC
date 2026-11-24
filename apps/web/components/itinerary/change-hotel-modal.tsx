@@ -9,6 +9,7 @@ import { hotelsForCity } from '@/lib/itinerary/mock-inventory';
 import type { Hotel, StarRating, Room } from '@/lib/itinerary/types';
 import { Star, Building2 } from 'lucide-react';
 import { isLiveHotelId } from '@/lib/hotels/supplier';
+import { CheckPriceButton } from '@/components/hotels/check-price';
 
 interface Props {
   open: boolean;
@@ -31,6 +32,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
   const [liveHotels, setLiveHotels] = useState<Hotel[]>([]);
   const [source, setSource] = useState<Source>('mock');
   const [warning, setWarning] = useState<string | undefined>();
+  const [checked, setChecked] = useState<Record<string, Hotel>>({});
 
   const requestId = useRef(0);
 
@@ -51,6 +53,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
         checkIn: checkIn.slice(0, 10),
         checkOut: checkOut.slice(0, 10),
         rooms: rooms.map((r) => ({ adults: r.adults, children: r.children })),
+        includeUnpriced: true,
       }),
     })
       .then((res) => res.json())
@@ -76,7 +79,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
 
   const mock = hotelsForCity(cityCode);
   // Live or sample, never both.
-  const merged = source === 'live' ? liveHotels : mock;
+  const merged = source === 'live' ? liveHotels.map((h) => checked[h.id] ?? h) : mock;
   const filtered = starFilter ? merged.filter((h) => h.stars === starFilter) : merged;
 
   return (
@@ -97,7 +100,7 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
             );
           })}
         </div>
-        <SourceBadge source={source} liveCount={liveHotels.length} />
+        <SourceBadge source={source} liveCount={liveHotels.filter((h) => !h.needsPriceCheck).length} />
       </div>
 
       {warning && source !== 'live' && (
@@ -137,10 +140,20 @@ export function ChangeHotelModal({ open, onClose, cityCode, cityName, currentHot
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="text-xs text-[rgb(var(--text-secondary))]">per night</p>
-                <p className="money text-lg text-ink">{money(h.pricePerNightPaise)}</p>
-                <Button size="sm" className="mt-2" onClick={() => { onPick(h); onClose(); }} disabled={h.id === currentHotelId}>
-                  {h.id === currentHotelId ? 'Selected' : 'Select'}
-                </Button>
+                {h.needsPriceCheck && checkIn && checkOut && rooms ? (
+                  <>
+                    <p className="text-sm font-semibold text-ink">Price not loaded</p>
+                    {/* Room offers stay out of the trip: Unifystays booking looks them up again. */}
+                    <CheckPriceButton hotel={h} stay={{ checkIn, checkOut, rooms }} className="mt-2" onPriced={({ roomOptions: _, ...p }) => setChecked((c) => ({ ...c, [h.id]: p }))} />
+                  </>
+                ) : (
+                  <>
+                    <p className="money text-lg text-ink">{money(h.pricePerNightPaise)}</p>
+                    <Button size="sm" className="mt-2" onClick={() => { onPick(h); onClose(); }} disabled={h.id === currentHotelId || h.needsPriceCheck}>
+                      {h.id === currentHotelId ? 'Selected' : 'Select'}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>

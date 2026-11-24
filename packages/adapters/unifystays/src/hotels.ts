@@ -27,6 +27,8 @@ export interface UnifySearchResult {
   hotels: UnifyHotel[];
   /** Hotels the search listed that ended with no price (sold out, unmapped, supplier error). */
   unpriced: number;
+  /** No price yet, but a supplier may still quote it from the room search ("Check price"). `totalPaise` is 0. */
+  checkable: UnifyHotel[];
   placeName?: string;
   warning?: string;
 }
@@ -52,16 +54,19 @@ export async function resolvePlace(cityName: string, countryCode?: string): Prom
 
 const priced = (p: any) => (p?.status === 'live' || p?.status === 'recent') && Number.isFinite(p?.amount);
 
-function toHotel(h: any): UnifyHotel | null {
+/** Still being asked, or failed for a reason worth retrying. Never `no_price` (sold out) or `not_mapped`. */
+const checkable = (p: any) => p?.status === 'checking' || (p?.status === 'unpriced' && p?.reason !== 'not_mapped');
+
+function toHotel(h: any, unpriced = false): UnifyHotel | null {
   const p = h.price;
-  if (!priced(p) || p.currency !== 'INR') return null;   // never show a guessed or unconverted price
+  if (!unpriced && (!priced(p) || p.currency !== 'INR')) return null;   // never show a guessed or unconverted price
   return {
     hotelId: String(h.hotel_id), name: String(h.hotel_name ?? ''), stars: Number(h.stars) || 0,
     address: String(h.address ?? ''), city: String(h.city ?? ''), countryCode: String(h.country ?? ''),
     latitude: Number.isFinite(h.latitude) ? h.latitude : undefined, longitude: Number.isFinite(h.longitude) ? h.longitude : undefined,
     image: h.main_image_url ?? undefined, facilities: Array.isArray(h.facilities) ? h.facilities : [],
-    totalPaise: Number(p.amount), refundable: p.is_refundable ?? null, freeCancellationUntil: p.free_cancellation_until ?? null,
-    supplier: p.supplier_code ?? null,
+    totalPaise: unpriced ? 0 : Number(p.amount), refundable: unpriced ? null : p.is_refundable ?? null,
+    freeCancellationUntil: unpriced ? null : p.free_cancellation_until ?? null, supplier: unpriced ? null : p.supplier_code ?? null,
   };
 }
 
@@ -93,7 +98,7 @@ export async function searchHotels(input: {
   maxPages?: number; waitMs?: number;
 }): Promise<UnifySearchResult> {
   const place = await resolvePlace(input.cityName, input.countryCode);
-  if (!place) return { hotels: [], unpriced: 0, warning: `Unifystays has no destination called ${input.cityName}.` };
+  if (!place) return { hotels: [], unpriced: 0, checkable: [], warning: `Unifystays has no destination called ${input.cityName}.` };
   const body: any = {
     destination: { type: 'place', id: place.id },
     check_in: input.checkIn, check_out: input.checkOut,
@@ -111,15 +116,16 @@ export async function searchHotels(input: {
     cursor = r.nextCursor;
     if (!cursor) break;
   }
-  const hotels = [...all.values()].map(toHotel).filter((h): h is UnifyHotel => !!h);
+  const hotels = [...all.values()].map((h) => toHotel(h)).filter((h): h is UnifyHotel => !!h);
+  const checkableHotels = [...all.values()].filter((h) => !priced(h.price) && checkable(h.price)).map((h) => toHotel(h, true)!);
   let warning: string | undefined;
   if (!all.size) warning = `Unifystays found no hotels in ${place.name} for these dates.`;
   else if (!hotels.length) {
     // Say why every card was dropped (no live price, or not in INR) so an empty result is explainable.
     const why = new Map<string, number>();
-    for (const h of all.values()) { const k = `${h.price?.status ?? 'no price'}${h.price?.currency && h.price.currency !== 'INR' ? ' ' + h.price.currency : ''}`; why.set(k, (why.get(k) ?? 0) + 1); }
+    for (const h of all.values()) { const k = `${h.price?.status ?? 'no price'}${h.price?.reason ? ' ' + h.price.reason : ''}${h.price?.currency && h.price.currency !== 'INR' ? ' ' + h.price.currency : ''}`; why.set(k, (why.get(k) ?? 0) + 1); }
     warning = `Unifystays found ${all.size} hotels in ${place.name} but none had a bookable INR price (${[...why].map(([k, n]) => `${n} ${k}`).join(', ')}).`;
   }
   if (warning) console.error('[unifystays]', warning);
-  return { hotels, unpriced: all.size - hotels.length, placeName: place.name, warning };
+  return { hotels, unpriced: all.size - hotels.length, checkable: checkableHotels, placeName: place.name, warning };
 }

@@ -47,7 +47,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   if (hasQuery && !dateInvalid) {
     if (anyHotelSupplierLive()) {
       try {
-        const res = await searchLiveHotels({ cityCode: city, checkIn: checkin, checkOut: checkout, rooms: occupancy, market: residence, nationality: sp.nationality ?? residence });
+        const res = await searchLiveHotels({ cityCode: city, checkIn: checkin, checkOut: checkout, rooms: occupancy, market: residence, nationality: sp.nationality ?? residence, includeUnpriced: true });
         source = res.source;
         warning = res.warning;
         // Live or sample, never both.
@@ -76,6 +76,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   if (sp.refundable === '1') hotels = hotels.filter((h) => h.refundable);
   const sort = sp.sort ?? 'price-asc';
   hotels = [...hotels].sort((a, b) => {
+    if (!!a.needsPriceCheck !== !!b.needsPriceCheck) return a.needsPriceCheck ? 1 : -1;   // unpriced always last
     if (sort === 'price-desc')  return b.pricePerNightPaise - a.pricePerNightPaise;
     if (sort === 'stars-desc')  return b.stars - a.stars || a.pricePerNightPaise - b.pricePerNightPaise;
     if (sort === 'rating-desc') return (b.rating?.score ?? 0) - (a.rating?.score ?? 0);
@@ -83,10 +84,11 @@ export default async function HotelsPage({ searchParams }: PageProps) {
   });
   const filteredOut = totalBeforeFilter - hotels.length;
 
-  const liveCount = hotels.filter((h) => isLiveHotelId(h.id)).length;
+  const liveCount = hotels.filter((h) => isLiveHotelId(h.id) && !h.needsPriceCheck).length;
+  const checkCount = hotels.length - hotels.filter((h) => !h.needsPriceCheck).length;
   const badge =
     source === 'live'
-      ? { variant: 'live' as const, label: `${liveCount} with live prices` }
+      ? { variant: 'live' as const, label: `${liveCount} with live prices${checkCount ? ` · ${checkCount} to check` : ''}` }
       : source === 'unsupported-city'
       ? { variant: 'warning' as const, label: `Sample prices — live rates aren't available for ${cityName}` }
       : { variant: 'warning' as const, label: 'Sample prices — live rates unavailable right now' };
@@ -142,7 +144,7 @@ export default async function HotelsPage({ searchParams }: PageProps) {
               </p>
               <Pill variant={badge.variant} className="max-w-full whitespace-normal text-left leading-tight">{badge.label}</Pill>
             </div>
-            <HotelResults hotels={hotels} nights={nights} checkin={checkin} adults={adults} share={{ cityName, checkIn: checkin, checkOut: checkout, rooms: occupancy.map((r) => ({ adults: r.adults, children: r.children })) }} />
+            <HotelResults hotels={hotels} nights={nights} checkin={checkin} adults={adults} stay={{ checkIn: checkin, checkOut: checkout, rooms: occupancy, nationality: sp.nationality ?? residence }} share={{ cityName, checkIn: checkin, checkOut: checkout, rooms: occupancy.map((r) => ({ adults: r.adults, children: r.children })) }} />
           </>
         )}
       </div>

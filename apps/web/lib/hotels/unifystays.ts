@@ -17,7 +17,7 @@ export const BEST_BOARD = 'Best available rate';
 const nightsOf = (checkIn: string, checkOut: string) => Math.max(1, Math.round((Date.parse(checkOut) - Date.parse(checkIn)) / 86_400_000));
 export const unifyRooms = (rooms: Room[]) => rooms.map((r) => ({ adults: r.adults, childAges: childAgesFor(r) }));
 
-function toHotel(h: UnifyHotel, cityCode: string, nights: number): Hotel {
+function toHotel(h: UnifyHotel, cityCode: string, nights: number, needsPriceCheck = false): Hotel {
   return {
     id: `${UNIFY_PREFIX}${h.hotelId}`, name: h.name, stars: Math.min(5, Math.max(3, h.stars)) as StarRating,
     address: [h.address, h.city].filter(Boolean).join(', '), cityCode,
@@ -26,6 +26,7 @@ function toHotel(h: UnifyHotel, cityCode: string, nights: number): Hotel {
     pricePerNightPaise: Math.round(h.totalPaise / nights),
     room: { name: BEST_ROOM, bedConfig: '' },
     latitude: h.latitude, longitude: h.longitude,
+    ...(needsPriceCheck ? { needsPriceCheck } : {}),
   };
 }
 
@@ -33,8 +34,8 @@ function toHotel(h: UnifyHotel, cityCode: string, nights: number): Hotel {
 export async function searchUnifyHotels(input: {
   cityCode: string; checkIn: string; checkOut: string; rooms: Room[]; nationality?: string; minStars?: number;
   maxPages?: number; waitMs?: number;
-}): Promise<{ hotels: Hotel[]; unpriced: number; warning?: string }> {
-  if (!isLive()) return { hotels: [], unpriced: 0 };
+}): Promise<{ hotels: Hotel[]; unpriced: number; checkable: Hotel[]; warning?: string }> {
+  if (!isLive()) return { hotels: [], unpriced: 0, checkable: [] };
   const c = cityInfo(input.cityCode);
   const res = await searchHotels({
     cityName: c.name, countryCode: c.countryCode, checkIn: input.checkIn, checkOut: input.checkOut,
@@ -42,7 +43,11 @@ export async function searchUnifyHotels(input: {
     maxPages: input.maxPages, waitMs: input.waitMs,
   });
   const nights = nightsOf(input.checkIn, input.checkOut);
-  return { hotels: res.hotels.filter((h) => h.stars >= 3).map((h) => toHotel(h, input.cityCode, nights)), unpriced: res.unpriced, warning: res.warning };
+  return {
+    hotels: res.hotels.filter((h) => h.stars >= 3).map((h) => toHotel(h, input.cityCode, nights)),
+    checkable: res.checkable.filter((h) => h.stars >= 3).map((h) => toHotel(h, input.cityCode, nights, true)),
+    unpriced: res.unpriced, warning: res.warning,
+  };
 }
 
 export const roomLabel = (o: UnifyOffer) => [...new Set(o.rooms.map((r) => r.name))].join(' + ');

@@ -24,6 +24,8 @@ export async function searchLiveHotels(input: {
   market?: string; nationality?: string; minStars?: StarRating;
   /** For callers with a tight time limit (trip composer, AI planner): fewer pages, shorter price wait. */
   fast?: boolean;
+  /** Also return live hotels with no price yet (`needsPriceCheck`), after the priced ones. Only for screens with a Check price button. */
+  includeUnpriced?: boolean;
 }): Promise<{ hotels: Hotel[]; source: 'live' | 'mock' | 'unsupported-city'; warning?: string }> {
   const [hb, us] = await Promise.allSettled([
     hotelbedsLive('hotels')
@@ -35,6 +37,7 @@ export async function searchLiveHotels(input: {
   ]);
   const warnings: string[] = [];
   const hotels: Hotel[] = [];
+  const checkable: Hotel[] = [];
   let hbSource: 'live' | 'mock' | 'unsupported-city' | null = null;
   if (hb.status === 'fulfilled' && hb.value) {
     hbSource = hb.value.source;
@@ -43,9 +46,11 @@ export async function searchLiveHotels(input: {
   } else if (hb.status === 'rejected') warnings.push(`Hotelbeds: ${hb.reason?.message ?? 'search failed'}`);
   if (us.status === 'fulfilled' && us.value) {
     hotels.push(...us.value.hotels);
+    if (input.includeUnpriced) checkable.push(...us.value.checkable);
     if (us.value.warning) warnings.push(us.value.warning);
   } else if (us.status === 'rejected') warnings.push(`Unifystays: ${us.reason?.message ?? 'search failed'}`);
   if (warnings.length) console.error('[hotels] supplier warnings', warnings.join(' | '));
+  hotels.push(...checkable);
   return {
     hotels,
     source: hotels.length ? 'live' : hbSource === 'unsupported-city' ? 'unsupported-city' : 'mock',
